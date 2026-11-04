@@ -27,7 +27,7 @@ Die App ist für einen Spieler gedacht, der vom Gelegenheitsspieler (ca. 750 bis
 
 **Leitfrage:** Fühlt sich die App flüssig, klar und hochwertig an?
 
-- **Figuren:** fünf Figurensets zur Auswahl, Standard ist „Maestro“ mit weicher Schattierung. Fünf Brettfarben.
+- **Figuren:** sieben Figurensets zur Auswahl, Standard ist „Gioco“ auf einem Holzbrett mit Maserung. Sechs Brettfarben.
 - **Rückmeldung:** Zug-Animation, Sounds für Zug, Schlagen, Schach, Rochade, Umwandlung, Sieg und Niederlage, Vibration bei wichtigen Ereignissen. Alles einzeln abschaltbar.
 - **Navigation:** drei klare Tabs (Spielen, Training, Profil) statt vieler Platzhalter. In Mini-Spielen wird die Tab-Leiste ausgeblendet, damit nichts ablenkt.
 - Große Tippflächen, Dunkelmodus, Bedienung mit dem Daumen am unteren Rand.

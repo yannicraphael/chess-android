@@ -77,8 +77,8 @@ export default function ProfileScreen() {
           {BOARD_THEMES.map((t) => (
             <button key={t.id} className={'choice' + (s.boardTheme === t.id ? ' active' : '')} onClick={() => settings.set({ boardTheme: t.id })}>
               <span className="mini-board">
-                <span style={{ background: t.light }} /><span style={{ background: t.dark }} />
-                <span style={{ background: t.dark }} /><span style={{ background: t.light }} />
+                <span style={{ background: t.light, backgroundImage: t.texture?.light }} /><span style={{ background: t.dark, backgroundImage: t.texture?.dark }} />
+                <span style={{ background: t.dark, backgroundImage: t.texture?.dark }} /><span style={{ background: t.light, backgroundImage: t.texture?.light }} />
               </span>
               {t.name}
             </button>
@@ -92,7 +92,7 @@ export default function ProfileScreen() {
       </div>
 
       <p className="credits">
-        Figuren: Maestro, Kardinal und Fresca von sadsnake1 (CC BY-NC-SA 4.0), Merida von Armando H. Marroquin (GPLv2+), Klassisch von Colin M.L. Burnett (GPLv2+), über das Lichess-Projekt. Engine: Stockfish 19 (GPLv3).
+        Figuren: Gioco, Staunty, Maestro, Kardinal und Fresca von sadsnake1 (CC BY-NC-SA 4.0), Merida von Armando H. Marroquin (GPLv2+), Klassisch von Colin M.L. Burnett (GPLv2+), über das Lichess-Projekt. Engine: Stockfish 19 (GPLv3).
       </p>
     </div>
   )

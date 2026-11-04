@@ -181,6 +181,12 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
     }
   }
 
+  // little "game starts" chime for a fresh game
+  useEffect(() => {
+    if (game.history().length === 0) playSound('start')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   // pre-compute the evaluation of the player's position so the coach answers quickly
   useEffect(() => {
     if (s.coach && !result && game.turn() === playerColor && !game.isGameOver()) void cachedEval(game.fen())
