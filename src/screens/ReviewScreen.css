@@ -1,0 +1,63 @@
+.review-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+  overflow-y: auto;
+}
+.review-progress { padding: 10px 16px; font-size: 14px; color: var(--muted); }
+.review-progress .bar { height: 8px; background: var(--card-2); border-radius: 4px; margin-top: 6px; overflow: hidden; }
+.review-progress .bar div { height: 100%; background: var(--accent); transition: width 0.2s; }
+
+.review-summary { padding: 4px 12px 8px; }
+.acc { display: flex; align-items: center; justify-content: space-around; background: var(--card); border-radius: 12px; padding: 8px; }
+.acc > div { display: flex; flex-direction: column; align-items: center; }
+.acc-val { font-size: 26px; font-weight: 800; background: #f2f1ee; color: #222; border-radius: 8px; padding: 2px 12px; }
+.acc-val.bot { background: #222; color: #f2f1ee; }
+.acc-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.acc-mid { font-size: 13px; color: var(--muted); text-align: center; }
+.grade-row { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: center; margin-top: 8px; font-size: 13px; }
+.grade-chip span { color: var(--muted); }
+
+.eval-graph { width: 100%; height: 56px; display: block; cursor: pointer; }
+.review-board { padding: 6px 0; }
+
+.review-explain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--card);
+  font-size: 14px;
+  min-height: 52px;
+}
+.grade-badge {
+  min-width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.eval-now { margin-left: auto; font-weight: 800; background: var(--card-2); padding: 3px 8px; border-radius: 6px; flex-shrink: 0; }
+
+.key-moments { display: flex; gap: 6px; padding: 8px 12px; overflow-x: auto; align-items: center; }
+.km-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.km {
+  background: var(--card);
+  border: 1px solid;
+  border-radius: 999px;
+  color: var(--text);
+  padding: 4px 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.km.active { background: var(--card-2); }
+.review-screen .game-actions { margin-top: auto; }

@@ -30,5 +30,7 @@ npm run android:sync # Web-Build in das Android-Projekt kopieren
 ## Hinweise
 
 - Die APK wird mit einem festen Schlüssel signiert, damit Updates über die alte Version installiert werden können. Der Schlüssel liegt als Repository-Secret `ANDROID_KEYSTORE_BASE64` (plus `ANDROID_KEYSTORE_PASSWORD`) in GitHub, nicht im Code.
-- Figuren: „cburnett“ von Colin M.L. Burnett, CC BY-SA 3.0.
+- Figuren über das Lichess-Projekt: Maestro, Kardinal, Fresca von sadsnake1 (CC BY-NC-SA 4.0), Merida von Armando H. Marroquin (GPLv2+), cburnett von Colin M.L. Burnett (GPLv2+). Die App ist privat und nicht kommerziell.
+- Sounds werden in der App per Web Audio erzeugt, es gibt keine Audiodateien.
+- Konzept und Roadmap: [docs/KONZEPT.md](docs/KONZEPT.md)
 - Stockfish ist GPLv3-lizenziert.

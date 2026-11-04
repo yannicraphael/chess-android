@@ -3,9 +3,10 @@ import { useState } from 'react'
 import { BOTS, type Bot } from './bots'
 import GameScreen, { type SavedGame } from './screens/GameScreen'
 import PlayScreen from './screens/PlayScreen'
-import ComingSoon from './screens/ComingSoon'
+import TrainingScreen from './screens/TrainingScreen'
+import ProfileScreen from './screens/ProfileScreen'
 
-type Tab = 'play' | 'puzzles' | 'openings' | 'endgames'
+type Tab = 'play' | 'training' | 'profile'
 
 const SAVE_KEY = 'currentGame'
 
@@ -20,9 +21,8 @@ function loadSaved(): SavedGame | null {
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'play', label: 'Spielen', icon: '♟' },
-  { id: 'puzzles', label: 'Taktik', icon: '🧩' },
-  { id: 'openings', label: 'Eröffnungen', icon: '📖' },
-  { id: 'endgames', label: 'Endspiele', icon: '♔' },
+  { id: 'training', label: 'Training', icon: '🎯' },
+  { id: 'profile', label: 'Profil', icon: '🏅' },
 ]
 
 export default function App() {
@@ -30,6 +30,7 @@ export default function App() {
   const [saved, setSaved] = useState<SavedGame | null>(loadSaved)
   const [inGame, setInGame] = useState(false)
   const [gameKey, setGameKey] = useState(0)
+  const [miniGame, setMiniGame] = useState(false)
 
   const savedBot = saved ? BOTS.find((b) => b.id === saved.botId) ?? null : null
   const resumable = saved && savedBot && !saved.result && saved.pgn ? savedBot : null
@@ -57,36 +58,17 @@ export default function App() {
     <div className="app">
       <main className="tab-content">
         {tab === 'play' && <PlayScreen onStart={start} resumeBot={resumable} onResume={() => setInGame(true)} />}
-        {tab === 'puzzles' && (
-          <ComingSoon title="Taktik" icon="🧩" items={[
-            'Taktikaufgaben nach Schwierigkeit und Motiv (Gabel, Fesselung, Abzug …)',
-            'Eigene Taktik-Wertung, die mit dir mitwächst',
-            'Tagesaufgabe und Lösungsserien',
-          ]} />
-        )}
-        {tab === 'openings' && (
-          <ComingSoon title="Eröffnungen" icon="📖" items={[
-            'Eröffnungen Zug für Zug lernen, mit Erklärungen',
-            'Varianten wiederholen, bis sie sitzen',
-            'Dein eigenes Repertoire für Weiß und Schwarz',
-          ]} />
-        )}
-        {tab === 'endgames' && (
-          <ComingSoon title="Endspiele" icon="♔" items={[
-            'Grundendspiele: Mattführung mit Dame, Turm, zwei Läufern',
-            'Bauernendspiele: Opposition, Quadratregel, Durchbruch',
-            'Endspielstellungen gegen die Engine ausspielen',
-          ]} />
-        )}
+        {tab === 'training' && <TrainingScreen onPlaying={setMiniGame} />}
+        {tab === 'profile' && <ProfileScreen />}
       </main>
-      <nav className="tab-bar">
+      {!miniGame && <nav className="tab-bar">
         {TABS.map((t) => (
           <button key={t.id} className={'tab' + (tab === t.id ? ' active' : '')} onClick={() => setTab(t.id)}>
             <span className="tab-icon">{t.icon}</span>
             <span className="tab-label">{t.label}</span>
           </button>
         ))}
-      </nav>
+      </nav>}
     </div>
   )
 }
