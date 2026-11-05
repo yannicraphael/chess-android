@@ -1,6 +1,6 @@
 import type { Color } from 'chess.js'
 import { useState } from 'react'
-import { BOTS, type Bot } from '../bots'
+import { BOT_GROUPS, BOTS, type Bot } from '../bots'
 import { levelInfo, progress } from '../lib/progress'
 import { settings } from '../lib/settings'
 import './PlayScreen.css'
@@ -53,20 +53,30 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
         <span className="emoji-avatar big" style={{ background: bot.color }}>{bot.emoji}</span>
         <div>
           <div className="bot-name">{bot.name} <span className="bot-rating">{bot.rating}</span>{p.bots[bot.id]?.wins ? <span className="beaten">🏆 besiegt</span> : null}</div>
+          {bot.title && <div className="bot-title">{bot.title}</div>}
           <div className="bot-desc">{bot.description}</div>
         </div>
       </div>
 
-      <div className="bot-grid">
-        {BOTS.map((b) => (
-          <button key={b.id} className={'bot-tile' + (b.id === bot.id ? ' active' : '')} onClick={() => setBotId(b.id)}>
-            <span className="emoji-avatar" style={{ background: b.color }}>{b.emoji}</span>
-            <span className="tile-name">{b.name}</span>
-            <span className="tile-rating">{b.rating}</span>
-            {p.bots[b.id]?.wins ? <span className="tile-badge">🏆</span> : b.id === recommended ? <span className="tile-badge rec">Tipp</span> : null}
-          </button>
-        ))}
-      </div>
+      {BOT_GROUPS.map((g, gi) => {
+        const min = gi === 0 ? 0 : BOT_GROUPS[gi - 1].max
+        const list = BOTS.filter((b) => b.rating >= min && b.rating < g.max)
+        return (
+          <div key={g.name} className="bot-group">
+            <div className="section-label">{g.name}</div>
+            <div className="bot-grid">
+              {list.map((b) => (
+                <button key={b.id} className={'bot-tile' + (b.id === bot.id ? ' active' : '')} onClick={() => setBotId(b.id)}>
+                  <span className="emoji-avatar" style={{ background: b.color }}>{b.emoji}</span>
+                  <span className="tile-name">{b.name}</span>
+                  <span className="tile-rating">{b.rating}</span>
+                  {p.bots[b.id]?.wins ? <span className="tile-badge">🏆</span> : b.id === recommended ? <span className="tile-badge rec">Tipp</span> : null}
+                </button>
+              ))}
+            </div>
+          </div>
+        )
+      })}
 
       <div className="section-label">Ich spiele</div>
       <div className="color-picker">

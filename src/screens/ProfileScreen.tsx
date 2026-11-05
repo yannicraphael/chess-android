@@ -1,5 +1,6 @@
 import { BOTS } from '../bots'
 import { levelInfo, levelTitle, progress } from '../lib/progress'
+import { puzzleStats } from '../lib/puzzles'
 import { BLACK_COLORS, BOARD_THEMES, PIECE_SETS, WHITE_COLORS, pieceUrl, settings, type Settings } from '../lib/settings'
 import { playSound, SOUND_SETS } from '../lib/sound'
 import './Training.css'
@@ -20,6 +21,7 @@ function Toggle({ k, label, sub }: { k: keyof Settings; label: string; sub?: str
 
 export default function ProfileScreen() {
   const p = progress.use()
+  const ps = puzzleStats.use()
   const s = settings.use()
   const { level, into, needed } = levelInfo(p.xp)
   const games = Object.values(p.bots).reduce((a, r) => a + r.played, 0)
@@ -43,6 +45,11 @@ export default function ProfileScreen() {
         <div className="stat"><strong>🔥 {p.streak}</strong><span>Tage in Folge</span></div>
         <div className="stat"><strong>{wins}/{games}</strong><span>Siege / Partien</span></div>
         <div className="stat"><strong>⭐ {totalStars}</strong><span>Sterne</span></div>
+      </div>
+      <div className="stat-row">
+        <div className="stat"><strong>🧩 {ps.rating}</strong><span>Taktik-Wertung</span></div>
+        <div className="stat"><strong>{ps.solved}</strong><span>Aufgaben gelöst</span></div>
+        <div className="stat"><strong>{ps.peak}</strong><span>Beste Wertung</span></div>
       </div>
 
       <div className="section-title">Bot-Trophäen</div>
@@ -116,7 +123,7 @@ export default function ProfileScreen() {
       </div>
 
       <p className="credits">
-        Figuren über das Lichess-Projekt: Staunty, Dubrovny (sadsnake1, CC BY-NC-SA 4.0), Cooke (fejfar, CC BY-NC-SA 4.0), Fantasy und Keltisch (Maurizio Monge, MIT), Klar (Maxime Chupin, GPLv3+), Rhos (RhosGFX, CC0), Papier (Nikolay Anzarov, CC BY 4.0). Sounds: Kenney (CC0). Engine: Stockfish 19 (GPLv3).
+        Figuren über das Lichess-Projekt: Staunty, Dubrovny (sadsnake1, CC BY-NC-SA 4.0), Cooke (fejfar, CC BY-NC-SA 4.0), Fantasy und Keltisch (Maurizio Monge, MIT), Klar (Maxime Chupin, GPLv3+), Rhos (RhosGFX, CC0), Papier (Nikolay Anzarov, CC BY 4.0). Sounds: Kenney (CC0). Taktikaufgaben: Lichess-Puzzle-Datenbank (CC0). Engine: Stockfish 19 (GPLv3).
       </p>
     </div>
   )
