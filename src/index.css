@@ -81,3 +81,7 @@ button { font-family: inherit; }
 .cs-icon { font-size: 48px; }
 .cs-lead { font-weight: 700; }
 .cs-card ul { text-align: left; color: var(--muted); line-height: 1.6; padding-left: 20px; }
+
+/* piece colours (see settings.ts) */
+img[src$="/wK.svg"], img[src$="/wQ.svg"], img[src$="/wR.svg"], img[src$="/wB.svg"], img[src$="/wN.svg"], img[src$="/wP.svg"] { filter: var(--w-filter, none); }
+img[src$="/bK.svg"], img[src$="/bQ.svg"], img[src$="/bR.svg"], img[src$="/bB.svg"], img[src$="/bN.svg"], img[src$="/bP.svg"] { filter: var(--b-filter, none); }

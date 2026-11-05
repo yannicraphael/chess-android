@@ -1,5 +1,6 @@
 import { Chess, type Square, type PieceSymbol, type Color } from 'chess.js'
 import { useMemo, useRef, useState } from 'react'
+import { boardTheme, pieceUrl, settings } from '../lib/settings'
 import './Board.css'
 
 export interface SquarePair {
@@ -10,33 +11,39 @@ export interface SquarePair {
 interface Props {
   fen: string
   orientation: Color
-  movableColor: Color | null // null = no moves allowed
+  movableColor?: Color | null // null = no moves allowed
   lastMove?: SquarePair | null
   hint?: SquarePair | null
-  onMove: (from: string, to: string, promotion?: PieceSymbol) => void
+  marks?: Record<string, string> // square -> extra css class (mini-games)
+  showCoords?: boolean
+  onMove?: (from: string, to: string, promotion?: PieceSymbol) => void
+  onSquareTap?: (square: string) => void // used when no moves are allowed
 }
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
-export function pieceUrl(color: Color, type: PieceSymbol) {
-  return `${import.meta.env.BASE_URL}pieces/${color}${type.toUpperCase()}.svg`
-}
-
-export default function Board({ fen, orientation, movableColor, lastMove, hint, onMove }: Props) {
-  const chess = useMemo(() => new Chess(fen), [fen])
+export default function Board({ fen, orientation, movableColor = null, lastMove, hint, marks, showCoords, onMove, onSquareTap }: Props) {
+  const s = settings.use()
+  const theme = boardTheme(s.boardTheme)
+  const coords = showCoords ?? s.coordinates
+  const chess = useMemo(() => new Chess(fen, { skipValidation: true }), [fen])
   const boardRef = useRef<HTMLDivElement>(null)
   const [selected, setSelected] = useState<Square | null>(null)
   const [drag, setDrag] = useState<{ from: Square; x: number; y: number; moved: boolean } | null>(null)
   const [promo, setPromo] = useState<SquarePair | null>(null)
+  const [rect, setRect] = useState<DOMRect | null>(null)
   const wasSelected = useRef(false)
+  const draggedTo = useRef<string | null>(null)
 
   // reset selection whenever the position changes
   const [prevFen, setPrevFen] = useState(fen)
+  const [animKey, setAnimKey] = useState(0)
   if (prevFen !== fen) {
     setPrevFen(fen)
     setSelected(null)
     setDrag(null)
     setPromo(null)
+    setAnimKey((k) => k + 1)
   }
 
   const canMove = movableColor !== null && chess.turn() === movableColor && !chess.isGameOver()
@@ -55,11 +62,18 @@ export default function Board({ fen, orientation, movableColor, lastMove, hint, 
     for (const row of chess.board()) for (const p of row) if (p && p.type === 'k' && p.color === chess.turn()) checkSq = p.square
   }
 
+  // screen position (column/row index) of a square
+  function pos(sq: string) {
+    const f = FILES.indexOf(sq[0])
+    const r = Number(sq[1]) - 1
+    return { c: cols.indexOf(f), r: rows.indexOf(r) }
+  }
+
   function squareAt(clientX: number, clientY: number): Square | null {
-    const rect = boardRef.current?.getBoundingClientRect()
-    if (!rect) return null
-    const c = Math.floor(((clientX - rect.left) / rect.width) * 8)
-    const r = Math.floor(((clientY - rect.top) / rect.height) * 8)
+    const rc = boardRef.current?.getBoundingClientRect()
+    if (!rc) return null
+    const c = Math.floor(((clientX - rc.left) / rc.width) * 8)
+    const r = Math.floor(((clientY - rc.top) / rc.height) * 8)
     if (c < 0 || c > 7 || r < 0 || r > 7) return null
     return (FILES[cols[c]] + (rows[r] + 1)) as Square
   }
@@ -70,24 +84,30 @@ export default function Board({ fen, orientation, movableColor, lastMove, hint, 
     if (moves.some((m) => m.promotion)) {
       setPromo({ from, to })
     } else {
-      onMove(from, to)
+      onMove?.(from, to)
     }
     setSelected(null)
     return true
   }
 
   function onPointerDown(e: React.PointerEvent) {
-    if (promo || !canMove) return
     const sq = squareAt(e.clientX, e.clientY)
     if (!sq) return
+    if (!canMove) {
+      onSquareTap?.(sq)
+      return
+    }
+    if (promo) return
     const piece = chess.get(sq)
     if (selected && sq !== selected && targets.has(sq)) {
+      draggedTo.current = null
       tryMove(selected, sq)
       return
     }
     if (piece && piece.color === movableColor) {
       wasSelected.current = selected === sq
       setSelected(sq)
+      setRect(boardRef.current?.getBoundingClientRect() ?? null)
       setDrag({ from: sq, x: e.clientX, y: e.clientY, moved: false })
       boardRef.current?.setPointerCapture(e.pointerId)
     } else {
@@ -107,20 +127,36 @@ export default function Board({ fen, orientation, movableColor, lastMove, hint, 
     const from = drag.from
     setDrag(null)
     if (sq && sq !== from) {
+      draggedTo.current = drag.moved ? sq : null
       if (!tryMove(from, sq)) setSelected(null)
     } else if (sq === from && wasSelected.current && !drag.moved) {
       setSelected(null)
     }
   }
 
-  const rect = boardRef.current?.getBoundingClientRect()
   const sqSize = rect ? rect.width / 8 : 0
   const dragPiece = drag?.moved ? chess.get(drag.from) : null
+
+  // slide animation for the last move (skipped when the piece was dragged there)
+  let anim: { to: string; dx: number; dy: number } | null = null
+  if (s.animation && lastMove && draggedTo.current !== lastMove.to) {
+    const a = pos(lastMove.from)
+    const b = pos(lastMove.to)
+    anim = { to: lastMove.to, dx: (a.c - b.c) * 100, dy: (a.r - b.r) * 100 }
+  }
+
+  const style = {
+    '--sq-light': theme.light,
+    '--sq-dark': theme.dark,
+    '--hl-light': theme.hlLight,
+    '--hl-dark': theme.hlDark,
+  } as React.CSSProperties
 
   return (
     <div
       className="board"
       ref={boardRef}
+      style={style}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -136,13 +172,28 @@ export default function Board({ fen, orientation, movableColor, lastMove, hint, 
           if (selected === sq) classes.push('selected')
           if (hint && (hint.from === sq || hint.to === sq)) classes.push('hint')
           if (checkSq === sq) classes.push('check')
+          if (marks?.[sq]) classes.push(marks[sq])
+          const highlighted = classes.includes('last') || classes.includes('selected') || checkSq === sq
+          const sqStyle: React.CSSProperties | undefined = theme.texture && !highlighted
+            ? { backgroundImage: light ? theme.texture.light : theme.texture.dark, backgroundPosition: `${(r * 53 + c * 97) % 240}px ${(r * 71 + c * 31) % 240}px` }
+            : undefined
           const isTarget = targets.has(sq)
           const hidden = dragPiece && drag?.from === sq
+          const animate = anim && anim.to === sq
           return (
-            <div key={sq} className={classes.join(' ')}>
-              {ci === 0 && <span className="coord rank">{r + 1}</span>}
-              {ri === 7 && <span className="coord file">{FILES[c]}</span>}
-              {piece && !hidden && <img className="piece" src={pieceUrl(piece.color, piece.type)} alt="" draggable={false} />}
+            <div key={sq} className={classes.join(' ')} style={sqStyle}>
+              {coords && ci === 0 && <span className="coord rank">{r + 1}</span>}
+              {coords && ri === 7 && <span className="coord file">{FILES[c]}</span>}
+              {piece && !hidden && (
+                <img
+                  key={animate ? `a${animKey}` : 'p'}
+                  className={'piece' + (animate ? ' slide' : '')}
+                  style={animate ? ({ '--dx': `${anim!.dx}%`, '--dy': `${anim!.dy}%` } as React.CSSProperties) : undefined}
+                  src={pieceUrl(piece.color, piece.type, s.pieceSet)}
+                  alt=""
+                  draggable={false}
+                />
+              )}
               {isTarget && <span className={targets.get(sq) ? 'capture-ring' : 'dot'} />}
             </div>
           )
@@ -151,7 +202,7 @@ export default function Board({ fen, orientation, movableColor, lastMove, hint, 
       {dragPiece && drag && rect && (
         <img
           className="piece dragging"
-          src={pieceUrl(dragPiece.color, dragPiece.type)}
+          src={pieceUrl(dragPiece.color, dragPiece.type, s.pieceSet)}
           alt=""
           style={{
             width: sqSize * 1.15,
@@ -168,11 +219,11 @@ export default function Board({ fen, orientation, movableColor, lastMove, hint, 
               <button
                 key={t}
                 onClick={() => {
-                  onMove(promo.from, promo.to, t)
+                  onMove?.(promo.from, promo.to, t)
                   setPromo(null)
                 }}
               >
-                <img src={pieceUrl(movableColor ?? 'w', t)} alt={t} />
+                <img src={pieceUrl(movableColor ?? 'w', t, s.pieceSet)} alt={t} />
               </button>
             ))}
           </div>

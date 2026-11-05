@@ -1,6 +1,8 @@
 import type { Color } from 'chess.js'
 import { useState } from 'react'
 import { BOTS, type Bot } from '../bots'
+import { levelInfo, progress } from '../lib/progress'
+import { settings } from '../lib/settings'
 import './PlayScreen.css'
 
 type ColorChoice = 'w' | 'random' | 'b'
@@ -10,7 +12,12 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
   resumeBot: Bot | null
   onResume: () => void
 }) {
-  const [botId, setBotId] = useState(() => localStorage.getItem('lastBot') ?? 'lena')
+  const p = progress.use()
+  const st = settings.use()
+  // recommend the weakest bot that has not been beaten yet
+  const recommended = BOTS.find((b) => !(p.bots[b.id]?.wins > 0))?.id
+  const [botId, setBotId] = useState(() => localStorage.getItem('lastBot') ?? recommended ?? 'kiki')
+  const { level, into, needed } = levelInfo(p.xp)
   const [color, setColor] = useState<ColorChoice>('w')
   const bot = BOTS.find((b) => b.id === botId) ?? BOTS[0]
 
@@ -22,7 +29,14 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
 
   return (
     <div className="play-screen">
-      <h1 className="screen-title">Gegen Bots spielen</h1>
+      <div className="play-top">
+        <h1 className="screen-title">Gegen Bots spielen</h1>
+        <div className="level-chip">
+          {p.streak > 0 && <span className="streak">🔥{p.streak}</span>}
+          <span className="lvl">Lv {level}</span>
+          <span className="mini-xp"><span style={{ width: `${(into / needed) * 100}%` }} /></span>
+        </div>
+      </div>
 
       {resumeBot && (
         <button className="resume-card" onClick={onResume}>
@@ -38,7 +52,7 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
       <div className="bot-hero">
         <span className="emoji-avatar big" style={{ background: bot.color }}>{bot.emoji}</span>
         <div>
-          <div className="bot-name">{bot.name} <span className="bot-rating">{bot.rating}</span></div>
+          <div className="bot-name">{bot.name} <span className="bot-rating">{bot.rating}</span>{p.bots[bot.id]?.wins ? <span className="beaten">🏆 besiegt</span> : null}</div>
           <div className="bot-desc">{bot.description}</div>
         </div>
       </div>
@@ -49,6 +63,7 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
             <span className="emoji-avatar" style={{ background: b.color }}>{b.emoji}</span>
             <span className="tile-name">{b.name}</span>
             <span className="tile-rating">{b.rating}</span>
+            {p.bots[b.id]?.wins ? <span className="tile-badge">🏆</span> : b.id === recommended ? <span className="tile-badge rec">Tipp</span> : null}
           </button>
         ))}
       </div>
@@ -62,6 +77,12 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
           </button>
         ))}
       </div>
+
+      <button className="coach-toggle" onClick={() => settings.set({ coach: !st.coach })}>
+        <span>🎓</span>
+        <span className="ct-text"><strong>Trainer-Hilfe</strong><small>Warnt dich vor groben Fehlern und schlägt Besseres vor</small></span>
+        <span className={'switch' + (st.coach ? ' on' : '')} />
+      </button>
 
       <div className="play-footer">
         <button className="btn primary big" onClick={start}>Spielen</button>

@@ -102,3 +102,25 @@ class Engine {
 }
 
 export const engine = new Engine()
+
+export interface Evaluation {
+  cp: number // centipawns from WHITE's point of view (mates clipped to ±10000)
+  mate: number | null // moves to mate from white's point of view
+  best: string | null
+  bestCp: number // score for the side to move, mates clipped to ±1000 (for loss calculations)
+}
+
+export async function evaluate(fen: string, depth = 10): Promise<Evaluation> {
+  const whiteToMove = fen.split(' ')[1] === 'w'
+  const { best, candidates } = await engine.search(fen, { depth, skill: 20, multiPv: 1 })
+  const top = candidates[0]
+  const sign = whiteToMove ? 1 : -1
+  if (!top) return { cp: 0, mate: null, best: best && best !== '(none)' ? best : null, bestCp: 0 }
+  const stm = top.mate !== null ? Math.sign(top.mate) * 1000 : Math.max(-1000, Math.min(1000, top.scoreCp))
+  return {
+    cp: top.mate !== null ? sign * Math.sign(top.mate) * 10000 : sign * top.scoreCp,
+    mate: top.mate !== null ? sign * top.mate : null,
+    best: best && best !== '(none)' ? best : null,
+    bestCp: stm,
+  }
+}
