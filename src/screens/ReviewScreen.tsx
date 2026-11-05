@@ -2,8 +2,7 @@ import Icon from '../components/Icon'
 import { Chess, type Color, type Move } from 'chess.js'
 import { useEffect, useMemo, useState } from 'react'
 import Board from '../components/Board'
-import type { Bot } from '../bots'
-import { evaluate } from '../engine/stockfish'
+import { analyze, archive, performance, updateGame, type PosEval } from '../lib/archive'
 import { de, evalText, uciToSan } from '../lib/chessText'
 import { playSound } from '../lib/sound'
 import './ReviewScreen.css'
@@ -18,15 +17,15 @@ const GRADES: Record<Grade, { label: string; icon: string; color: string }> = {
   blunder: { label: 'Patzer', icon: '??', color: '#e0453a' },
 }
 
-interface PosEval { cp: number; mate: number | null; best: string | null }
-
 const winPct = (cp: number) => 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * cp)) - 1)
 const clip = (cp: number) => Math.max(-1000, Math.min(1000, cp))
 
-export default function ReviewScreen({ history, playerColor, bot, onClose }: {
+export default function ReviewScreen({ history, playerColor, opponent, gameId, pgn, onClose }: {
   history: Move[]
   playerColor: Color
-  bot: Bot
+  opponent: string
+  gameId?: string // archived game: its stored analysis is used and saved
+  pgn?: string
   onClose: () => void
 }) {
   const fens = useMemo(() => {
@@ -36,28 +35,23 @@ export default function ReviewScreen({ history, playerColor, bot, onClose }: {
     return list
   }, [history])
 
-  const [evals, setEvals] = useState<PosEval[]>([])
+  const stored = gameId ? archive.get().games.find((g) => g.id === gameId)?.evals : undefined
+  const [evals, setEvals] = useState<PosEval[]>(stored ?? [])
+  const [progressN, setProgressN] = useState(stored ? fens.length : 0)
   const [ply, setPly] = useState(0)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
+    if (stored) return
     let cancelled = false
-    ;(async () => {
-      const out: PosEval[] = []
-      for (const f of fens) {
-        if (cancelled) return
-        const c = new Chess(f)
-        if (c.isCheckmate()) {
-          out.push({ cp: c.turn() === 'w' ? -10000 : 10000, mate: 0, best: null })
-        } else if (c.isGameOver()) {
-          out.push({ cp: 0, mate: null, best: null })
-        } else {
-          const e = await evaluate(f, 11)
-          out.push({ cp: e.cp, mate: e.mate, best: e.best })
-        }
-        if (!cancelled) setEvals([...out])
-      }
-    })()
+    const key = gameId ?? fens.join('|')
+    analyze(key, fens, (n) => { if (!cancelled) setProgressN(n) }).then((ev) => {
+      if (cancelled) return
+      setEvals(ev)
+      if (gameId) updateGame(gameId, { evals: ev })
+    })
     return () => { cancelled = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fens])
 
   const done = evals.length === fens.length
@@ -89,8 +83,9 @@ export default function ReviewScreen({ history, playerColor, bot, onClose }: {
     }
     const counts: Record<Grade, number> = { best: 0, good: 0, inaccuracy: 0, mistake: 0, blunder: 0 }
     for (const g of graded) if (g.move.color === playerColor) counts[g.grade]++
-    return { me: acc(playerColor), bot: acc(playerColor === 'w' ? 'b' : 'w'), counts }
-  }, [graded, playerColor])
+    const perf = done ? performance(graded.map((g) => ({ ...g, uci: '', color: g.move.color })), playerColor) : null
+    return { me: acc(playerColor), bot: acc(playerColor === 'w' ? 'b' : 'w'), counts, perf: perf?.perf ?? null }
+  }, [graded, playerColor, done])
 
   const keyMoments = graded
     .map((g, i) => ({ ...g, ply: i + 1 }))
@@ -115,27 +110,36 @@ export default function ReviewScreen({ history, playerColor, bot, onClose }: {
   const lastMove = ply > 0 ? { from: history[ply - 1].from, to: history[ply - 1].to } : null
   const bestPrev = current && current.grade !== 'best' && current.best ? { from: current.best.slice(0, 2), to: current.best.slice(2, 4) } : null
   const evalNow = evals[ply]
+  // share of the bar filled with the player's colour (from the bottom)
+  const whitePct = evalNow ? winPct(clip(evalNow.mate !== null ? (evalNow.cp > 0 ? 10000 : -10000) : evalNow.cp)) : 50
+  const barPct = playerColor === 'w' ? whitePct : 100 - whitePct
+
+  async function copyPgn() {
+    if (!pgn) return
+    try { await navigator.clipboard.writeText(pgn); setCopied(true); setTimeout(() => setCopied(false), 1800) } catch { /* ignore */ }
+  }
 
   return (
     <div className="review-screen">
       <header className="game-header">
         <button className="icon-btn" onClick={onClose} aria-label="Zurück"><Icon name="back" /></button>
         <div className="game-title">Partieanalyse</div>
-        <span style={{ width: 44 }} />
+        {pgn ? <button className="icon-btn" onClick={copyPgn} aria-label="PGN kopieren">{copied ? <Icon name="check" /> : <span className="pgn-btn">PGN</span>}</button> : <span style={{ width: 44 }} />}
       </header>
 
       {!done ? (
         <div className="review-progress">
-          <div>Die Engine analysiert deine Partie… {Math.round((evals.length / fens.length) * 100)}%</div>
-          <div className="bar"><div style={{ width: `${(evals.length / fens.length) * 100}%` }} /></div>
+          <div>Die Engine analysiert deine Partie… {Math.round((progressN / fens.length) * 100)}%</div>
+          <div className="bar"><div style={{ width: `${(progressN / fens.length) * 100}%` }} /></div>
         </div>
       ) : (
         <div className="review-summary">
           <div className="acc">
             <div><span className="acc-val">{summary.me}</span><span className="acc-label">Du</span></div>
             <div className="acc-mid">Genauigkeit<br /><small>(Schätzung)</small></div>
-            <div><span className="acc-val bot">{summary.bot}</span><span className="acc-label">{bot.name}</span></div>
+            <div><span className="acc-val bot">{summary.bot}</span><span className="acc-label">{opponent}</span></div>
           </div>
+          {summary.perf && <div className="perf-line">Deine Leistung in dieser Partie: <strong>ca. {summary.perf}</strong> Elo</div>}
           <div className="grade-row">
             {(Object.keys(GRADES) as Grade[]).map((g) => (
               <div key={g} className="grade-chip" style={{ color: GRADES[g].color }}>
@@ -160,7 +164,12 @@ export default function ReviewScreen({ history, playerColor, bot, onClose }: {
       </svg>
 
       <div className="review-board">
-        <Board fen={fens[ply]} orientation={playerColor} lastMove={lastMove} hint={bestPrev} />
+        <div className="eval-bar" aria-label="Bewertung">
+          <div className={'eval-fill ' + playerColor} style={{ height: `${barPct}%` }} />
+        </div>
+        <div className="review-board-inner">
+          <Board fen={fens[ply]} orientation={playerColor} lastMove={lastMove} arrows={bestPrev ? [{ ...bestPrev, color: 'info' }] : []} />
+        </div>
       </div>
 
       <div className="review-explain">
@@ -171,7 +180,7 @@ export default function ReviewScreen({ history, playerColor, bot, onClose }: {
             <span className="grade-badge" style={{ background: GRADES[current.grade].color }}>{GRADES[current.grade].icon}</span>
             <span>
               <strong>{Math.ceil(ply / 2)}{current.move.color === 'w' ? '.' : '…'} {de(current.move.san)}</strong> ist {current.grade === 'best' ? 'der beste Zug' : GRADES[current.grade].label === 'Gut' ? 'gut' : `ein${current.grade === 'inaccuracy' ? 'e' : ''} ${GRADES[current.grade].label}`}.
-              {current.grade !== 'best' && current.best && <> Besser war <strong>{uciToSan(fens[ply - 1], current.best)}</strong> (blau markiert).</>}
+              {current.grade !== 'best' && current.best && <> Besser war <strong>{uciToSan(fens[ply - 1], current.best)}</strong> (blauer Pfeil).</>}
             </span>
           </>
         )}

@@ -1,3 +1,4 @@
+import { OPENINGS } from './data/openings'
 import { Chess } from 'chess.js'
 import { engine } from './engine/stockfish'
 import botData from './data/bots.json'
@@ -228,9 +229,42 @@ export interface BotMove {
 
 // Asks the engine for candidate moves and lets the bot pick one according to
 // its personality. Also returns the engine's evaluation so the bot can comment on the game.
+// Opening book built from the repertoire in the learn section, so bots play real openings
+// and vary from game to game.
+let book: Map<string, string[]> | null = null
+const bookKey = (fen: string) => fen.split(' ').slice(0, 4).join(' ')
+function openingBook() {
+  if (book) return book
+  book = new Map()
+  for (const o of OPENINGS) for (const l of o.lines) {
+    const c = new Chess()
+    for (const san of l.moves.split(' ')) {
+      const k = bookKey(c.fen())
+      const list = book.get(k) ?? []
+      const m = c.move(san)
+      const uci = m.from + m.to + (m.promotion ?? '')
+      if (!list.includes(uci)) list.push(uci)
+      book.set(k, list)
+    }
+  }
+  return book
+}
+
+export function bookMove(fen: string, bot: Bot): string | null {
+  const moveNo = Number(fen.split(' ')[5] ?? 1)
+  if (moveNo > 12) return null
+  const chance = bot.rating < 500 ? 0.35 : bot.rating < 1000 ? 0.65 : 0.9
+  if (Math.random() > chance) return null
+  const list = openingBook().get(bookKey(fen))
+  if (!list?.length) return null
+  return list[Math.floor(Math.random() * list.length)]
+}
+
 export async function botMove(fen: string, bot: Bot): Promise<BotMove> {
   const chess = new Chess(fen)
   const legal = chess.moves({ verbose: true })
+  const fromBook = bookMove(fen, bot)
+  if (fromBook) return { move: fromBook, score: null }
   const { best, candidates } = await engine.search(fen, {
     depth: bot.depth,
     multiPv: Math.min(bot.multiPv, legal.length),
@@ -263,4 +297,11 @@ export async function botMove(fen: string, bot: Bot): Promise<BotMove> {
 export async function hintMove(fen: string): Promise<string> {
   const { best } = await engine.search(fen, { depth: 14, skill: 20 })
   return best
+}
+
+// the unbeaten bot closest to a little above the player's rating
+export function recommendBot(myRating: number, beaten: Record<string, { wins: number }>) {
+  const open = BOTS.filter((b) => !(beaten[b.id]?.wins > 0))
+  if (!open.length) return null
+  return [...open].sort((a, b) => Math.abs(a.rating - (myRating + 50)) - Math.abs(b.rating - (myRating + 50)))[0]
 }

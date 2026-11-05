@@ -125,3 +125,11 @@
   background: rgba(70, 200, 120, 0.45);
   pointer-events: none;
 }
+
+/* arrows drawn on the board (openings, lessons, analysis) */
+.board .arrows { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; }
+.arrow line { stroke: currentColor; }
+.arrow polygon { fill: currentColor; }
+.arrow.good { color: rgba(60, 170, 75, 0.82); }
+.arrow.bad { color: rgba(215, 55, 45, 0.82); }
+.arrow.info { color: rgba(60, 130, 230, 0.82); }

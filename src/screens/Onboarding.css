@@ -1,0 +1,23 @@
+.onboarding { height: 100%; overflow-y: auto; display: flex; flex-direction: column; max-width: 520px; margin: 0 auto; padding: 24px 20px 28px; }
+.ob-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 18px; }
+.ob-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.ob-dots span.on { background: var(--accent); width: 22px; border-radius: 4px; }
+.ob-step { display: flex; flex-direction: column; gap: 14px; flex: 1; animation: screen-in 0.25s ease; }
+.ob-step h1 { font-family: var(--font-display); font-size: 32px; margin: 0; text-wrap: balance; }
+.ob-step p { color: var(--muted); margin: 0; line-height: 1.5; }
+.ob-step .btn.big { margin-top: auto; padding: 15px; font-size: 18px; }
+.ob-hero { display: flex; justify-content: center; gap: 0; margin: 10px 0 4px; }
+.ob-hero img { width: 120px; height: 120px; filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.45)); }
+.ob-label { font-weight: 700; margin-top: 8px; }
+.ob-levels { display: flex; flex-direction: column; gap: 10px; }
+.ob-level { display: grid; grid-template-columns: 1fr auto; text-align: left; gap: 2px 10px; background: var(--card); border: 2px solid transparent; border-radius: var(--radius); padding: 14px 16px; color: var(--text); font: inherit; cursor: pointer; }
+.ob-level.active { border-color: var(--accent); }
+.ob-level small { color: var(--muted); grid-column: 1; }
+.ob-r { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
+.ob-tour { display: flex; flex-direction: column; gap: 12px; }
+.ob-tour-row { display: flex; gap: 14px; align-items: flex-start; background: var(--card); border-radius: var(--radius); padding: 14px; }
+.ob-tour-row strong { display: block; font-size: 16px; }
+.ob-tour-row small { color: var(--muted); font-size: 14px; line-height: 1.45; }
+.ob-tour-icon { width: 42px; height: 42px; border-radius: 12px; background: var(--card-2); display: grid; place-items: center; flex-shrink: 0; color: var(--accent); }
+.ob-tour-icon .icon { width: 24px; height: 24px; }
+.onboarding .name-input { flex: none; }

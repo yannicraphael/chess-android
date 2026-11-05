@@ -1,5 +1,8 @@
 import type { Color } from 'chess.js'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { resumeAnalysis } from './lib/archive'
+import { settings } from './lib/settings'
+import Onboarding from './screens/Onboarding'
 import { findBot, type Bot } from './bots'
 import Icon, { type IconName } from './components/Icon'
 import PuzzleRated from './games/PuzzleRated'
@@ -37,6 +40,8 @@ export default function App() {
   const [gameKey, setGameKey] = useState(0)
   const [fullscreen, setFullscreen] = useState(false) // a training game hides the tab bar
   const [daily, setDaily] = useState<string | null>(null)
+  const st = settings.use()
+  useEffect(() => { resumeAnalysis() }, [])
 
   const savedBot = saved ? findBot(saved.botId) : null
   const resumable = saved && savedBot && !saved.result && saved.pgn ? savedBot : null
@@ -46,10 +51,14 @@ export default function App() {
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(g)) } catch { /* ignore */ }
   }
 
-  function start(bot: Bot, color: Color) {
-    save({ botId: bot.id, playerColor: color, pgn: '', result: null })
+  function start(bot: Bot, color: Color, tc: string) {
+    save({ botId: bot.id, playerColor: color, pgn: '', result: null, id: `g${Date.now()}`, tc, rated: true })
     setGameKey((k) => k + 1)
     setInGame(true)
+  }
+
+  if (!st.onboarded) {
+    return <div className="app"><Onboarding onDone={() => setTab('home')} /></div>
   }
 
   if (inGame && saved && savedBot) {
@@ -72,7 +81,7 @@ export default function App() {
           {tab === 'play' && <PlayScreen onStart={start} resumeBot={resumable} onResume={() => setInGame(true)} />}
           {tab === 'tactics' && <TrainingScreen section="tactics" onPlaying={setFullscreen} />}
           {tab === 'learn' && <TrainingScreen section="learn" onPlaying={setFullscreen} />}
-          {tab === 'profile' && <ProfileScreen />}
+          {tab === 'profile' && <ProfileScreen onPlaying={setFullscreen} />}
         </div>
       </main>
       {!fullscreen && <nav className="tab-bar">

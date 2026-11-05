@@ -22,7 +22,17 @@
 .grade-chip span { color: var(--muted); }
 
 .eval-graph { width: 100%; height: 56px; display: block; cursor: pointer; }
-.review-board { padding: 6px 0; }
+.review-board { padding: 6px 0; display: flex; gap: 6px; align-items: stretch; }
+.review-board-inner { flex: 1; min-width: 0; }
+.eval-bar { width: 18px; flex-shrink: 0; background: #2b2a27; border-radius: 4px; position: relative; overflow: hidden; margin-left: 4px; }
+.eval-fill { position: absolute; left: 0; right: 0; bottom: 0; transition: height 0.3s ease; }
+.eval-fill.w { background: #f2efe8; }
+.eval-fill.b { background: #2b2a27; }
+.eval-bar:has(.eval-fill.b) { background: #f2efe8; }
+.eval-bar-text { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%) rotate(-90deg); font-size: 9px; font-weight: 800; color: #888; text-align: center; white-space: nowrap; }
+.perf-line { text-align: center; font-size: 13px; color: var(--muted); margin-top: 6px; }
+.perf-line strong { color: var(--text); }
+.pgn-btn { font-size: 11px; font-weight: 800; border: 1.5px solid currentColor; border-radius: 6px; padding: 2px 5px; }
 
 .review-explain {
   display: flex;

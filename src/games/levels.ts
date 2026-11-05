@@ -1,3 +1,6 @@
+import { ENDGAMES, endgameLevelId } from '../data/endgames'
+import { LESSONS, lessonLevelId } from '../data/lessons'
+import { OPENINGS, OPENING_LEVELS, openingLevelId } from '../data/openings'
 import { MOTIFS, MOTIF_LEVEL_NAMES, MOTIF_SET_SIZE } from '../lib/puzzles'
 
 export interface GameLevel {
@@ -13,7 +16,8 @@ export interface GameLevel {
 
 export interface MiniGame {
   id: string
-  kind: 'coords' | 'knight' | 'sprint' | 'motif'
+  kind: 'coords' | 'knight' | 'sprint' | 'motif' | 'opening' | 'endgame' | 'lesson'
+  ref?: string // id of the opening, endgame or lesson
   title: string
   icon: string
   teaser: string
@@ -84,3 +88,22 @@ export const MOTIF_GAMES: MiniGame[] = MOTIFS.map((m) => ({
 export function starsFor(level: GameLevel, score: number) {
   return level.stars.filter((s) => score >= s).length
 }
+
+// score of these games is the number of stars (1-3) earned directly
+const STARS: [number, number, number] = [1, 2, 3]
+
+export const OPENING_GAMES: MiniGame[] = OPENINGS.map((o) => ({
+  id: 'opening-' + o.id, kind: 'opening', ref: o.id, title: o.name, icon: o.side === 'w' ? 'wN' : 'bN',
+  teaser: o.first, skill: o.summary,
+  levels: OPENING_LEVELS.map((l) => ({ id: openingLevelId(o, l.n), n: l.n, name: l.name, description: l.description, stars: STARS })),
+}))
+
+export const ENDGAME_GAMES: MiniGame[] = ENDGAMES.map((e) => ({
+  id: 'endgame-' + e.id, kind: 'endgame', ref: e.id, title: e.name, icon: e.group, teaser: e.task, skill: e.tip,
+  levels: [{ id: endgameLevelId(e), n: 1, name: e.name, description: e.task, stars: STARS }],
+}))
+
+export const LESSON_GAMES: MiniGame[] = LESSONS.map((l) => ({
+  id: 'lesson-' + l.id, kind: 'lesson', ref: l.id, title: l.title, icon: l.icon, teaser: l.teaser, skill: l.teaser,
+  levels: [{ id: lessonLevelId(l), n: 1, name: l.title, description: l.teaser, stars: STARS }],
+}))
