@@ -1,7 +1,7 @@
 import { BOTS } from '../bots'
 import { levelInfo, levelTitle, progress } from '../lib/progress'
 import { BOARD_THEMES, PIECE_SETS, pieceUrl, settings, type Settings } from '../lib/settings'
-import { playSound } from '../lib/sound'
+import { playSound, SOUND_SETS } from '../lib/sound'
 import './Training.css'
 
 function Toggle({ k, label, sub }: { k: keyof Settings; label: string; sub?: string }) {
@@ -85,6 +85,18 @@ export default function ProfileScreen() {
           ))}
         </div>
         <Toggle k="sound" label="Sound" />
+        <div className="chooser">
+          {SOUND_SETS.map((set) => (
+            <button key={set.id} className={'choice sound-choice' + (s.soundSet === set.id ? ' active' : '')} onClick={() => {
+              settings.set({ soundSet: set.id })
+              playSound('move', set.id)
+              setTimeout(() => playSound('capture', set.id), 450)
+            }}>
+              <span className="sound-icon">🔊</span>
+              {set.name}
+            </button>
+          ))}
+        </div>
         <Toggle k="vibration" label="Vibration" sub="Bei Schlagen, Schach und Fehlern" />
         <Toggle k="animation" label="Zug-Animation" />
         <Toggle k="coordinates" label="Koordinaten am Brett" />
@@ -92,7 +104,7 @@ export default function ProfileScreen() {
       </div>
 
       <p className="credits">
-        Figuren: Gioco, Staunty, Maestro, Kardinal und Fresca von sadsnake1 (CC BY-NC-SA 4.0), Merida von Armando H. Marroquin (GPLv2+), Klassisch von Colin M.L. Burnett (GPLv2+), über das Lichess-Projekt. Engine: Stockfish 19 (GPLv3).
+        Figuren: Gioco, Staunty, Maestro, Kardinal und Fresca von sadsnake1 (CC BY-NC-SA 4.0), Merida von Armando H. Marroquin (GPLv2+), Klassisch von Colin M.L. Burnett (GPLv2+), über das Lichess-Projekt. Sounds: Kenney (CC0). Engine: Stockfish 19 (GPLv3).
       </p>
     </div>
   )

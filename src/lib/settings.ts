@@ -46,6 +46,7 @@ export interface Settings {
   pieceSet: string
   boardTheme: string
   sound: boolean
+  soundSet: string
   vibration: boolean
   coordinates: boolean
   animation: boolean
@@ -56,6 +57,7 @@ export const settings = createStore<Settings>('settings', {
   pieceSet: 'gioco',
   boardTheme: 'walnut',
   sound: true,
+  soundSet: 'clack',
   vibration: true,
   coordinates: true,
   animation: true,
