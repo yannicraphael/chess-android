@@ -1,0 +1,29 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+/* App icon "Klubhaus": white Staunty knight on a 2x2 crop of the Ahorn-Nuss board.
+   Rendered to PNG by scripts/build-icons.mjs. Paths are relative to this file. */
+body{margin:0;background:transparent;display:flex;flex-wrap:wrap;gap:20px;padding:20px}
+.i{position:relative;overflow:hidden}
+.i>*{position:absolute}
+.board{background:url(../../public/boards/ahorn-nuss.jpg) 0 0/400% 400%}
+.vig{inset:0;box-shadow:inset 0 0 22vmin rgba(0,0,0,.4)}
+.knight{background:url(../../public/pieces/staunty/wN.svg) center/contain no-repeat;filter:drop-shadow(0 14px 18px rgba(0,0,0,.45))}
+</style></head><body>
+<!-- full square icon with frame (legacy launchers, web) -->
+<div class="i board" id="full" style="width:512px;height:512px">
+  <div style="inset:0;box-shadow:inset 0 0 0 26px #3a2717,inset 0 0 0 30px #c99a52,inset 0 0 90px rgba(0,0,0,.45)"></div>
+  <div class="knight" style="inset:70px"></div>
+</div>
+<!-- adaptive background, 108dp = 432px -->
+<div class="i board" id="bg" style="width:432px;height:432px">
+  <div style="inset:0;box-shadow:inset 0 0 80px rgba(0,0,0,.4)"></div>
+</div>
+<!-- adaptive foreground: knight inside the 66dp safe zone -->
+<div class="i" id="fg" style="width:432px;height:432px">
+  <div class="knight" style="left:96px;top:92px;width:240px;height:240px;filter:drop-shadow(0 10px 12px rgba(0,0,0,.45))"></div>
+</div>
+<!-- round icon: circle with gold ring -->
+<div class="i board" id="round" style="width:512px;height:512px;border-radius:50%">
+  <div style="inset:0;border-radius:50%;box-shadow:inset 0 0 0 22px #3a2717,inset 0 0 0 26px #c99a52,inset 0 0 90px rgba(0,0,0,.45)"></div>
+  <div class="knight" style="inset:92px"></div>
+</div>
+</body></html>
