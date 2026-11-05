@@ -1,33 +1,37 @@
 import type { Color } from 'chess.js'
 import { useState } from 'react'
-import { BOT_GROUPS, BOTS, ENGINE_MAX, ENGINE_MIN, engineBot, findBot, flag, type Bot } from '../bots'
+import { BOT_GROUPS, BOTS, ENGINE_MAX, ENGINE_MIN, engineBot, findBot, flag, recommendBot, type Bot } from '../bots'
 import BotAvatar from '../components/BotAvatar'
 import Icon from '../components/Icon'
 import { progress } from '../lib/progress'
+import { rating } from '../lib/rating'
 import { settings } from '../lib/settings'
+import { TIME_CONTROLS } from '../lib/timeControl'
 import './PlayScreen.css'
 
 type ColorChoice = 'w' | 'random' | 'b'
 
 export default function PlayScreen({ onStart, resumeBot, onResume }: {
-  onStart: (bot: Bot, color: Color) => void
+  onStart: (bot: Bot, color: Color, tc: string) => void
   resumeBot: Bot | null
   onResume: () => void
 }) {
   const p = progress.use()
   const st = settings.use()
-  // recommend the weakest bot that has not been beaten yet
-  const recommended = BOTS.find((b) => !(p.bots[b.id]?.wins > 0))?.id
+  const r = rating.use()
+  const recommended = recommendBot(r.rating, p.bots)?.id
   const [botId, setBotId] = useState(() => localStorage.getItem('lastBot') ?? recommended ?? 'gerda')
   const [engineRating, setEngineRating] = useState(() => Number(localStorage.getItem('engineRating')) || 1500)
   const [color, setColor] = useState<ColorChoice>('w')
+  const [tc, setTcState] = useState(() => localStorage.getItem('timeControl') ?? '')
+  const setTc = (v: string) => { setTcState(v); try { localStorage.setItem('timeControl', v) } catch { /* ignore */ } }
   const bot = botId.startsWith('engine-') ? engineBot(engineRating) : findBot(botId) ?? BOTS[0]
   const beaten = (id: string) => (p.bots[id]?.wins ?? 0) > 0
 
   function start() {
     localStorage.setItem('lastBot', bot.id)
     const c: Color = color === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : color
-    onStart(bot, c)
+    onStart(bot, c, tc)
   }
 
   function setEngine(r: number) {
@@ -40,7 +44,10 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
 
   return (
     <div className="play-screen">
-      <h1 className="screen-title">Spielen</h1>
+      <div className="play-title-row">
+        <h1 className="screen-title">Spielen</h1>
+        <span className="my-rating" title="Deine Wertung aus Partien gegen die Bots"><Icon name="trophy" /> {r.rating}{r.games < 10 ? '?' : ''}</span>
+      </div>
 
       {resumeBot && (
         <button className="resume-card" onClick={onResume}>
@@ -93,6 +100,15 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
           </div>
         </button>
       </section>
+
+      <div className="tc-row">
+        <span className="tc-label"><Icon name="clock" /> Bedenkzeit</span>
+        <div className="tc-chips">
+          {TIME_CONTROLS.map((t) => (
+            <button key={t.id} className={'tc-chip' + (tc === t.id ? ' active' : '')} onClick={() => setTc(t.id)}>{t.label}</button>
+          ))}
+        </div>
+      </div>
 
       <button className="coach-toggle" onClick={() => settings.set({ coach: !st.coach })}>
         <Icon name="learn" />

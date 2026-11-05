@@ -8,6 +8,12 @@ export interface SquarePair {
   to: string
 }
 
+export interface Arrow {
+  from: string
+  to: string
+  color?: 'good' | 'bad' | 'info' // green (default), red, blue
+}
+
 interface Props {
   fen: string
   orientation: Color
@@ -15,6 +21,7 @@ interface Props {
   lastMove?: SquarePair | null
   hint?: SquarePair | null
   marks?: Record<string, string> // square -> extra css class (mini-games)
+  arrows?: Arrow[]
   showCoords?: boolean
   onMove?: (from: string, to: string, promotion?: PieceSymbol) => void
   onSquareTap?: (square: string) => void // used when no moves are allowed
@@ -22,7 +29,7 @@ interface Props {
 
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']
 
-export default function Board({ fen, orientation, movableColor = null, lastMove, hint, marks, showCoords, onMove, onSquareTap }: Props) {
+export default function Board({ fen, orientation, movableColor = null, lastMove, hint, marks, arrows, showCoords, onMove, onSquareTap }: Props) {
   const s = settings.use()
   const theme = boardTheme(s.boardTheme)
   const coords = showCoords ?? s.coordinates
@@ -193,6 +200,28 @@ export default function Board({ fen, orientation, movableColor = null, lastMove,
             </div>
           )
         }),
+      )}
+      {arrows && arrows.length > 0 && (
+        <svg className="arrows" viewBox="0 0 8 8" aria-hidden="true">
+          {arrows.map((a, i) => {
+            const p1 = pos(a.from)
+            const p2 = pos(a.to)
+            const x1 = p1.c + 0.5, y1 = p1.r + 0.5, x2 = p2.c + 0.5, y2 = p2.r + 0.5
+            const len = Math.hypot(x2 - x1, y2 - y1)
+            const ux = (x2 - x1) / len, uy = (y2 - y1) / len
+            const head = 0.42
+            // shaft stops at the arrow head; start a little outside the piece centre
+            const sx = x1 + ux * 0.22, sy = y1 + uy * 0.22
+            const ex = x2 - ux * head, ey = y2 - uy * head
+            const px = -uy * 0.24, py = ux * 0.24
+            return (
+              <g key={i} className={'arrow ' + (a.color ?? 'good')}>
+                <line x1={sx} y1={sy} x2={ex} y2={ey} strokeWidth={0.17} strokeLinecap="round" />
+                <polygon points={`${x2 - ux * 0.08},${y2 - uy * 0.08} ${ex + px},${ey + py} ${ex - px},${ey - py}`} />
+              </g>
+            )
+          })}
+        </svg>
       )}
       {dragPiece && drag && rect && (
         <img

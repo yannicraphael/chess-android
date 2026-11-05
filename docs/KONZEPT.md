@@ -57,3 +57,18 @@ Die App ist für einen Spieler gedacht, der vom Gelegenheitsspieler (ca. 750 bis
 | XP, Level, Serie, Trophäen | erledigt |
 | Mini-Spiele | 2 Spiele mit je 4 Leveln |
 | Taktik, Eröffnungen, Endspiele | nächste Versionen |
+
+## Version 5: Feinschliff
+
+| Bereich | Umsetzung |
+| --- | --- |
+| Wissen | 10 Lektionen mit Übungsbrett (Figurenwerte, Eröffnungsprinzipien, Sonderregeln, Mattbilder, Taktik, Denkprozess, Bauernstruktur, Mittelspiel, Endspiel, Notation) |
+| Eröffnungen | 10 Eröffnungen, 24 Varianten, je 3 Stufen (kennenlernen, mit Hilfe, auswendig) |
+| Endspiele | 8 Stellungen gegen die volle Engine (Mattführung, Bauern- und Turmendspiele) |
+| Wertung | Offline-Elo aus Partien gegen Bots (nur ohne Tipp und Zurücknahme), dazu Spielstärke-Schätzung aus der Zuggenauigkeit |
+| Partien | Archiv aller Partien mit Analyse, Bewertungsbalken, Pfeilen und PGN |
+| Eigene Fehler | Klare Fehler aus eigenen Partien werden zu Aufgaben |
+| Bedenkzeit | Ohne Uhr, 5+3, 10, 15+10, 30 Minuten |
+| Bots | Spielen Eröffnungen aus dem Repertoire, abwechslungsreich |
+| Bedienung | Ersteinrichtung mit Spielstärke, Sprechblase ohne Brettverdeckung, Profil mit Statistik, Partien und Einstellungen |
+

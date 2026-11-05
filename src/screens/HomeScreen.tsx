@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
-import { BOTS, type Bot } from '../bots'
+import { BOTS, recommendBot, type Bot } from '../bots'
+import { archive } from '../lib/archive'
+import { rating } from '../lib/rating'
+import { settings } from '../lib/settings'
 import Board from '../components/Board'
 import BotAvatar from '../components/BotAvatar'
 import Icon from '../components/Icon'
@@ -63,7 +66,11 @@ export default function HomeScreen({ resumeBot, onResume, onDaily, onTab }: {
   const stars = Object.values(p.stars).reduce((a, n) => a + n, 0)
   const puzzle = useDailyPuzzle(ps.rating)
   const solvedToday = (() => { try { return JSON.parse(localStorage.getItem('dailySolved') ?? '""') === todayKey() } catch { return false } })()
-  const next = BOTS.find((b) => !(p.bots[b.id]?.wins > 0)) ?? BOTS[BOTS.length - 1]
+  const r = rating.use()
+  const st = settings.use()
+  const openMistakes = archive.use().mistakes.filter((m) => !m.solved).length
+  const next = recommendBot(r.rating, p.bots) ?? BOTS[BOTS.length - 1]
+  const openLearn = (t: string) => { try { localStorage.setItem('learnTab', t) } catch { /* ignore */ } onTab('learn') }
   const date = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })
   const goalText = d.done >= d.total ? 'Tagesziel erreicht. Stark!'
     : d.puzzles < 3 ? `Noch ${3 - d.puzzles} ${3 - d.puzzles === 1 ? 'Aufgabe' : 'Aufgaben'}${d.games < 1 ? ' und 1 Partie' : ''}`
@@ -74,7 +81,7 @@ export default function HomeScreen({ resumeBot, onResume, onDaily, onTab }: {
       <header className="home-head">
         <div>
           <div className="home-date">{date}</div>
-          <h1 className="home-hello">{greeting()}, Yannic</h1>
+          <h1 className="home-hello">{greeting()}{st.name ? `, ${st.name}` : ''}</h1>
         </div>
         <div className="home-streak" title="Tage in Folge"><Icon name="flame" />{p.streak}</div>
       </header>
@@ -112,9 +119,9 @@ export default function HomeScreen({ resumeBot, onResume, onDaily, onTab }: {
       </section>
 
       <div className="kpis">
+        <button className="kpi" onClick={() => onTab('profile')}><b>{r.rating}{r.games < 10 ? '?' : ''}</b><span>Wertung</span></button>
         <button className="kpi" onClick={() => onTab('tactics')}><b>{ps.rating}</b><span>Taktik</span></button>
-        <button className="kpi" onClick={() => onTab('profile')}><b>Lv {level}</b><span>{levelTitle(level)}</span><i style={{ width: `${(into / needed) * 100}%` }} /></button>
-        <button className="kpi" onClick={() => onTab('learn')}><b>{stars}<Icon name="star" fill className="kpi-star" /></b><span>Sterne</span></button>
+        <button className="kpi" onClick={() => onTab('profile')}><b>Lv {level}</b><span>{levelTitle(level)} · {stars}<Icon name="star" fill className="kpi-star" /></span><i style={{ width: `${(into / needed) * 100}%` }} /></button>
       </div>
 
       <button className="card row-card" onClick={() => onTab('play')}>
@@ -124,9 +131,9 @@ export default function HomeScreen({ resumeBot, onResume, onDaily, onTab }: {
       </button>
 
       <div className="quick">
-        <button className="quick-btn" onClick={() => onTab('tactics')}><Icon name="bolt" /><span>Taktik-Sprint</span></button>
-        <button className="quick-btn" onClick={() => onTab('learn')}><Icon name="target" /><span>Brett-Training</span></button>
-        <button className="quick-btn" onClick={() => onTab('play')}><Icon name="cpu" /><span>Engine</span></button>
+        <button className="quick-btn" onClick={() => onTab('tactics')}><Icon name="target" /><span>{openMistakes > 0 ? `Eigene Fehler (${openMistakes})` : 'Taktik-Sprint'}</span></button>
+        <button className="quick-btn" onClick={() => openLearn('eroeffnungen')}><Icon name="book" /><span>Eröffnungen</span></button>
+        <button className="quick-btn" onClick={() => openLearn('endspiele')}><Icon name="crown" /><span>Endspiele</span></button>
       </div>
     </div>
   )

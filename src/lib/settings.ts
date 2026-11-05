@@ -77,6 +77,8 @@ export interface Settings {
   coordinates: boolean
   animation: boolean
   coach: boolean // warn about blunders during games
+  name: string
+  onboarded: boolean
 }
 
 export const settings = createStore<Settings>('settings', {
@@ -91,6 +93,8 @@ export const settings = createStore<Settings>('settings', {
   coordinates: true,
   animation: true,
   coach: true,
+  name: 'Yannic',
+  onboarded: false,
 })
 
 export function boardTheme(id: string) {

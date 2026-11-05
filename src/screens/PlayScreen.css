@@ -52,3 +52,14 @@
 .color-swatch.random { background: linear-gradient(135deg, #f4efe4 50%, #2a2420 50%); }
 
 .level-chip, .mini-xp { display: none; }
+
+/* v5 */
+.play-title-row { display: flex; align-items: center; justify-content: space-between; }
+.my-rating { display: inline-flex; align-items: center; gap: 6px; background: var(--card); border-radius: 999px; padding: 6px 12px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--gold); }
+.my-rating .icon { width: 18px; height: 18px; }
+.tc-row { display: flex; flex-direction: column; gap: 8px; background: var(--card); border-radius: var(--radius); padding: 12px 14px; margin-top: 12px; }
+.tc-label { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.tc-label .icon { width: 20px; height: 20px; color: var(--accent); }
+.tc-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.tc-chip { border: 1.5px solid var(--line); background: var(--card-2); color: var(--text); font: inherit; font-size: 13px; font-weight: 700; padding: 7px 12px; border-radius: 999px; cursor: pointer; }
+.tc-chip.active { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }

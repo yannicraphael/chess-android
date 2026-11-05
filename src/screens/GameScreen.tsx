@@ -8,6 +8,9 @@ import { de, PIECE_ACC, VALUES, uciToSan } from '../lib/chessText'
 import { pieceUrl, settings } from '../lib/settings'
 import { playSound } from '../lib/sound'
 import { addXp, progress, recordDaily, recordGame, type XpGain } from '../lib/progress'
+import { addGame } from '../lib/archive'
+import { rating, recordRatedGame } from '../lib/rating'
+import { parseTc } from '../lib/timeControl'
 import BotAvatar from '../components/BotAvatar'
 import ReviewScreen from './ReviewScreen'
 import './GameScreen.css'
@@ -17,6 +20,10 @@ export interface SavedGame {
   playerColor: Color
   pgn: string
   result?: GameResult | null
+  id?: string
+  tc?: string // time control, e.g. "10+0"; empty = no clock
+  clock?: { w: number; b: number } // remaining milliseconds
+  rated?: boolean // false once a hint or take-back was used
 }
 
 export interface GameResult {
@@ -55,10 +62,19 @@ function moveSound(m: Move, chess: Chess) {
 
 interface Chat { text: string; id: number }
 
-function PlayerBar({ name, sub, avatar, color, captured, diff, thinking, bubble, bubbleBelow }: {
+function fmtClock(ms: number) {
+  const t = Math.max(0, ms)
+  const m = Math.floor(t / 60000)
+  const sec = Math.floor((t % 60000) / 1000)
+  if (t < 20000) return `${m}:${String(sec).padStart(2, '0')},${Math.floor((t % 1000) / 100)}`
+  return `${m}:${String(sec).padStart(2, '0')}`
+}
+
+function PlayerBar({ name, sub, avatar, color, captured, diff, thinking, bubble, bubbleBelow, clock, running }: {
   name: string; sub: string; avatar: React.ReactNode; color: string
   captured: PieceSymbol[]; diff: number; thinking?: boolean
   bubble?: Chat | null; bubbleBelow?: boolean
+  clock?: number | null; running?: boolean
 }) {
   const capturedColor: Color = color === 'w' ? 'b' : 'w'
   return (
@@ -72,6 +88,7 @@ function PlayerBar({ name, sub, avatar, color, captured, diff, thinking, bubble,
           {diff > 0 && <span className="diff">+{diff}</span>}
         </div>
       </div>
+      {clock != null && <div className={'clock' + (running ? ' running' : '') + (clock < 20000 ? ' low' : '')}>{fmtClock(clock)}</div>}
     </div>
   )
 }
@@ -107,6 +124,16 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
   const [reviewing, setReviewing] = useState(false)
   const [chat, setChat] = useState<Chat | null>(null)
   const [endLine, setEndLine] = useState<string | null>(null)
+  const [rated, setRatedState] = useState(saved.rated ?? true)
+  const ratedRef = useRef(rated)
+  const setRated = (v: boolean) => { ratedRef.current = v; setRatedState(v) }
+  const [ratingResult, setRatingResult] = useState<{ after: number; delta: number } | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const gameId = useRef(saved.id ?? `g${Date.now()}`)
+  const tc = parseTc(saved.tc)
+  const clockRef = useRef<{ w: number; b: number } | null>(tc ? (saved.clock ?? { w: tc.base * 1000, b: tc.base * 1000 }) : null)
+  const [clock, setClock] = useState(clockRef.current)
+  const tickFrom = useRef(Date.now())
   const chatState = useRef({ lastPly: -10, prevScore: null as number | null, winning: false, losing: false, timer: 0, id: 0 })
   const token = useRef(0)
   const moveListRef = useRef<HTMLDivElement>(null)
@@ -144,7 +171,19 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
     setHistory(game.history({ verbose: true }))
     setHint(null)
     setViewIndex(null)
-    onSave({ botId: bot.id, playerColor, pgn: game.pgn(), result: newResult })
+    onSave(snapshot(newResult))
+  }
+
+  function snapshot(r: GameResult | null, ratedNow = ratedRef.current): SavedGame {
+    return { botId: bot.id, playerColor, pgn: game.pgn(), result: r, id: gameId.current, tc: saved.tc, clock: clockRef.current ?? undefined, rated: ratedNow }
+  }
+
+  function unrate(why: string) {
+    if (!ratedRef.current) return
+    setRated(false)
+    onSave(snapshot(result, false))
+    setNotice(`Diese Partie ist jetzt ungewertet (${why === 'hint' ? 'Tipp' : 'Zurücknahme'}).`)
+    window.setTimeout(() => setNotice(null), 3200)
   }
 
   function finish(r: GameResult) {
@@ -163,6 +202,37 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
     const gain = addXp(xp)
     setXpGain(gain)
     if (gain.levelUp) setTimeout(() => playSound('levelup'), 700)
+    // rating and archive (games with at least one move of the player)
+    const myMoves = game.history({ verbose: true }).filter((m) => m.color === playerColor).length
+    const countRated = ratedRef.current && myMoves >= 1
+    let rr: { after: number; delta: number } | null = null
+    if (countRated) {
+      const res = recordRatedGame(bot.rating, r.outcome)
+      rr = { after: res.after, delta: res.delta }
+      setRatingResult(rr)
+    }
+    setPgnHeaders(r)
+    addGame({
+      id: gameId.current, date: new Date().toISOString(), botId: bot.id, botName: bot.name, botRating: bot.rating,
+      color: playerColor, outcome: r.outcome, reason: r.reason, pgn: game.pgn(), moves: Math.ceil(game.history().length / 2),
+      rated: countRated, ratingAfter: rr?.after, ratingDelta: rr?.delta, tc: saved.tc || undefined,
+    })
+  }
+
+  function setPgnHeaders(r: GameResult) {
+    const me = 'Ich'
+    const opp = `${bot.name} (${bot.rating})`
+    game.setHeader('Event', 'Schach-App')
+    game.setHeader('Date', new Date().toISOString().slice(0, 10).replace(/-/g, '.'))
+    game.setHeader('White', playerColor === 'w' ? me : opp)
+    game.setHeader('Black', playerColor === 'w' ? opp : me)
+    const playerWon = r.outcome === 'win'
+    const res = r.outcome === 'draw' ? '1/2-1/2' : (playerWon === (playerColor === 'w')) ? '1-0' : '0-1'
+    game.setHeader('Result', res)
+    if (saved.tc) game.setHeader('TimeControl', saved.tc)
+    if (playerColor === 'w') game.setHeader('WhiteElo', String(rating.get().rating))
+    else game.setHeader('BlackElo', String(rating.get().rating))
+    game.setHeader(playerColor === 'w' ? 'BlackElo' : 'WhiteElo', String(bot.rating))
   }
 
   function applyMove(from: string, to: string, promotion?: string): Move | undefined {
@@ -173,6 +243,14 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
       return
     }
     moveSound(m, game)
+    if (clockRef.current && tc) {
+      const c = { ...clockRef.current }
+      c[m.color] -= Date.now() - tickFrom.current
+      c[m.color] += tc.inc * 1000
+      clockRef.current = c
+      tickFrom.current = Date.now()
+      setClock(c)
+    }
     const r = detectResult(game, playerColor)
     if (r) finish(r)
     sync(r)
@@ -213,6 +291,44 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
       setCoachBusy(false)
     }
   }
+
+  // chess clock: the side to move loses time while nothing else is pending
+  const clockPaused = !!result || !!warning || coachBusy || reviewing
+  useEffect(() => {
+    if (!clockRef.current) return
+    tickFrom.current = Date.now()
+    if (clockPaused) return
+    const id = window.setInterval(() => {
+      const c = clockRef.current
+      if (!c) return
+      const turn = game.turn()
+      const left = c[turn] - (Date.now() - tickFrom.current)
+      setClock({ ...c, [turn]: left })
+      if (left <= 0) {
+        clockRef.current = { ...c, [turn]: 0 }
+        token.current++
+        setThinking(false)
+        const playerFlagged = turn === playerColor
+        const r: GameResult = playerFlagged
+          ? { title: 'Du hast verloren', reason: 'Zeit abgelaufen', outcome: 'loss' }
+          : { title: 'Du hast gewonnen!', reason: `${bot.name} hat die Zeit überschritten`, outcome: 'win' }
+        playSound('warn')
+        finish(r)
+        onSave(snapshot(r))
+      }
+    }, 100)
+    return () => {
+      // book the time used so far when pausing or after a move
+      const c = clockRef.current
+      if (c && !game.isGameOver()) {
+        const turn = game.turn()
+        clockRef.current = { ...c, [turn]: c[turn] - (Date.now() - tickFrom.current) }
+      }
+      tickFrom.current = Date.now()
+      window.clearInterval(id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fen, clockPaused])
 
   // little "game starts" chime for a fresh game
   useEffect(() => {
@@ -281,6 +397,7 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
     game.undo()
     while (game.history().length > 0 && game.turn() !== playerColor) game.undo()
     chatState.current.prevScore = null
+    unrate('undo')
     sync(null)
     say('takeback', 0.7)
   }
@@ -289,6 +406,7 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
     if (thinking || result || game.turn() !== playerColor) return
     const uci = await hintMove(game.fen())
     setHintsUsed((n) => n + 1)
+    unrate('hint')
     say('hint', 0.35)
     setHint({ from: uci.slice(0, 2), to: uci.slice(2, 4) })
   }
@@ -299,7 +417,7 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
     setThinking(false)
     setConfirmResign(false)
     finish(r)
-    onSave({ botId: bot.id, playerColor, pgn: game.pgn(), result: r })
+    onSave(snapshot(r))
   }
 
   // position to display (supports browsing earlier moves)
@@ -323,7 +441,7 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
   }, [history, shownPly, displayFen])
 
   if (reviewing) {
-    return <ReviewScreen history={history} playerColor={playerColor} bot={bot} onClose={() => setReviewing(false)} />
+    return <ReviewScreen history={history} playerColor={playerColor} opponent={bot.name} gameId={result ? gameId.current : undefined} pgn={result ? game.pgn() : undefined} onClose={() => setReviewing(false)} />
   }
 
   const orientation: Color = flipped ? (playerColor === 'w' ? 'b' : 'w') : playerColor
@@ -334,12 +452,14 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
     <PlayerBar name={bot.name} sub={`(${bot.rating})`} color={botColor}
       avatar={<BotAvatar bot={bot} size={40} />}
       captured={capturedBy[botColor]} diff={diff[botColor]} thinking={thinking}
-      bubble={chat} bubbleBelow={top === 'bot'} />
+      bubble={chat} bubbleBelow={top === 'bot'}
+      clock={clock ? clock[botColor] : null} running={!clockPaused && game.turn() === botColor} />
   )
   const meBar = (
-    <PlayerBar name="Du" sub={s.coach ? 'Trainer an' : ''} color={playerColor}
+    <PlayerBar name="Du" sub={`(${rating.get().rating})${rated ? '' : ' · ungewertet'}${s.coach ? ' · Trainer an' : ''}`} color={playerColor}
       avatar={<BotAvatar bot={null} size={40} />}
-      captured={capturedBy[playerColor]} diff={diff[playerColor]} />
+      captured={capturedBy[playerColor]} diff={diff[playerColor]}
+      clock={clock ? clock[playerColor] : null} running={!clockPaused && game.turn() === playerColor} />
   )
 
   const pairs: { n: number; w?: Move; b?: Move; wi: number; bi: number }[] = []
@@ -397,6 +517,8 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
         </div>
       )}
 
+      {notice && <div className="result-strip">{notice}</div>}
+
       {result && !showResult && (
         <div className="result-strip">
           <strong>{result.title}</strong> {result.reason}
@@ -439,6 +561,9 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
             <h2>{result.title}</h2>
             <p>{result.reason}</p>
             <p className="result-moves">{Math.ceil(history.length / 2)} Züge gegen {bot.name} ({bot.rating})</p>
+            {ratingResult ? (
+              <p className="rating-change">Deine Wertung: {ratingResult.after} <span className={ratingResult.delta >= 0 ? 'up' : 'down'}>({ratingResult.delta >= 0 ? '+' : '−'}{Math.abs(ratingResult.delta)})</span></p>
+            ) : <p className="rated-tag">Ungewertete Partie</p>}
             {endLine && <div className="end-line"><BotAvatar bot={bot} size={36} /><span>„{endLine}“</span></div>}
             {xpGain && (
               <div className="xp-gain">

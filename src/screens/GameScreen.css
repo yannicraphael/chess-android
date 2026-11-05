@@ -226,3 +226,26 @@
 .level-n .icon { width: 16px; height: 16px; }
 .puzzle-tools .icon, .pz-streak .icon { width: 18px; height: 18px; }
 .pz-streak { display: inline-flex; align-items: center; gap: 3px; }
+
+/* v5: the speech bubble sits next to the avatar inside the player bar, never over the board */
+.speech, .speech.below, .speech.above {
+  top: 50%; bottom: auto; transform: translateY(-50%);
+  left: 56px; max-width: calc(100% - 66px);
+  font-size: 13px; padding: 6px 11px; border-radius: 12px;
+  line-height: 1.25;
+}
+.speech::before, .speech.below::before, .speech.above::before {
+  top: 50%; bottom: auto; left: -12px; transform: translateY(-50%);
+  border: 6px solid transparent; border-right-color: #fff; border-left-color: transparent; border-top-color: transparent; border-bottom-color: transparent;
+}
+.player-bar:has(.speech) .player-info { visibility: hidden; }
+.clock {
+  margin-left: auto; font-variant-numeric: tabular-nums; font-weight: 800; font-size: 18px;
+  background: var(--card-2); color: var(--muted); border-radius: 8px; padding: 4px 10px; min-width: 78px; text-align: right;
+}
+.clock.running { background: var(--text); color: var(--bg); }
+.clock.low.running { background: var(--bad-line); color: #fff; }
+.rated-tag { font-size: 11px; font-weight: 700; color: var(--muted); }
+.rating-change { font-weight: 800; margin-top: 4px; }
+.rating-change .up { color: var(--good-line); }
+.rating-change .down { color: var(--bad-line); }
