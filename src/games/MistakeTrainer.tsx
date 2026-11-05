@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import Board, { type Arrow, type SquarePair } from '../components/Board'
 import Icon from '../components/Icon'
 import { evaluate } from '../engine/stockfish'
-import { archive, type MistakePuzzle } from '../lib/archive'
+import { dueMistakes, markMistake, type MistakePuzzle } from '../lib/archive'
 import { de, uciToSan } from '../lib/chessText'
 import { addXp, recordDaily } from '../lib/progress'
 import { playSound } from '../lib/sound'
@@ -12,7 +12,7 @@ type Status = 'play' | 'checking' | 'solved' | 'wrong' | 'shown'
 
 // Positions from the player's own games where a clearly better move existed.
 export default function MistakeTrainer({ onExit }: { onExit: () => void }) {
-  const [queue] = useState<MistakePuzzle[]>(() => archive.get().mistakes.filter((m) => !m.solved))
+  const [queue] = useState<MistakePuzzle[]>(() => dueMistakes())
   const [i, setI] = useState(0)
   const pz = queue[i]
   const [fen, setFen] = useState(pz?.fen ?? '')
@@ -34,8 +34,8 @@ export default function MistakeTrainer({ onExit }: { onExit: () => void }) {
         </header>
         <div className="empty-state">
           <Icon name="check" />
-          <h2>{solvedCount > 0 ? 'Alle Fehler aufgearbeitet!' : 'Noch keine Fehler gesammelt'}</h2>
-          <p>Nach jeder Partie analysiert die Engine deine Züge. Klare Fehler landen hier als Aufgaben, damit du sie beim nächsten Mal findest.</p>
+          <h2>{solvedCount > 0 ? 'Alle Fehler aufgearbeitet!' : 'Gerade nichts zu wiederholen'}</h2>
+          <p>Nach jeder Partie analysiert die Engine deine Züge. Klare Fehler landen hier als Aufgaben. Gelöste Stellungen kommen nach einigen Tagen noch einmal, damit du sie dir wirklich merkst.</p>
           <button className="btn primary" onClick={onExit}>Zurück</button>
         </div>
       </div>
@@ -45,7 +45,7 @@ export default function MistakeTrainer({ onExit }: { onExit: () => void }) {
   const side = pz.fen.split(' ')[1] as Color
 
   function markSolved() {
-    archive.set((s) => ({ mistakes: s.mistakes.map((m) => (m.id === pz.id ? { ...m, solved: true } : m)) }))
+    markMistake(pz.id, true)
     setSolvedCount((n) => n + 1)
     recordDaily('puzzle')
     addXp(8)
@@ -73,7 +73,7 @@ export default function MistakeTrainer({ onExit }: { onExit: () => void }) {
       playSound('correct')
       setStatus('solved')
       setArrow(null)
-      setMsg(alt ? `Auch stark! Die Engine hätte ${uciToSan(pz.fen, pz.best)} gespielt.` : 'Richtig! Diesmal hättest du es gefunden.')
+      setMsg(alt ? `Auch stark! Die Engine hätte ${uciToSan(pz.fen, pz.best)} gespielt.` : 'Richtig! Diesmal hättest du es gefunden.' + (pz.why ? ` In der Partie: ${pz.why}` : ''))
       markSolved()
     } else {
       playSound('wrong')
@@ -86,7 +86,8 @@ export default function MistakeTrainer({ onExit }: { onExit: () => void }) {
   function reveal() {
     setArrow({ from: pz.best.slice(0, 2), to: pz.best.slice(2, 4), color: 'info' })
     setStatus('shown')
-    setMsg(`Besser war ${uciToSan(pz.fen, pz.best)}.`)
+    markMistake(pz.id, false)
+    setMsg(pz.why || `Besser war ${uciToSan(pz.fen, pz.best)}.`)
   }
 
   function next() {
@@ -113,7 +114,7 @@ export default function MistakeTrainer({ onExit }: { onExit: () => void }) {
       <div className="puzzle-player">
         <div className="ot-head">
           <strong>Gegen {pz.opponent}</strong>
-          <span>Du hast hier {de(pz.played)} gespielt. Finde einen besseren Zug.</span>
+          <span>Du hast hier {de(pz.played)} gespielt. Finde einen besseren Zug.{pz.box ? ' (Wiederholung)' : ''}</span>
         </div>
         <Board fen={fen} orientation={side} movableColor={done || status === 'checking' ? null : side} lastMove={last} arrows={arrow ? [arrow] : []} onMove={onMove} />
         <div className={'puzzle-status ' + tone}>

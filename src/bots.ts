@@ -1,5 +1,5 @@
 import { OPENINGS } from './data/openings'
-import { Chess } from 'chess.js'
+import { Chess, type Move } from 'chess.js'
 import { engine } from './engine/stockfish'
 import botData from './data/bots.json'
 
@@ -27,7 +27,7 @@ export interface Bot {
   skill: number
   depth: number
   multiPv: number
-  blunder: number // chance of playing a completely random legal move
+  blunder: number // chance of a careless human-style move (greedy capture or natural-looking move)
   temperature: number // how strongly the bot prefers better moves (lower = sharper)
 }
 
@@ -271,10 +271,7 @@ export async function botMove(fen: string, bot: Bot): Promise<BotMove> {
     skill: bot.skill,
   })
   const score = candidates[0]?.scoreCp ?? null
-  if (Math.random() < bot.blunder) {
-    const m = legal[Math.floor(Math.random() * legal.length)]
-    return { move: m.from + m.to + (m.promotion ?? ''), score }
-  }
+  if (Math.random() < bot.blunder) return { move: humanMistake(chess), score }
   if (bot.temperature <= 0 || candidates.length <= 1) return { move: best, score }
   const top = candidates[0].scoreCp
   const bonus = (uci: string) => {
@@ -292,6 +289,50 @@ export async function botMove(fen: string, bot: Bot): Promise<BotMove> {
     if (r <= 0) return { move: candidates[i].move, score }
   }
   return { move: best, score }
+}
+
+// ---------- human-like mistakes ----------
+// Instead of a random move, weak bots make the mistakes people make: they grab material
+// without checking what comes back, ignore what the opponent threatens, or play a
+// natural-looking developing move that leaves something hanging.
+
+const VAL: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 }
+
+function naturalness(m: Move, chess: Chess) {
+  let w = 1
+  if (m.captured) w += 2 + VAL[m.captured]
+  if (m.san.includes('+')) w += 2
+  if (m.flags.includes('k') || m.flags.includes('q')) w += 3
+  const moveNo = Number(chess.fen().split(' ')[5] ?? 1)
+  const fromRank = Number(m.from[1])
+  const back = m.color === 'w' ? fromRank === 1 : fromRank === 8
+  if (moveNo < 15 && back && (m.piece === 'n' || m.piece === 'b')) w += 3 // develop pieces
+  if ('de'.includes(m.to[0]) && '45'.includes(m.to[1])) w += 2 // centre
+  if (m.piece === 'k' && !m.flags.includes('k') && !m.flags.includes('q')) w *= 0.15 // nobody walks the king for fun
+  if (m.piece === 'q' && moveNo < 8 && !m.captured) w *= 0.4
+  return w
+}
+
+export function humanMistake(chess: Chess): string {
+  const legal = chess.moves({ verbose: true })
+  const uci = (m: Move) => m.from + m.to + (m.promotion ?? '')
+  const kind = Math.random()
+  // 1) greedy: take the most valuable piece on offer, even if it is defended or poisoned
+  const captures = legal.filter((m) => m.captured)
+  if (kind < 0.4 && captures.length) {
+    const best = Math.max(...captures.map((m) => VAL[m.captured!]))
+    const top = captures.filter((m) => VAL[m.captured!] === best)
+    return uci(top[Math.floor(Math.random() * top.length)])
+  }
+  // 2) natural-looking move, chosen by how "human" it looks rather than how good it is
+  const weights = legal.map((m) => naturalness(m, chess))
+  const total = weights.reduce((a, b) => a + b, 0)
+  let r = Math.random() * total
+  for (let i = 0; i < legal.length; i++) {
+    r -= weights[i]
+    if (r <= 0) return uci(legal[i])
+  }
+  return uci(legal[0])
 }
 
 export async function hintMove(fen: string): Promise<string> {

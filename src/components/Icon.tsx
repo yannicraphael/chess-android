@@ -1,5 +1,9 @@
 // One consistent line-icon set for the whole app (24px grid, 1.75 stroke)
 const PATHS: Record<string, string> = {
+  download: 'M12 4v11M7 10l5 5 5-5M5 20h14',
+  copy: 'M9 9h10v11H9zM5 15V4h10',
+  medal: 'M8 3l2 6M16 3l-2 6M12 9a6 6 0 1 0 0 12 6 6 0 0 0 0-12zM12 12.5l1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3z',
+  calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
   home: 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z',
   play: 'M12 3.8a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4zM8.5 21h7l-1.5-6.5a2 2 0 0 0-2-1.5 2 2 0 0 0-2 1.5zM7 21h10',
   puzzle: 'M10 4h4v3a2 2 0 1 0 4 0V4h2v6h-3a2 2 0 1 0 0 4h3v6h-6v-3a2 2 0 1 0-4 0v3H4v-6h3a2 2 0 1 0 0-4H4V4z',

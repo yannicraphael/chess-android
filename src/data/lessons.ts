@@ -276,6 +276,104 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
+    id: 'fesselung', title: 'Die Fesselung', teaser: 'Wenn eine Figur nicht ziehen darf, wird sie zur Zielscheibe.', icon: 'wB',
+    steps: [
+      {
+        title: 'Was ist eine Fesselung?',
+        text: 'Der Läufer b5 greift den Springer c6 an. Dahinter steht der König. Der Springer darf nicht ziehen, sonst stünde der eigene König im Schach. Man sagt: Der Springer ist gefesselt.',
+        fen: '4k3/8/2n5/1B6/8/8/8/4K3 w - - 0 1',
+        arrows: [{ from: 'b5', to: 'e8', color: 'info' }],
+        marks: { c6: 'mark-target' },
+      },
+      {
+        title: 'Greife die gefesselte Figur an',
+        text: 'Eine gefesselte Figur kann nicht weglaufen. Greif sie mit etwas Billigem an, am besten mit einem Bauern.',
+        fen: '4k3/8/2n5/1B6/3P4/8/8/4K3 w - - 0 1',
+        task: { prompt: 'Gewinne den gefesselten Springer.', accept: ['d5'], success: 'Genau. Der Springer kann nicht weg und geht verloren.' },
+      },
+      {
+        title: 'Fessle die Dame',
+        text: 'Steht die Dame vor ihrem König auf einer Linie, kann ein Turm sie fesseln. Dann muss sie sich für einen Turm opfern.',
+        fen: '4k3/pp6/8/4q3/8/8/PP1K4/R5N1 w - - 0 1',
+        task: { prompt: 'Fessle die Dame an den König.', accept: ['Re1'], success: 'Die Dame ist gefesselt. Nach ...Dxe1+ Kxe1 hast du die Dame für den Turm gewonnen.' },
+      },
+      {
+        title: 'Die halbe Fesselung',
+        text: 'Steht hinter der Figur nicht der König, sondern die Dame, darf die Figur zwar ziehen, verliert dann aber die Dame. Auch das ist oft entscheidend. Prüfe in deinen Partien: Stehen König oder Dame mit einer anderen Figur auf einer Linie?',
+        fen: 'r2qkb1r/ppp2ppp/2np1n2/4p1B1/2B1P1b1/2NP1N2/PPP2PPP/R2QK2R w KQkq - 2 6',
+        arrows: [{ from: 'g5', to: 'd8', color: 'info' }, { from: 'g4', to: 'd1', color: 'bad' }],
+      },
+    ],
+  },
+  {
+    id: 'koenig', title: 'Königssicherheit', teaser: 'Rochade, Luftloch und warum offene Könige verlieren.', icon: 'wK',
+    steps: [
+      {
+        title: 'Früh rochieren',
+        text: 'Im Zentrum wird es bald lebhaft, dort ist der König in Gefahr. Mit der Rochade bringst du ihn in Sicherheit und dein Turm kommt gleichzeitig ins Spiel.',
+        fen: 'r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4',
+        task: { prompt: 'Bring deinen König in Sicherheit.', accept: ['O-O'], success: 'Richtig. Der König steht sicher und der Turm ist bereit für die Mitte.' },
+      },
+      {
+        title: 'Ein Luftloch',
+        text: 'Ein König hinter drei Bauern kann auf der Grundreihe mattgesetzt werden. Ein kleiner Bauernzug wie h3 schafft ihm ein Fluchtfeld. Das kostet wenig und rettet viele Partien.',
+        fen: '3r2k1/5ppp/8/8/8/8/5PPP/2R3K1 w - - 0 1',
+        task: { prompt: 'Schaffe deinem König ein Luftloch.', accept: ['h3', 'g3', 'h4', 'f3'], success: 'Gut. Jetzt gibt es kein Grundreihenmatt mehr.' },
+      },
+      {
+        title: 'Der offene König',
+        text: 'Fehlt ein Bauer vor dem König, entstehen Löcher. Dame und Läufer zusammen sind dann tödlich. Ziehe die Bauern vor deinem eigenen König darum nur mit gutem Grund.',
+        fen: '6k1/5p1p/8/8/8/2Q5/1B3PPP/6K1 w - - 0 1',
+        arrows: [{ from: 'b2', to: 'g7', color: 'info' }],
+        task: { prompt: 'Nutze den offenen König und setze matt.', mate: true, success: 'Matt! Der Läufer deckt die Dame auf g7.' },
+      },
+    ],
+  },
+  {
+    id: 'abtausch', title: 'Wann tauschen?', teaser: 'Mit Vorteil tauschen, mit Nachteil Figuren behalten.', icon: 'bQ',
+    steps: [
+      {
+        title: 'Die Tauschregel',
+        text: 'Hast du mehr Material, tausche Figuren: Je weniger auf dem Brett steht, desto stärker wirkt dein Vorteil. Bist du im Nachteil, behalte deine Figuren und suche Gegenspiel.',
+        fen: '3qk3/ppp2ppp/8/8/8/2N5/PPP2PPP/3QK3 w - - 0 1',
+      },
+      {
+        title: 'Biete den Damentausch an',
+        text: 'Weiß hat einen Springer mehr. Ohne Damen kann Schwarz kaum noch angreifen und der Mehrspringer entscheidet.',
+        fen: '3qk3/ppp2ppp/8/8/8/2N5/PPP2PPP/3QK3 w - - 0 1',
+        task: { prompt: 'Tausche die Damen.', accept: ['Qxd8+'], success: 'Richtig. Nach ...Kxd8 spielst du in Ruhe mit einer Figur mehr.' },
+      },
+      {
+        title: 'Ins Bauernendspiel tauschen',
+        text: 'Hast du einen Bauern mehr und steht dein König aktiv, ist das Bauernendspiel oft leicht gewonnen. Dann lohnt es sich, die letzten Figuren zu tauschen.',
+        fen: '3r4/4k3/8/8/4K3/8/4P3/3R4 w - - 0 1',
+        task: { prompt: 'Tausche die Türme.', accept: ['Rxd8'], success: 'Genau. Dein König steht vor dem Bauern, das Endspiel ist gewonnen.' },
+      },
+    ],
+  },
+  {
+    id: 'verteidigung', title: 'Gut verteidigen', teaser: 'Vier Antworten auf jede Drohung.', icon: 'bR',
+    steps: [
+      {
+        title: 'Vier Möglichkeiten',
+        text: 'Wird eine Figur angegriffen, hast du vier Antworten: wegziehen, decken, eine Figur dazwischenstellen oder den Angreifer schlagen. Manchmal gibt es noch eine fünfte: eine stärkere Gegendrohung.',
+        fen: START,
+      },
+      {
+        title: 'Dazwischenstellen',
+        text: 'Der Turm gibt Schach und dein König kann nicht weg. Stelle eine Figur dazwischen, aber die richtige: Die Dame wäre dort verloren.',
+        fen: '4r1k1/5ppp/8/8/8/8/3P1P2/3QKB2 w - - 0 1',
+        task: { prompt: 'Wehre das Schach ab, ohne Material zu verlieren.', accept: ['Be2'], success: 'Richtig. Der Läufer ist gedeckt, das Schach ist abgewehrt.' },
+      },
+      {
+        title: 'Den Angreifer schlagen',
+        text: 'Der schwarze Springer gibt Schach und greift gleichzeitig deinen Turm a1 an. Bevor du mit dem König wegläufst: Kannst du den Angreifer einfach schlagen?',
+        fen: '6k1/5ppp/8/8/8/8/PPn2PPP/R2QK2R w KQ - 0 1',
+        task: { prompt: 'Löse die Gabel auf.', accept: ['Qxc2'], success: 'Genau. Die Gabel ist weg und du hast eine Figur gewonnen.' },
+      },
+    ],
+  },
+  {
     id: 'notation', title: 'Schachnotation', teaser: 'Partien lesen und aufschreiben.', icon: 'wR',
     steps: [
       {

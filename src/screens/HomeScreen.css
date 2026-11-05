@@ -39,3 +39,11 @@ html[data-design='arena'] .kpi { border-color: transparent; }
 .quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .quick-btn { background: var(--card-2); border: none; border-radius: var(--radius-sm); padding: 12px 6px; color: var(--text); display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; font: inherit; font-size: 12px; font-weight: 700; }
 .quick-btn .icon { width: 22px; height: 22px; color: var(--accent); }
+.weekly { display: flex; flex-direction: column; gap: 8px; }
+.weekly .card-label { display: flex; align-items: center; gap: 6px; }
+.weekly .card-label .icon { width: 16px; height: 16px; }
+.wk-row { display: grid; grid-template-columns: 104px 1fr 44px; align-items: center; gap: 10px; font-size: 14px; }
+.wk-row b { text-align: right; font-variant-numeric: tabular-nums; }
+.wk-bar { height: 8px; border-radius: 4px; background: var(--bg); overflow: hidden; }
+.wk-bar i { display: block; height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; }
+.wk-row.done b { color: var(--accent); }

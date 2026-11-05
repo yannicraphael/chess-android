@@ -6,16 +6,17 @@ import EndgameTrainer from '../games/EndgameTrainer'
 import LessonPlayer from '../games/LessonPlayer'
 import MistakeTrainer from '../games/MistakeTrainer'
 import OpeningTrainer from '../games/OpeningTrainer'
-import { archive } from '../lib/archive'
+import { archive, dueMistakes } from '../lib/archive'
 import { ENDGAMES, ENDGAME_GROUPS } from '../data/endgames'
 import { LESSONS } from '../data/lessons'
 import { OPENINGS } from '../data/openings'
 import KnightGame from '../games/KnightGame'
+import SpotGame from '../games/SpotGame'
 import PuzzleRated from '../games/PuzzleRated'
 import PuzzleSet from '../games/PuzzleSet'
 import PuzzleSprint from '../games/PuzzleSprint'
 import { ENDGAME_GAMES, LESSON_GAMES, MINI_GAMES, MOTIF_GAMES, OPENING_GAMES, SPRINT, starsFor, type GameLevel, type MiniGame } from '../games/levels'
-import { addXp, progress, recordScore, type XpGain } from '../lib/progress'
+import { addXp, progress, recordScore, recordWeekly, type XpGain } from '../lib/progress'
 import { puzzleStats } from '../lib/puzzles'
 import { playSound } from '../lib/sound'
 import './Training.css'
@@ -29,6 +30,8 @@ const Stars = ({ n, size = 16 }: { n: number; size?: number }) => (
 function resultText(game: MiniGame, score: number, stars: number) {
   switch (game.kind) {
     case 'coords': return `${score} Felder getroffen`
+    case 'hanging': return `${score} ungedeckte ${score === 1 ? 'Figur' : 'Figuren'} geschlagen`
+    case 'mate1': return `${score} ${score === 1 ? 'Matt' : 'Matts'} gefunden`
     case 'knight': return stars === 3 ? 'Ohne einen einzigen Umweg!' : 'Alle Ziele erreicht'
     case 'sprint': return `${score} ${score === 1 ? 'Aufgabe' : 'Aufgaben'} gelöst`
     case 'motif': return `${score} von 5 auf Anhieb gelöst`
@@ -75,7 +78,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
   const [rated, setRated] = useState(false)
   const [mistakesMode, setMistakesMode] = useState(false)
   const mistakes = archive.use().mistakes
-  const openMistakes = mistakes.filter((m) => !m.solved).length
+  const openMistakes = dueMistakes().length
   const [active, setActive] = useState<{ game: MiniGame; level: GameLevel } | null>(null)
   const [result, setResult] = useState<{ score: number; stars: number; gain: XpGain; best: boolean } | null>(null)
   const [runKey, setRunKey] = useState(0)
@@ -106,6 +109,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
     const before = progress.get().stars[active.level.id] ?? 0
     const best = score > (progress.get().best[active.level.id] ?? 0)
     recordScore(active.level.id, score, stars)
+    if (stars > 0 && (active.game.kind === 'opening' || active.game.kind === 'endgame' || active.game.kind === 'lesson')) recordWeekly('learn')
     // XP for playing plus a bonus for every newly earned star
     const gain = addXp(5 + stars * 5 + Math.max(0, stars - before) * 15)
     playSound(stars > 0 ? 'win' : 'draw')
@@ -128,6 +132,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
         </header>
         {game.kind === 'coords' && <CoordsGame key={runKey} level={level} onFinish={finish} />}
         {game.kind === 'knight' && <KnightGame key={runKey} level={level} onFinish={finish} />}
+        {(game.kind === 'hanging' || game.kind === 'mate1') && <SpotGame key={runKey} mode={game.kind} level={level} onFinish={finish} />}
         {game.kind === 'sprint' && <PuzzleSprint key={runKey} level={level} onFinish={finish} />}
         {game.kind === 'motif' && <PuzzleSet key={runKey} level={level} onFinish={finish} />}
         {game.kind === 'opening' && <OpeningTrainer key={runKey} opening={OPENINGS.find((o) => o.id === game.ref)!} level={level.n} onFinish={finish} />}
@@ -139,7 +144,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
               <div className={'result-icon ' + (result.stars > 0 ? 'win' : 'draw')}><Icon name={result.stars === 3 ? 'trophy' : result.stars > 0 ? 'star' : 'refresh'} fill={result.stars > 0 && result.stars < 3} /></div>
               <h2>{result.stars > 0 ? 'Geschafft!' : 'Fast!'}</h2>
               <Stars n={result.stars} size={34} />
-              <p>{resultText(game, result.score, result.stars)}{result.best && result.score > 0 && ['coords', 'sprint', 'motif'].includes(game.kind) ? ' · neuer Rekord' : ''}</p>
+              <p>{resultText(game, result.score, result.stars)}{result.best && result.score > 0 && ['coords', 'sprint', 'motif', 'hanging', 'mate1'].includes(game.kind) ? ' · neuer Rekord' : ''}</p>
               {result.stars === 0 && <p>Für einen Stern brauchst du {level.stars[0]}.</p>}
               <div className="xp-gain">
                 <span className="xp-pill">+{result.gain.amount} XP</span>
@@ -205,9 +210,9 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
           <span className="mg-icon"><Icon name="target" /></span>
           <div>
             <div className="mg-title">Eigene Fehler</div>
-            <div className="mg-teaser">{mistakes.length === 0 ? 'Nach jeder Partie werden deine klaren Fehler hier zu Aufgaben.' : 'Stellungen aus deinen Partien, in denen es einen viel besseren Zug gab.'}</div>
+            <div className="mg-teaser">{mistakes.length === 0 ? 'Nach jeder Partie werden deine klaren Fehler hier zu Aufgaben.' : 'Stellungen aus deinen Partien. Gelöste kommen nach 3, 10 und 30 Tagen wieder, bis sie sitzen.'}</div>
           </div>
-          <span className="mg-total">{openMistakes > 0 ? `${openMistakes} offen` : mistakes.length > 0 ? 'alle gelöst' : ''}</span>
+          <span className="mg-total">{openMistakes > 0 ? `${openMistakes} offen` : mistakes.length > 0 ? 'alle erledigt' : ''}</span>
         </div>
       </button>
 
@@ -293,7 +298,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
         return (
           <section key={grp.id} className="mg-card">
             <div className="mg-head">
-              <span className="mg-icon"><PieceIcon code={grp.id === 'matt' ? 'bK' : grp.id === 'bauern' ? 'wP' : 'wR'} /></span>
+              <span className="mg-icon"><PieceIcon code={grp.id === 'matt' ? 'bK' : grp.id === 'bauern' ? 'wP' : grp.id === 'figuren' ? 'wQ' : 'wR'} /></span>
               <div>
                 <div className="mg-title">{grp.title}</div>
                 <div className="mg-teaser">{grp.teaser} Du spielst gegen die volle Engine.</div>

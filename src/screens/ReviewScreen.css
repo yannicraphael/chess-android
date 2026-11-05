@@ -71,3 +71,5 @@
 }
 .km.active { background: var(--card-2); }
 .review-screen .game-actions { margin-top: auto; }
+.review-explain .why { display: block; margin-top: 4px; color: var(--text); font-size: 13px; line-height: 1.4; }
+.review-explain .why strong { color: var(--accent, #c9a45a); }
