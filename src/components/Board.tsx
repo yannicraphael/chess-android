@@ -156,6 +156,7 @@ export default function Board({ fen, orientation, movableColor = null, lastMove,
     '--sq-light': theme.light,
     '--sq-dark': theme.dark,
     backgroundImage: `url(${boardUrl(theme.id)})`,
+    '--slide': s.animSpeed === 'schnell' ? '0.09s' : s.animSpeed === 'langsam' ? '0.32s' : '0.17s',
   } as React.CSSProperties
 
   return (

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { resumeAnalysis } from './lib/archive'
 import { settings } from './lib/settings'
 import Onboarding from './screens/Onboarding'
+import BadgeToast from './components/BadgeToast'
 import { findBot, type Bot } from './bots'
 import Icon, { type IconName } from './components/Icon'
 import PuzzleRated from './games/PuzzleRated'
@@ -65,16 +66,18 @@ export default function App() {
     return (
       <div className="app">
         <GameScreen key={gameKey} bot={savedBot} saved={saved} onSave={save} onExit={() => setInGame(false)} />
+        <BadgeToast />
       </div>
     )
   }
 
   if (daily) {
-    return <div className="app"><PuzzleRated firstId={daily} onExit={() => setDaily(null)} /></div>
+    return <div className="app"><PuzzleRated firstId={daily} onExit={() => setDaily(null)} /><BadgeToast /></div>
   }
 
   return (
     <div className="app">
+      <BadgeToast />
       <main className="tab-content" key={tab}>
         <div className="screen-enter">
           {tab === 'home' && <HomeScreen resumeBot={resumable} onResume={() => setInGame(true)} onDaily={setDaily} onTab={setTab} />}

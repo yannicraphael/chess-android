@@ -16,7 +16,7 @@ export interface GameLevel {
 
 export interface MiniGame {
   id: string
-  kind: 'coords' | 'knight' | 'sprint' | 'motif' | 'opening' | 'endgame' | 'lesson'
+  kind: 'coords' | 'knight' | 'hanging' | 'mate1' | 'sprint' | 'motif' | 'opening' | 'endgame' | 'lesson'
   ref?: string // id of the opening, endgame or lesson
   title: string
   icon: string
@@ -52,6 +52,32 @@ export const MINI_GAMES: MiniGame[] = [
       { id: 'knight-2', n: 2, name: 'Freihand', description: '2 bis 3 Sprünge, ohne Hilfe', stars: [1, 2, 3] },
       { id: 'knight-3', n: 3, name: 'Weite Wege', description: '3 bis 4 Sprünge', stars: [1, 2, 3] },
       { id: 'knight-4', n: 4, name: 'Ecken-Meister', description: '4 bis 6 Sprünge, gern über Ecken', stars: [1, 2, 3] },
+    ],
+  },
+  {
+    id: 'hanging',
+    kind: 'hanging',
+    title: 'Hängende Figur',
+    icon: 'eye',
+    teaser: 'Finde und schlage die ungedeckte Figur, so schnell du kannst.',
+    skill: 'Die wichtigste Gewohnheit überhaupt: vor jedem Zug prüfen, was ungedeckt herumsteht.',
+    levels: [
+      { id: 'hanging-1', n: 1, name: 'Aufwärmen', description: 'Leichte Stellungen, 90 Sekunden', stars: [5, 10, 15], seconds: 90 },
+      { id: 'hanging-2', n: 2, name: 'Blick schärfen', description: 'Alle Stellungen, 60 Sekunden', stars: [4, 8, 12], seconds: 60 },
+      { id: 'hanging-3', n: 3, name: 'Auch Bauern', description: 'Auch ungedeckte Bauern, 60 Sekunden', stars: [4, 8, 12], seconds: 60 },
+    ],
+  },
+  {
+    id: 'mate1',
+    kind: 'mate1',
+    title: 'Matt in einem Zug',
+    icon: 'crown',
+    teaser: 'Setze in einem Zug matt. Wie viele Matts schaffst du gegen die Uhr?',
+    skill: 'Mattbilder sofort erkennen, damit du in der Partie kein Matt verpasst.',
+    levels: [
+      { id: 'mate1-1', n: 1, name: 'Aufwärmen', description: 'Leichte Matts, 90 Sekunden', stars: [5, 10, 15], seconds: 90 },
+      { id: 'mate1-2', n: 2, name: 'Mattjäger', description: 'Alle Matts, 60 Sekunden', stars: [4, 8, 12], seconds: 60 },
+      { id: 'mate1-3', n: 3, name: 'Versteckte Matts', description: 'Schwerere Stellungen, 60 Sekunden', stars: [3, 6, 10], seconds: 60 },
     ],
   },
 ]

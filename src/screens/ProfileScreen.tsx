@@ -1,14 +1,16 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { BOTS, findBot } from '../bots'
 import { archive, fensOf, type ArchivedGame } from '../lib/archive'
 import { perfEstimate, rating } from '../lib/rating'
 import ReviewScreen from './ReviewScreen'
 import BotAvatar from '../components/BotAvatar'
-import Icon from '../components/Icon'
+import Icon, { type IconName } from '../components/Icon'
+import { BADGES } from '../lib/badges'
 import { levelInfo, levelTitle, progress } from '../lib/progress'
 import { puzzleStats } from '../lib/puzzles'
 import { BLACK_COLORS, BOARD_THEMES, DESIGNS, PIECE_SETS, WHITE_COLORS, boardUrl, pieceUrl, settings, type Settings } from '../lib/settings'
 import { playSound, preloadSounds, SOUND_SETS } from '../lib/sound'
+import { makeBackup, restoreBackup, shareOrDownload } from '../lib/backup'
 import './Training.css'
 
 function Toggle({ k, label, sub }: { k: keyof Settings; label: string; sub?: string }) {
@@ -22,6 +24,53 @@ function Toggle({ k, label, sub }: { k: keyof Settings; label: string; sub?: str
         if (k === 'sound' && !on) setTimeout(() => playSound('move'), 50)
       }} />
     </div>
+  )
+}
+
+function BackupSection() {
+  const [msg, setMsg] = useState('')
+  const [paste, setPaste] = useState<string | null>(null)
+  const fileRef = useRef<HTMLInputElement>(null)
+  async function save() {
+    const r = await shareOrDownload(makeBackup())
+    setMsg(r === 'shared' ? 'Sicherung geteilt. Speichere sie zum Beispiel in deinen Dateien oder in der Cloud.' : 'Sicherung als Datei gespeichert (Ordner „Downloads“).')
+  }
+  async function copy() {
+    try { await navigator.clipboard.writeText(makeBackup()); setMsg('Sicherung in die Zwischenablage kopiert.') } catch { setMsg('Kopieren hat nicht geklappt.') }
+  }
+  function restore(text: string) {
+    if (!window.confirm('Alle jetzigen Daten auf diesem Gerät werden durch die Sicherung ersetzt. Fortfahren?')) return
+    const err = restoreBackup(text)
+    if (err) setMsg(err)
+  }
+  return (
+    <>
+      <div className="section-title">Daten sichern</div>
+      <div className="settings-list backup">
+        <p className="backup-note">Fortschritt, Wertung, Partien und Einstellungen liegen nur auf diesem Gerät. Mit einer Sicherung nimmst du alles auf ein neues Handy mit.</p>
+        <div className="backup-buttons">
+          <button className="btn secondary small" onClick={save}><Icon name="download" /> Sicherung speichern</button>
+          <button className="btn secondary small" onClick={copy}><Icon name="copy" /> Kopieren</button>
+          <button className="btn secondary small" onClick={() => fileRef.current?.click()}><Icon name="refresh" /> Aus Datei laden</button>
+          <button className="btn secondary small" onClick={() => setPaste('')}><Icon name="book" /> Einfügen</button>
+        </div>
+        <input ref={fileRef} type="file" accept="application/json,.json,text/plain" hidden onChange={async (e) => {
+          const f = e.target.files?.[0]
+          e.target.value = ''
+          if (f) restore(await f.text())
+        }} />
+        {paste !== null && (
+          <div className="backup-paste">
+            <textarea value={paste} onChange={(e) => setPaste(e.target.value)} placeholder="Sicherung hier einfügen" rows={4} />
+            <div className="backup-buttons">
+              <button className="btn primary small" disabled={!paste.trim()} onClick={() => restore(paste)}>Einspielen</button>
+              <button className="btn secondary small" onClick={() => setPaste(null)}>Abbrechen</button>
+            </div>
+          </div>
+        )}
+        {msg && <p className="backup-msg">{msg}</p>}
+      </div>
+    </>
   )
 }
 
@@ -145,6 +194,20 @@ export default function ProfileScreen({ onPlaying }: { onPlaying: (playing: bool
         <div className="stat"><strong>{ps.peak}</strong><span>Beste Wertung</span></div>
       </div>
 
+      <div className="section-title">Abzeichen <span className="section-count">{Object.keys(p.badges ?? {}).length}/{BADGES.length}</span></div>
+      <div className="badge-grid">
+        {[...BADGES].sort((a, b) => Number(Boolean(p.badges?.[b.id])) - Number(Boolean(p.badges?.[a.id]))).map((b) => {
+          const got = p.badges?.[b.id]
+          return (
+            <div key={b.id} className={'badge' + (got ? ' got' : '')} title={b.text}>
+              <span className="badge-icon"><Icon name={got ? (b.icon as IconName) : 'lock'} /></span>
+              <strong>{b.name}</strong>
+              <small>{got ? new Date(got).toLocaleDateString('de-DE') : b.text}</small>
+            </div>
+          )
+        })}
+      </div>
+
       <div className="section-title">Besiegte Bots <span className="section-count">{beaten.length}/{BOTS.length}</span></div>
       <div className="trophy-row">
         {beaten.length === 0 && <p className="empty-note">Noch keiner. Dein erster Sieg landet hier.</p>}
@@ -240,11 +303,22 @@ export default function ProfileScreen({ onPlaying }: { onPlaying: (playing: bool
           ))}
         </div>
         <Toggle k="vibration" label="Vibration" sub="Bei Schlagen, Schach und Fehlern" />
-        <Toggle k="animation" label="Zug-Animation" />
+        <div className="setting">
+          <span className="setting-label">Zug-Animation</span>
+        </div>
+        <div className="chooser anim-chooser">
+          {([['aus', 'Aus'], ['schnell', 'Schnell'], ['normal', 'Normal'], ['langsam', 'Langsam']] as const).map(([id, label]) => {
+            const active = id === 'aus' ? !s.animation : s.animation && s.animSpeed === id
+            return (
+              <button key={id} className={'choice' + (active ? ' active' : '')} onClick={() => settings.set(id === 'aus' ? { animation: false } : { animation: true, animSpeed: id })}>{label}</button>
+            )
+          })}
+        </div>
         <Toggle k="coordinates" label="Koordinaten am Brett" />
         <Toggle k="coach" label="Trainer-Hilfe" sub="Warnt dich in Partien vor groben Fehlern" />
       </div>
 
+      <BackupSection />
       </>}
 
       {tab === 'settings' && <p className="credits">

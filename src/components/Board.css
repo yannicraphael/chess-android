@@ -40,7 +40,7 @@
   pointer-events: none;
 }
 .piece.slide {
-  animation: slide 0.16s ease-out;
+  animation: slide var(--slide, 0.17s) ease-out;
   z-index: 3;
 }
 @keyframes slide {

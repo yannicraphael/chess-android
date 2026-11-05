@@ -1,0 +1,13 @@
+.badge-toast {
+  position: fixed; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 12px); transform: translateX(-50%);
+  z-index: 200; width: min(92vw, 420px); display: flex; gap: 12px; align-items: center; text-align: left;
+  background: var(--card); color: var(--text); border: 1px solid var(--gold, #c9a45a); border-radius: 14px;
+  padding: 10px 14px; box-shadow: 0 10px 30px #0008; animation: bt-in 0.35s ease-out; font: inherit;
+}
+.bt-icon { width: 40px; height: 40px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--gold, #c9a45a); color: #1b1612; }
+.bt-icon .icon { width: 24px; height: 24px; }
+.bt-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.bt-text small { color: var(--gold, #c9a45a); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+.bt-text strong { font-size: 15px; }
+.bt-text span { font-size: 13px; color: var(--muted); }
+@keyframes bt-in { from { transform: translate(-50%, -30px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }

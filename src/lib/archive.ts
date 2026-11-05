@@ -2,6 +2,7 @@ import { Chess, type Color } from 'chess.js'
 import { evaluate } from '../engine/stockfish'
 import { perfFromAcpl, recordPerf } from './rating'
 import { createStore } from './store'
+import { explainMistake } from './explain'
 
 // Saved games (newest first) with their engine analysis, and positions where the player
 // made a mistake, which come back later as puzzles.
@@ -26,6 +27,7 @@ export interface ArchivedGame {
   evals?: PosEval[]
   accuracy?: number
   perf?: number
+  blunders?: number // player's moves that lost 2.5 pawns or more
 }
 
 export interface MistakePuzzle {
@@ -38,6 +40,9 @@ export interface MistakePuzzle {
   opponent: string
   date: string
   solved: boolean
+  why?: string // explanation in words
+  box?: number // spaced repetition: how often solved (comes back after 3, 10, 30 days)
+  due?: string // ISO date when a solved puzzle comes back
 }
 
 export const archive = createStore<{ games: ArchivedGame[]; mistakes: MistakePuzzle[] }>('archive', { games: [], mistakes: [] })
@@ -132,7 +137,8 @@ export async function analyzeStored(id: string) {
   const evals = await analyze(id, fens)
   const graded = gradeMoves(moves, evals)
   const p = performance(graded, g.color)
-  updateGame(id, { evals, accuracy: p?.accuracy, perf: p?.perf })
+  const blunders = graded.filter((m) => m.color === g.color && m.loss >= 250).length
+  updateGame(id, { evals, accuracy: p?.accuracy, perf: p?.perf, blunders })
   if (p && g.rated) recordPerf(p.perf)
   // the player's clear mistakes become puzzles (only when the position was not already lost)
   const found: MistakePuzzle[] = []
@@ -143,6 +149,7 @@ export async function analyzeStored(id: string) {
     found.push({
       id: `${id}-${i}`, gameId: id, fen: fens[i], best: m.best, played: moves[i].san, bestCp: before,
       opponent: g.botName, date: g.date, solved: false,
+      why: explainMistake({ fenBefore: fens[i], played: m.uci, best: m.best, reply: evals[i + 1].best, mateBefore: evals[i].mate, mateAfter: evals[i + 1].mate }),
     })
   })
   if (found.length) archive.set((s) => ({ mistakes: [...found, ...s.mistakes].slice(0, 150) }))
@@ -151,4 +158,25 @@ export async function analyzeStored(id: string) {
 // analyse games that were saved but not analysed yet (e.g. app closed during analysis)
 export function resumeAnalysis() {
   for (const g of archive.get().games.slice(0, 5)) if (!g.evals) void analyzeStored(g.id)
+}
+
+// ---------- spaced repetition for own mistakes ----------
+const REPEAT_DAYS = [3, 10, 30]
+
+export function dueMistakes(now = new Date()) {
+  return archive.get().mistakes.filter((m) => !m.solved || (m.due && new Date(m.due) <= now))
+}
+
+export function markMistake(id: string, ok: boolean) {
+  archive.set((s) => ({
+    mistakes: s.mistakes.map((m) => {
+      if (m.id !== id) return m
+      if (!ok) return { ...m, solved: false, box: 0, due: undefined }
+      const box = (m.box ?? 0) + 1
+      if (box > REPEAT_DAYS.length) return { ...m, solved: true, box, due: undefined } // learnt for good
+      const d = new Date()
+      d.setDate(d.getDate() + REPEAT_DAYS[box - 1])
+      return { ...m, solved: true, box, due: d.toISOString() }
+    }),
+  }))
 }

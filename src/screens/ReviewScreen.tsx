@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Board from '../components/Board'
 import { analyze, archive, performance, updateGame, type PosEval } from '../lib/archive'
 import { de, evalText, uciToSan } from '../lib/chessText'
+import { explainMistake } from '../lib/explain'
 import { playSound } from '../lib/sound'
 import './ReviewScreen.css'
 
@@ -110,6 +111,12 @@ export default function ReviewScreen({ history, playerColor, opponent, gameId, p
   const lastMove = ply > 0 ? { from: history[ply - 1].from, to: history[ply - 1].to } : null
   const bestPrev = current && current.grade !== 'best' && current.best ? { from: current.best.slice(0, 2), to: current.best.slice(2, 4) } : null
   const evalNow = evals[ply]
+  const why = current && (current.grade === 'inaccuracy' || current.grade === 'mistake' || current.grade === 'blunder')
+    ? explainMistake({
+      fenBefore: fens[ply - 1], played: current.move.from + current.move.to + (current.move.promotion ?? ''),
+      best: current.best, reply: evals[ply]?.best ?? null, mateBefore: evals[ply - 1]?.mate ?? null, mateAfter: evals[ply]?.mate ?? null,
+    })
+    : ''
   // share of the bar filled with the player's colour (from the bottom)
   const whitePct = evalNow ? winPct(clip(evalNow.mate !== null ? (evalNow.cp > 0 ? 10000 : -10000) : evalNow.cp)) : 50
   const barPct = playerColor === 'w' ? whitePct : 100 - whitePct
@@ -180,7 +187,8 @@ export default function ReviewScreen({ history, playerColor, opponent, gameId, p
             <span className="grade-badge" style={{ background: GRADES[current.grade].color }}>{GRADES[current.grade].icon}</span>
             <span>
               <strong>{Math.ceil(ply / 2)}{current.move.color === 'w' ? '.' : '…'} {de(current.move.san)}</strong> ist {current.grade === 'best' ? 'der beste Zug' : GRADES[current.grade].label === 'Gut' ? 'gut' : `ein${current.grade === 'inaccuracy' ? 'e' : ''} ${GRADES[current.grade].label}`}.
-              {current.grade !== 'best' && current.best && <> Besser war <strong>{uciToSan(fens[ply - 1], current.best)}</strong> (blauer Pfeil).</>}
+              {current.grade !== 'best' && current.best && !why && <> Besser war <strong>{uciToSan(fens[ply - 1], current.best)}</strong> (blauer Pfeil).</>}
+              {why && <span className="why"><strong>Warum?</strong> {why}</span>}
             </span>
           </>
         )}

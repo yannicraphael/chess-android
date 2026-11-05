@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { BOTS, recommendBot, type Bot } from '../bots'
-import { archive } from '../lib/archive'
+import { archive, dueMistakes } from '../lib/archive'
 import { rating } from '../lib/rating'
 import { settings } from '../lib/settings'
 import Board from '../components/Board'
 import BotAvatar from '../components/BotAvatar'
 import Icon from '../components/Icon'
-import { dailyInfo, levelInfo, levelTitle, progress } from '../lib/progress'
+import { dailyInfo, weeklyInfo, levelInfo, levelTitle, progress } from '../lib/progress'
 import { dailyPuzzle, loadPuzzles, puzzleStats, themeLabels, type Puzzle } from '../lib/puzzles'
 import type { Tab } from '../App'
 import './HomeScreen.css'
@@ -62,13 +62,14 @@ export default function HomeScreen({ resumeBot, onResume, onDaily, onTab }: {
   const p = progress.use()
   const ps = puzzleStats.use()
   const d = dailyInfo(p)
+  const w = weeklyInfo(p)
   const { level, into, needed } = levelInfo(p.xp)
   const stars = Object.values(p.stars).reduce((a, n) => a + n, 0)
   const puzzle = useDailyPuzzle(ps.rating)
   const solvedToday = (() => { try { return JSON.parse(localStorage.getItem('dailySolved') ?? '""') === todayKey() } catch { return false } })()
   const r = rating.use()
   const st = settings.use()
-  const openMistakes = archive.use().mistakes.filter((m) => !m.solved).length
+  const openMistakes = (archive.use(), dueMistakes().length)
   const next = recommendBot(r.rating, p.bots) ?? BOTS[BOTS.length - 1]
   const openLearn = (t: string) => { try { localStorage.setItem('learnTab', t) } catch { /* ignore */ } onTab('learn') }
   const date = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })
@@ -92,6 +93,17 @@ export default function HomeScreen({ resumeBot, onResume, onDaily, onTab }: {
           <strong>Tagesziel</strong>
           <span>{goalText}</span>
         </div>
+      </section>
+
+      <section className="card weekly">
+        <div className="card-label"><Icon name="calendar" /> Wochenziele{w.complete ? ' · geschafft!' : ''}</div>
+        {w.goals.map((g) => (
+          <div key={g.id} className={'wk-row' + (g.done >= g.total ? ' done' : '')}>
+            <span>{g.label}</span>
+            <div className="wk-bar"><i style={{ width: `${(g.done / g.total) * 100}%` }} /></div>
+            <b>{g.done}/{g.total}</b>
+          </div>
+        ))}
       </section>
 
       {resumeBot && (

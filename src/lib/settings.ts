@@ -76,6 +76,7 @@ export interface Settings {
   vibration: boolean
   coordinates: boolean
   animation: boolean
+  animSpeed: 'schnell' | 'normal' | 'langsam'
   coach: boolean // warn about blunders during games
   name: string
   onboarded: boolean
@@ -92,6 +93,7 @@ export const settings = createStore<Settings>('settings', {
   vibration: true,
   coordinates: true,
   animation: true,
+  animSpeed: 'normal',
   coach: true,
   name: 'Yannic',
   onboarded: false,
