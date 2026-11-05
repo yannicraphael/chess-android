@@ -4,7 +4,7 @@ const config: CapacitorConfig = {
   appId: 'de.yannic.schach',
   appName: 'Schach',
   webDir: 'dist',
-  backgroundColor: '#2b2a27',
+  backgroundColor: '#1b1612',
 }
 
 export default config
