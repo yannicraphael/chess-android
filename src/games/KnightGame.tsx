@@ -1,3 +1,4 @@
+import Icon from '../components/Icon'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Board from '../components/Board'
 import { playSound } from '../lib/sound'
@@ -103,9 +104,9 @@ export default function KnightGame({ level, onFinish }: { level: GameLevel; onFi
   return (
     <div className="minigame">
       <div className="mg-hud">
-        <div className="mg-stat"><span>🏁</span>{round + 1}/{ROUNDS}</div>
+        <div className="mg-stat"><Icon name="flag" />{round + 1}/{ROUNDS}</div>
         <div className="mg-target small">Ziel {task.to}<small>in {task.optimal} {task.optimal === 1 ? 'Sprung' : 'Sprüngen'}</small></div>
-        <div className="mg-stat"><span>⏱</span>{Math.floor((now - startTime) / 1000)}s</div>
+        <div className="mg-stat"><Icon name="clock" />{Math.floor((now - startTime) / 1000)}s</div>
       </div>
       <Board fen={fenWithKnight(knight)} orientation="w" marks={marks} lastMove={prev ? { from: prev, to: knight } : null} onSquareTap={tap} />
       <p className="mg-info">Sprünge in dieser Runde: {jumps} · Umwege bisher: {extra}</p>

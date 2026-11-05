@@ -1,6 +1,6 @@
 import { Chess, type Square, type PieceSymbol, type Color } from 'chess.js'
 import { useMemo, useRef, useState } from 'react'
-import { boardTheme, pieceUrl, settings } from '../lib/settings'
+import { boardTheme, boardUrl, pieceUrl, settings } from '../lib/settings'
 import './Board.css'
 
 export interface SquarePair {
@@ -148,8 +148,7 @@ export default function Board({ fen, orientation, movableColor = null, lastMove,
   const style = {
     '--sq-light': theme.light,
     '--sq-dark': theme.dark,
-    '--hl-light': theme.hlLight,
-    '--hl-dark': theme.hlDark,
+    backgroundImage: `url(${boardUrl(theme.id)})`,
   } as React.CSSProperties
 
   return (
@@ -173,15 +172,11 @@ export default function Board({ fen, orientation, movableColor = null, lastMove,
           if (hint && (hint.from === sq || hint.to === sq)) classes.push('hint')
           if (checkSq === sq) classes.push('check')
           if (marks?.[sq]) classes.push(marks[sq])
-          const highlighted = classes.includes('last') || classes.includes('selected') || checkSq === sq
-          const sqStyle: React.CSSProperties | undefined = theme.texture && !highlighted
-            ? { backgroundImage: light ? theme.texture.light : theme.texture.dark, backgroundPosition: `${(r * 53 + c * 97) % 240}px ${(r * 71 + c * 31) % 240}px` }
-            : undefined
           const isTarget = targets.has(sq)
           const hidden = dragPiece && drag?.from === sq
           const animate = anim && anim.to === sq
           return (
-            <div key={sq} className={classes.join(' ')} style={sqStyle}>
+            <div key={sq} className={classes.join(' ')}>
               {coords && ci === 0 && <span className="coord rank">{r + 1}</span>}
               {coords && ri === 7 && <span className="coord file">{FILES[c]}</span>}
               {piece && !hidden && (

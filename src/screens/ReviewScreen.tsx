@@ -1,3 +1,4 @@
+import Icon from '../components/Icon'
 import { Chess, type Color, type Move } from 'chess.js'
 import { useEffect, useMemo, useState } from 'react'
 import Board from '../components/Board'
@@ -118,7 +119,7 @@ export default function ReviewScreen({ history, playerColor, bot, onClose }: {
   return (
     <div className="review-screen">
       <header className="game-header">
-        <button className="icon-btn" onClick={onClose} aria-label="Zurück">‹</button>
+        <button className="icon-btn" onClick={onClose} aria-label="Zurück"><Icon name="back" /></button>
         <div className="game-title">Partieanalyse</div>
         <span style={{ width: 44 }} />
       </header>

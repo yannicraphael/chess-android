@@ -8,8 +8,11 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  border-radius: 4px;
+  border-radius: var(--board-radius, 4px);
   overflow: hidden;
+  background-size: cover;
+  background-color: var(--sq-dark);
+  box-shadow: var(--board-shadow, none);
 }
 
 .sq {
@@ -18,10 +21,7 @@
   align-items: center;
   justify-content: center;
 }
-.sq.light { background: var(--sq-light); }
-.sq.dark { background: var(--sq-dark); }
-.sq.last.light, .sq.selected.light { background: var(--hl-light); }
-.sq.last.dark, .sq.selected.dark { background: var(--hl-dark); }
+.sq.last, .sq.selected { background: rgba(255, 210, 70, 0.42); }
 .sq.hint::after {
   content: '';
   position: absolute;
@@ -29,7 +29,7 @@
   background: rgba(70, 150, 255, 0.45);
 }
 .sq.check {
-  background: radial-gradient(circle, #ff3b3b 0%, #e01f1f 35%, rgba(200, 0, 0, 0) 75%), var(--sq-dark);
+  background: radial-gradient(circle, #ff3b3b 0%, #e01f1f 35%, rgba(200, 0, 0, 0) 75%);
 }
 
 .piece {
@@ -62,6 +62,7 @@
 .coord.file { bottom: 1px; right: 3px; }
 .sq.light .coord { color: var(--sq-dark); }
 .sq.dark .coord { color: var(--sq-light); }
+.piece { filter: drop-shadow(0 1.5px 1.5px rgba(0, 0, 0, 0.28)); }
 
 .dot {
   position: absolute;

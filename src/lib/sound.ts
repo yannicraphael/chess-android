@@ -7,10 +7,24 @@ export type SoundName =
   | 'win' | 'lose' | 'draw' | 'correct' | 'wrong' | 'levelup' | 'tick' | 'warn' | 'start'
 
 export const SOUND_SETS = [
-  { id: 'clack', name: 'Klack' },
-  { id: 'wood', name: 'Holz' },
-  { id: 'deep', name: 'Holz tief' },
+  { id: 'turnier', name: 'Turnier', variants: 3 },
+  { id: 'filz', name: 'Filz', variants: 3 },
+  { id: 'hartholz', name: 'Hartholz', variants: 3 },
+  { id: 'klack', name: 'Klack', variants: 1 },
 ] as const
+
+function soundSet(id: string) {
+  return SOUND_SETS.find((x) => x.id === id) ?? SOUND_SETS[0]
+}
+// a different recording each time so moves never sound mechanical
+let last = 0
+function variant(set: string, kind: 'move' | 'capture') {
+  const s = soundSet(set)
+  let n = 1 + Math.floor(Math.random() * s.variants)
+  if (s.variants > 1 && n === last) n = (n % s.variants) + 1
+  last = n
+  return `${s.id}/${kind}${n}.mp3`
+}
 
 const UI_FILES = ['start', 'win', 'lose', 'draw', 'correct', 'wrong', 'levelup', 'warn', 'tick', 'check', 'promote']
 const BASE = `${import.meta.env.BASE_URL}sounds/`
@@ -46,8 +60,8 @@ function load(path: string): Promise<AudioBuffer | null> {
 
 // Loads all sounds of the current set in the background
 export function preloadSounds() {
-  const set = settings.get().soundSet
-  for (const f of ['move', 'capture']) void load(`${set}/${f}.mp3`)
+  const set = soundSet(settings.get().soundSet)
+  for (let i = 1; i <= set.variants; i++) for (const f of ['move', 'capture']) void load(`${set.id}/${f}${i}.mp3`)
   for (const f of UI_FILES) void load(`ui/${f}.mp3`)
 }
 
@@ -79,11 +93,11 @@ export function playSound(name: SoundName, setOverride?: string) {
   if (!s.sound) return
   const set = setOverride ?? s.soundSet
   switch (name) {
-    case 'move': play(`${set}/move.mp3`); break
-    case 'capture': play(`${set}/capture.mp3`); break
-    case 'castle': play(`${set}/move.mp3`); play(`${set}/move.mp3`, 0.12, 0.8); break
-    case 'check': play(`${set}/move.mp3`); play('ui/check.mp3', 0.04); break
-    case 'promote': play(`${set}/move.mp3`); play('ui/promote.mp3', 0.05); break
+    case 'move': play(variant(set, 'move')); break
+    case 'capture': play(variant(set, 'capture')); break
+    case 'castle': play(variant(set, 'move')); play(variant(set, 'move'), 0.11, 0.85); break
+    case 'check': play(variant(set, 'move')); play('ui/check.mp3', 0.03); break
+    case 'promote': play(variant(set, 'move')); play('ui/promote.mp3', 0.05); break
     default: play(`ui/${name}.mp3`)
   }
 }

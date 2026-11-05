@@ -1,12 +1,15 @@
 import type { Color } from 'chess.js'
 import { useState } from 'react'
-import { BOTS, type Bot } from './bots'
+import { findBot, type Bot } from './bots'
+import Icon, { type IconName } from './components/Icon'
+import PuzzleRated from './games/PuzzleRated'
 import GameScreen, { type SavedGame } from './screens/GameScreen'
+import HomeScreen from './screens/HomeScreen'
 import PlayScreen from './screens/PlayScreen'
-import TrainingScreen from './screens/TrainingScreen'
 import ProfileScreen from './screens/ProfileScreen'
+import TrainingScreen from './screens/TrainingScreen'
 
-type Tab = 'play' | 'training' | 'profile'
+export type Tab = 'home' | 'play' | 'tactics' | 'learn' | 'profile'
 
 const SAVE_KEY = 'currentGame'
 
@@ -19,20 +22,23 @@ function loadSaved(): SavedGame | null {
   }
 }
 
-const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-  { id: 'play', label: 'Spielen', icon: '♟' },
-  { id: 'training', label: 'Training', icon: '🎯' },
-  { id: 'profile', label: 'Profil', icon: '🏅' },
+const TABS: { id: Tab; label: string; icon: IconName }[] = [
+  { id: 'home', label: 'Heute', icon: 'home' },
+  { id: 'play', label: 'Spielen', icon: 'play' },
+  { id: 'tactics', label: 'Taktik', icon: 'puzzle' },
+  { id: 'learn', label: 'Lernen', icon: 'learn' },
+  { id: 'profile', label: 'Profil', icon: 'user' },
 ]
 
 export default function App() {
-  const [tab, setTab] = useState<Tab>('play')
+  const [tab, setTab] = useState<Tab>('home')
   const [saved, setSaved] = useState<SavedGame | null>(loadSaved)
   const [inGame, setInGame] = useState(false)
   const [gameKey, setGameKey] = useState(0)
-  const [miniGame, setMiniGame] = useState(false)
+  const [fullscreen, setFullscreen] = useState(false) // a training game hides the tab bar
+  const [daily, setDaily] = useState<string | null>(null)
 
-  const savedBot = saved ? BOTS.find((b) => b.id === saved.botId) ?? null : null
+  const savedBot = saved ? findBot(saved.botId) : null
   const resumable = saved && savedBot && !saved.result && saved.pgn ? savedBot : null
 
   function save(g: SavedGame) {
@@ -54,17 +60,25 @@ export default function App() {
     )
   }
 
+  if (daily) {
+    return <div className="app"><PuzzleRated firstId={daily} onExit={() => setDaily(null)} /></div>
+  }
+
   return (
     <div className="app">
-      <main className="tab-content">
-        {tab === 'play' && <PlayScreen onStart={start} resumeBot={resumable} onResume={() => setInGame(true)} />}
-        {tab === 'training' && <TrainingScreen onPlaying={setMiniGame} />}
-        {tab === 'profile' && <ProfileScreen />}
+      <main className="tab-content" key={tab}>
+        <div className="screen-enter">
+          {tab === 'home' && <HomeScreen resumeBot={resumable} onResume={() => setInGame(true)} onDaily={setDaily} onTab={setTab} />}
+          {tab === 'play' && <PlayScreen onStart={start} resumeBot={resumable} onResume={() => setInGame(true)} />}
+          {tab === 'tactics' && <TrainingScreen section="tactics" onPlaying={setFullscreen} />}
+          {tab === 'learn' && <TrainingScreen section="learn" onPlaying={setFullscreen} />}
+          {tab === 'profile' && <ProfileScreen />}
+        </div>
       </main>
-      {!miniGame && <nav className="tab-bar">
+      {!fullscreen && <nav className="tab-bar">
         {TABS.map((t) => (
           <button key={t.id} className={'tab' + (tab === t.id ? ' active' : '')} onClick={() => setTab(t.id)}>
-            <span className="tab-icon">{t.icon}</span>
+            <span className="tab-icon"><Icon name={t.icon} /></span>
             <span className="tab-label">{t.label}</span>
           </button>
         ))}

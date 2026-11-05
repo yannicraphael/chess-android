@@ -10,6 +10,7 @@ export interface Progress {
   // best score per mini-game level, e.g. "coords-1": 23
   best: Record<string, number>
   stars: Record<string, number>
+  daily: { date: string; puzzles: number; games: number }
 }
 
 export const progress = createStore<Progress>('progress', {
@@ -19,7 +20,22 @@ export const progress = createStore<Progress>('progress', {
   bots: {},
   best: {},
   stars: {},
+  daily: { date: '', puzzles: 0, games: 0 },
 })
+
+// Daily goal shown on the home screen
+export const DAILY_GOAL = { puzzles: 3, games: 1 }
+
+export function dailyInfo(p: Progress = progress.get()) {
+  const d = p.daily?.date === today() ? p.daily : { date: today(), puzzles: 0, games: 0 }
+  const done = Math.min(d.puzzles, DAILY_GOAL.puzzles) + Math.min(d.games, DAILY_GOAL.games)
+  return { ...d, done, total: DAILY_GOAL.puzzles + DAILY_GOAL.games }
+}
+
+export function recordDaily(kind: 'puzzle' | 'game', n = 1) {
+  const d = dailyInfo()
+  progress.set({ daily: { date: d.date, puzzles: d.puzzles + (kind === 'puzzle' ? n : 0), games: d.games + (kind === 'game' ? n : 0) } })
+}
 
 // Level n needs 100 * n * (n + 1) / 2 XP in total (100, 300, 600, 1000, ...)
 export function levelInfo(xp: number) {
