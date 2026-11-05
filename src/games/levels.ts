@@ -26,7 +26,7 @@ export const MINI_GAMES: MiniGame[] = [
     id: 'coords',
     kind: 'coords',
     title: 'Koordinaten-Blitz',
-    icon: '🎯',
+    icon: 'target',
     teaser: 'Tippe in 30 Sekunden so viele genannte Felder wie möglich.',
     skill: 'Brettübersicht: Felder sofort finden, auch aus Sicht von Schwarz.',
     levels: [
@@ -40,7 +40,7 @@ export const MINI_GAMES: MiniGame[] = [
     id: 'knight',
     kind: 'knight',
     title: 'Springer-Sprint',
-    icon: '🐴',
+    icon: 'knight',
     teaser: 'Bring den Springer mit möglichst wenigen Sprüngen zum Ziel.',
     skill: 'Springerwege sehen: wichtig für Gabeln und Verteidigung.',
     levels: [
@@ -56,7 +56,7 @@ export const SPRINT: MiniGame = {
   id: 'sprint',
   kind: 'sprint',
   title: 'Taktik-Sprint',
-  icon: '⚡',
+  icon: 'bolt',
   teaser: 'Löse so viele Aufgaben wie möglich, bevor die Zeit abläuft. Drei Fehler und Schluss.',
   skill: 'Muster schnell erkennen, wie in einer Blitzpartie.',
   levels: [
@@ -72,7 +72,7 @@ export const MOTIF_GAMES: MiniGame[] = MOTIFS.map((m) => ({
   id: 'motif-' + m.theme,
   kind: 'motif',
   title: m.name,
-  icon: m.icon,
+  icon: m.icon, // piece code
   teaser: m.tip,
   skill: m.tip,
   levels: MOTIF_LEVEL_NAMES.map((name, i) => ({

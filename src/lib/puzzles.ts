@@ -99,20 +99,20 @@ export function pickRated(list: Puzzle[], rating: number, seen: string[], avoid?
 export interface Motif {
   theme: string
   name: string
-  icon: string
+  icon: string // piece shown as icon, e.g. 'wN'
   tip: string
 }
 
 export const MOTIFS: Motif[] = [
-  { theme: 'mateIn1', name: 'Matt in 1', icon: '♚', tip: 'Ein Zug, und der König ist matt.' },
-  { theme: 'hangingPiece', name: 'Hängende Figur', icon: '🎁', tip: 'Schlage die ungedeckte Figur.' },
-  { theme: 'backRankMate', name: 'Grundreihenmatt', icon: '🧱', tip: 'Der König ist hinter seinen Bauern gefangen.' },
-  { theme: 'fork', name: 'Gabel', icon: '🍴', tip: 'Eine Figur greift zwei auf einmal an.' },
-  { theme: 'pin', name: 'Fesselung', icon: '📌', tip: 'Die Figur darf oder sollte nicht wegziehen.' },
-  { theme: 'skewer', name: 'Spieß', icon: '🍢', tip: 'Wie die Fesselung, nur steht die wertvollere Figur vorn.' },
-  { theme: 'discoveredAttack', name: 'Abzugsangriff', icon: '💥', tip: 'Ziehe eine Figur weg und öffne die Linie dahinter.' },
-  { theme: 'mateIn2', name: 'Matt in 2', icon: '👑', tip: 'Zwei Züge bis zum Matt. Schach zuerst prüfen!' },
-  { theme: 'sacrifice', name: 'Opfer', icon: '🔥', tip: 'Gib Material her, um mehr zurückzubekommen.' },
+  { theme: 'mateIn1', name: 'Matt in 1', icon: 'bK', tip: 'Ein Zug, und der König ist matt.' },
+  { theme: 'hangingPiece', name: 'Hängende Figur', icon: 'wP', tip: 'Schlage die ungedeckte Figur.' },
+  { theme: 'backRankMate', name: 'Grundreihenmatt', icon: 'wR', tip: 'Der König ist hinter seinen Bauern gefangen.' },
+  { theme: 'fork', name: 'Gabel', icon: 'wN', tip: 'Eine Figur greift zwei auf einmal an.' },
+  { theme: 'pin', name: 'Fesselung', icon: 'wB', tip: 'Die Figur darf oder sollte nicht wegziehen.' },
+  { theme: 'skewer', name: 'Spieß', icon: 'wR', tip: 'Wie die Fesselung, nur steht die wertvollere Figur vorn.' },
+  { theme: 'discoveredAttack', name: 'Abzugsangriff', icon: 'wB', tip: 'Ziehe eine Figur weg und öffne die Linie dahinter.' },
+  { theme: 'mateIn2', name: 'Matt in 2', icon: 'bK', tip: 'Zwei Züge bis zum Matt. Schach zuerst prüfen!' },
+  { theme: 'sacrifice', name: 'Opfer', icon: 'wQ', tip: 'Gib Material her, um mehr zurückzubekommen.' },
 ]
 
 export const MOTIF_LEVEL_NAMES = ['Leicht', 'Mittel', 'Schwer']
@@ -132,4 +132,13 @@ export function sample<T>(arr: T[], n: number) {
     [a[i], a[j]] = [a[j], a[i]]
   }
   return a.slice(0, n)
+}
+
+// Same puzzle for the whole day, close to the player's rating
+export function dailyPuzzle(list: Puzzle[], date: string, rating: number) {
+  const pool = list.filter((p) => Math.abs(p.rating - rating) <= 150 && p.moves.split(' ').length <= 6)
+  const src = pool.length ? pool : list
+  let h = 0
+  for (const ch of date) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  return src[h % src.length]
 }

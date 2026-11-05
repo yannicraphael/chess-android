@@ -1,3 +1,4 @@
+import Icon from '../components/Icon'
 import { Chess, type Color, type Move } from 'chess.js'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Board, { type SquarePair } from '../components/Board'
@@ -208,8 +209,8 @@ export default function PuzzlePlayer({ puzzle, stopOnMistake = false, tools = tr
       </div>
       {over ? footer : tools && (
         <div className="puzzle-tools">
-          <button className="btn secondary small" onClick={hint} disabled={!(status === 'play' || status === 'wrong') || hintLevel >= 2}>💡 Tipp</button>
-          <button className="btn secondary small" onClick={reveal} disabled={!(status === 'play' || status === 'wrong')}>👁 Lösung</button>
+          <button className="btn secondary small" onClick={hint} disabled={!(status === 'play' || status === 'wrong') || hintLevel >= 2}><Icon name="bulb" /> Tipp</button>
+          <button className="btn secondary small" onClick={reveal} disabled={!(status === 'play' || status === 'wrong')}><Icon name="eye" /> Lösung</button>
         </div>
       )}
     </div>

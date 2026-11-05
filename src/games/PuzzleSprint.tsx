@@ -1,4 +1,6 @@
+import Icon from '../components/Icon'
 import { useEffect, useRef, useState } from 'react'
+import { recordDaily } from '../lib/progress'
 import { loadPuzzles, type Puzzle } from '../lib/puzzles'
 import { playSound } from '../lib/sound'
 import type { GameLevel } from './levels'
@@ -64,6 +66,7 @@ export default function PuzzleSprint({ level, onFinish }: { level: GameLevel; on
     if (finished.current || !list) return
     if (o.mistakes === 0) {
       scoreRef.current++
+      recordDaily('puzzle')
       setScore(scoreRef.current)
       setTimeout(() => { if (!finished.current) { setPuzzle(pick(list, scoreRef.current)); setRun((r) => r + 1) } }, 450)
     } else {
@@ -79,9 +82,9 @@ export default function PuzzleSprint({ level, onFinish }: { level: GameLevel; on
   return (
     <div className="minigame">
       <div className="mg-hud">
-        <div className="mg-stat">{Array.from({ length: LIVES }, (_, k) => <span key={k} className={'life' + (k < lives ? '' : ' lost')}>❤</span>)}</div>
+        <div className="mg-stat">{Array.from({ length: LIVES }, (_, k) => <span key={k} className={'life' + (k < lives ? '' : ' lost')}><Icon name="heart" fill /></span>)}</div>
         <div className="mg-target small">{score}<small>gelöst</small></div>
-        <div className={'mg-stat' + (left <= 10 && started ? ' hurry' : '')}><span>⏱</span>{Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}</div>
+        <div className={'mg-stat' + (left <= 10 && started ? ' hurry' : '')}><Icon name="clock" />{Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}</div>
       </div>
       {puzzle
         ? <PuzzlePlayer key={run} puzzle={puzzle} stopOnMistake tools={false} onDone={onDone} />

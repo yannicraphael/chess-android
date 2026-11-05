@@ -1,5 +1,6 @@
 import { Chess } from 'chess.js'
 import { engine } from './engine/stockfish'
+import botData from './data/bots.json'
 
 export type ChatEvent =
   | 'greet' | 'botCapture' | 'playerCapture' | 'botCheck' | 'playerCheck'
@@ -12,22 +13,97 @@ export interface Bot {
   id: string
   name: string
   rating: number
-  color: string // avatar background
-  emoji: string
-  description: string
-  title?: string // short tagline under the name
-  tone: Tone
-  lines?: Partial<Record<ChatEvent, string[]>> // personal lines, mixed with the tone's lines
+  cc: string // country code for the flag
+  group: GroupId
+  title: string // short tagline
+  bio: string
+  greet: string | null
+  tone: Tone | null // null = the bot does not comment (real players, engine)
+  avatar: string | null // url of the portrait, null = monogram / engine icon
+  style?: 'attack' | 'trade' | null // small preference for checks/captures among good moves
   chatty?: number // 0..1, how often the bot comments on ordinary events
-  style?: 'attack' | 'trade' // small preference for checks/captures among good moves
-  // engine settings
+  // engine settings (derived from the rating)
   skill: number
   depth: number
   multiPv: number
-  // chance of playing a completely random legal move
-  blunder: number
-  // how strongly the bot prefers better moves among its candidates (lower = sharper)
-  temperature: number
+  blunder: number // chance of playing a completely random legal move
+  temperature: number // how strongly the bot prefers better moves (lower = sharper)
+}
+
+export type GroupId = 'neu' | 'anfaenger' | 'fortgeschritten' | 'turnier' | 'meister' | 'top' | 'engine'
+
+export const BOT_GROUPS: { id: GroupId; name: string }[] = [
+  { id: 'neu', name: 'Neu im Schach' },
+  { id: 'anfaenger', name: 'Anfänger' },
+  { id: 'fortgeschritten', name: 'Fortgeschrittene' },
+  { id: 'turnier', name: 'Turnierspieler' },
+  { id: 'meister', name: 'Meister' },
+  { id: 'top', name: 'Topspieler' },
+]
+
+// Engine settings by playing strength, interpolated between these anchor points
+const ANCHORS: [number, number, number, number, number, number][] = [
+  // rating, skill, depth, multiPv, blunder, temperature
+  [100, 0, 1, 12, 0.75, 900],
+  [250, 0, 1, 10, 0.5, 600],
+  [400, 0, 1, 8, 0.35, 400],
+  [550, 0, 1, 7, 0.25, 320],
+  [700, 1, 2, 6, 0.18, 250],
+  [850, 2, 3, 6, 0.12, 190],
+  [1000, 3, 4, 5, 0.08, 140],
+  [1150, 4, 5, 5, 0.06, 110],
+  [1300, 6, 6, 4, 0.04, 80],
+  [1450, 8, 8, 4, 0.025, 60],
+  [1600, 10, 9, 3, 0.015, 40],
+  [1800, 12, 10, 3, 0.008, 28],
+  [2000, 15, 12, 2, 0, 15],
+  [2200, 17, 14, 2, 0, 10],
+  [2500, 19, 16, 2, 0, 5],
+  [2800, 20, 18, 1, 0, 2],
+  [3200, 20, 22, 1, 0, 0],
+]
+
+export function strength(rating: number) {
+  const r = Math.max(ANCHORS[0][0], Math.min(rating, ANCHORS[ANCHORS.length - 1][0]))
+  let i = 0
+  while (i < ANCHORS.length - 2 && ANCHORS[i + 1][0] < r) i++
+  const [r0, ...a] = ANCHORS[i]
+  const [r1, ...b] = ANCHORS[i + 1]
+  const t = (r - r0) / (r1 - r0)
+  const v = a.map((x, k) => x + (b[k] - x) * t)
+  return { skill: Math.round(v[0]), depth: Math.max(1, Math.round(v[1])), multiPv: Math.max(1, Math.round(v[2])), blunder: v[3], temperature: v[4] }
+}
+
+interface BotData {
+  id: string; name: string; rating: number; cc: string; group: GroupId; tone: Tone | null; style: 'attack' | null
+  title: string; bio: string; greet: string | null; look: object | null
+}
+
+export const BOTS: Bot[] = (botData as BotData[]).map((d) => ({
+  id: d.id, name: d.name, rating: d.rating, cc: d.cc, group: d.group, title: d.title, bio: d.bio, greet: d.greet,
+  tone: d.tone, style: d.style, avatar: d.look ? `${import.meta.env.BASE_URL}avatars/${d.id}.svg` : null,
+  chatty: d.tone === 'frech' || d.tone === 'kind' ? 0.5 : 0.4,
+  ...strength(d.rating),
+}))
+
+export const ENGINE_MIN = 250
+export const ENGINE_MAX = 3200
+
+export function engineBot(rating: number): Bot {
+  return {
+    id: `engine-${rating}`, name: 'Engine', rating, cc: '', group: 'engine', title: 'Stockfish mit einstellbarer Stärke',
+    bio: 'Die Engine spielt in genau der Stärke, die du einstellst.', greet: null, tone: null, avatar: null, ...strength(rating),
+  }
+}
+
+export function findBot(id: string): Bot | null {
+  if (id.startsWith('engine-')) return engineBot(Number(id.slice(7)) || 1500)
+  return BOTS.find((b) => b.id === id) ?? null
+}
+
+export function flag(cc: string) {
+  if (!cc) return ''
+  return String.fromCodePoint(...[...cc.toUpperCase()].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65))
 }
 
 export const TONE_LINES: Record<Tone, Partial<Record<ChatEvent, string[]>>> = {
@@ -135,162 +211,10 @@ export const TONE_LINES: Record<Tone, Partial<Record<ChatEvent, string[]>>> = {
   },
 }
 
-export const BOTS: Bot[] = [
-  {
-    id: 'gerda', name: 'Oma Gerda', rating: 250, color: '#b07fb8', emoji: '👵', tone: 'nett', chatty: 0.5,
-    title: 'Rentnerin, spielt seit 60 Jahren sonntags',
-    description: 'Hat mit ihrem Mann jahrzehntelang am Küchentisch gespielt. Freut sich über jede Partie und verschenkt gern mal eine Figur.',
-    lines: {
-      greet: ['Ach wie schön, setz dich, Kind. Möchtest du ein Stück Kuchen?', 'Mein Herbert hat immer mit Weiß gespielt.'],
-      chatter: ['Früher haben wir das ganz anders gespielt.', 'Wo ist denn meine Brille?', 'Das hat mein Herbert auch immer so gemacht.'],
-      botWins: ['Ach, da hab ich ja Glück gehabt! Noch ein Stück Kuchen?'],
-      botLoses: ['Du bist ja ein richtiger Profi! Ich bin so stolz.'],
-    },
-    skill: 0, depth: 1, multiPv: 10, blunder: 0.5, temperature: 600,
-  },
-  {
-    id: 'kiki', name: 'Kiki', rating: 400, color: '#e8a33d', emoji: '🐣', tone: 'nett',
-    title: 'Küken, gerade geschlüpft',
-    description: 'Fängt gerade erst an und übersieht oft hängende Figuren.',
-    lines: { greet: ['Piep! Ich lerne noch.'], botCapture: ['Piep piep, geschnappt!'], playerCapture: ['Piiiep!'] },
-    skill: 0, depth: 1, multiPv: 8, blunder: 0.35, temperature: 400,
-  },
-  {
-    id: 'paul', name: 'Paul', rating: 550, color: '#e2b13c', emoji: '🧒', tone: 'kind', chatty: 0.55,
-    title: '10 Jahre, frisch in der Schach-AG',
-    description: 'Zehn Jahre alt, sehr ehrgeizig und liebt Springer. Zieht schnell und greift gern früh mit der Dame an.',
-    style: 'attack',
-    skill: 0, depth: 1, multiPv: 7, blunder: 0.25, temperature: 320,
-  },
-  {
-    id: 'bruno', name: 'Bruno', rating: 700, color: '#c0703a', emoji: '🐻', tone: 'frech', style: 'attack',
-    title: 'Bär mit Angriffslust',
-    description: 'Greift gern an, denkt aber selten an die eigene Verteidigung.',
-    lines: { greet: ['Brumm! Heute gibt es Angriff.'], botCapture: ['Mampf!'] },
-    skill: 1, depth: 2, multiPv: 6, blunder: 0.18, temperature: 250,
-  },
-  {
-    id: 'hannes', name: 'Hannes', rating: 850, color: '#d0694a', emoji: '👨‍🍳', tone: 'frech', style: 'attack', chatty: 0.5,
-    title: 'Koch, liebt scharfe Gambits',
-    description: 'Koch in einer Kneipe, spielt nach Feierabend. Opfert gern Bauern und würzt jede Partie mit Angriffen.',
-    lines: {
-      greet: ['Heute gibt es scharf gewürztes Schach!', 'Moin! Ich hab extra ein Gambit vorbereitet.'],
-      botCapture: ['Ab in den Topf damit!', 'Frisch serviert.'],
-      playerCapture: ['Die war eh angebrannt.'],
-      chatter: ['Ein Bauer weniger, dafür mehr Feuer.', 'Gleich wird es heiß in der Küche.'],
-      botWins: ['Und das Menü ist serviert! Guten Appetit.'],
-      botLoses: ['Versalzen. Gut gespielt, Chef!'],
-    },
-    skill: 2, depth: 3, multiPv: 6, blunder: 0.12, temperature: 190,
-  },
-  {
-    id: 'lena', name: 'Lena', rating: 1000, color: '#4f9bd9', emoji: '🦊', tone: 'nett',
-    title: 'Schlaue Füchsin',
-    description: 'Solide im Vereinsniveau. Bestraft grobe Fehler zuverlässig.',
-    lines: { greet: ['Hallo! Ich bin gespannt, was du vorhast.'], playerBlunder: ['Das schnapp ich mir, sorry!'] },
-    skill: 3, depth: 4, multiPv: 5, blunder: 0.08, temperature: 140,
-  },
-  {
-    id: 'weber', name: 'Frau Dr. Weber', rating: 1150, color: '#5f8a9e', emoji: '👩‍🏫', tone: 'lehrer', chatty: 0.45,
-    title: 'Mathelehrerin, rechnet alles nach',
-    description: 'Unterrichtet Mathematik und leitet die Schach-AG. Spielt korrekt und kommentiert gern deine Ungenauigkeiten.',
-    lines: {
-      greet: ['Guten Tag. Heute schreiben wir eine kleine Klassenarbeit.'],
-      playerBlunder: ['Das gibt Punktabzug.', 'Da hast du dich verrechnet.'],
-      playerStrong: ['Eine Eins mit Sternchen.', 'Sauber gerechnet.'],
-      botWins: ['Note: ausreichend. Nächstes Mal schaffst du mehr.'],
-      botLoses: ['Sehr gut. Setzen, eins!'],
-    },
-    skill: 4, depth: 5, multiPv: 5, blunder: 0.06, temperature: 110,
-  },
-  {
-    id: 'viktor', name: 'Viktor', rating: 1300, color: '#7d5bc9', emoji: '🦉', tone: 'lehrer',
-    title: 'Weise Eule',
-    description: 'Spielt ruhig und positionell, macht nur ab und zu Ungenauigkeiten.',
-    lines: { greet: ['Uhu. Geduld ist die halbe Partie.'] },
-    skill: 6, depth: 6, multiPv: 4, blunder: 0.04, temperature: 80,
-  },
-  {
-    id: 'kemal', name: 'Kemal', rating: 1450, color: '#c98b2e', emoji: '🧔', tone: 'frech', style: 'attack', chatty: 0.6,
-    title: 'Taxifahrer und Park-Blitzer',
-    description: 'Fährt tagsüber Taxi und spielt abends Blitz im Park. Redet viel, spielt schnell und liebt Königsangriffe.',
-    lines: {
-      greet: ['Los, los, die Uhr läuft! Im Park spielen wir mit drei Minuten.', 'Einsteigen, die Fahrt beginnt!'],
-      chatter: ['Kennst du den schon? Ein Läufer kommt in eine Bar …', 'Im Park hätte ich jetzt schon gewonnen.', 'Schneller, mein Taxi wartet!'],
-      botCapture: ['Ein Fahrgast mehr!', 'Und tschüss!'],
-      botWins: ['Endstation! Das macht dann 15 Euro.'],
-      botLoses: ['Du fährst ja wie ein Profi. Respekt!'],
-    },
-    skill: 8, depth: 8, multiPv: 4, blunder: 0.025, temperature: 60,
-  },
-  {
-    id: 'mira', name: 'Mira', rating: 1600, color: '#d24f6c', emoji: '🐆', tone: 'ehrgeizig',
-    title: 'Schnelle Gepardin',
-    description: 'Taktisch wach. Wer eine Figur einstellt, verliert sie auch.',
-    skill: 10, depth: 9, multiPv: 3, blunder: 0.015, temperature: 40,
-  },
-  {
-    id: 'sophie', name: 'Sophie', rating: 1800, color: '#3f9fa8', emoji: '👩‍🎓', tone: 'ehrgeizig', chatty: 0.4,
-    title: 'Studentin, ehemalige Jugendmeisterin',
-    description: 'War Landesjugendmeisterin und studiert jetzt Informatik. Kennt ihre Eröffnungen genau und spielt sehr präzise.',
-    lines: {
-      greet: ['Hi. Ich hab heute Abend noch eine Prüfung, also los.', 'Das habe ich gestern noch vorbereitet.'],
-      chatter: ['Das steht so in meiner Vorbereitung.', 'Theorie bis Zug 15.'],
-      botWins: ['GG. Schau dir die Analyse an, da lernst du viel.'],
-      botLoses: ['GG, du warst heute besser.'],
-    },
-    skill: 12, depth: 10, multiPv: 3, blunder: 0.008, temperature: 28,
-  },
-  {
-    id: 'falk', name: 'Dr. Falk', rating: 2000, color: '#3a9a6a', emoji: '🦅', tone: 'lehrer',
-    title: 'Adler mit Doktortitel',
-    description: 'Turnierstark, gute Endspieltechnik und kaum Fehler.',
-    skill: 15, depth: 12, multiPv: 2, blunder: 0, temperature: 15,
-  },
-  {
-    id: 'ivan', name: 'Meister Iwan', rating: 2200, color: '#8a6d4b', emoji: '👴', tone: 'lehrer', chatty: 0.45,
-    title: 'Alter Vereinstrainer, FIDE-Meister',
-    description: 'Trainiert seit 40 Jahren Jugendliche im Verein. Lobt gute Züge, mahnt Ungenauigkeiten an und spielt die Endspiele perfekt.',
-    lines: {
-      greet: ['Setz dich. Heute lernen wir etwas.', 'Erst denken, dann ziehen.'],
-      chatter: ['Turm auf die offene Linie, merk dir das.', 'Im Endspiel wird der König zur starken Figur.', 'Wer nicht plant, spielt nur Züge.'],
-      playerStrong: ['Gut! So spielt ein Meister.'],
-      botWins: ['Nicht schlecht, Kleiner. Analysiere und komm wieder.'],
-      botLoses: ['Bravo! Das hätte ich dir nicht zugetraut.'],
-    },
-    skill: 17, depth: 14, multiPv: 2, blunder: 0, temperature: 10,
-  },
-  {
-    id: 'alexandra', name: 'GM Alexandra', rating: 2500, color: '#a03a5a', emoji: '👸', tone: 'ehrgeizig', chatty: 0.35,
-    title: 'Großmeisterin',
-    description: 'Großmeisterin und mehrfache Landesmeisterin. Spielt elegant, kennt jeden Trick und verzeiht nichts.',
-    lines: {
-      greet: ['Schön, dich kennenzulernen. Viel Erfolg.'],
-      chatter: ['Eine typische Stellung.', 'Das hat Capablanca schon so gespielt.'],
-      playerStrong: ['Sehr schön. Das hätte ich nicht erwartet.'],
-      botWins: ['Danke für die Partie. Du hast Potenzial.'],
-      botLoses: ['Ich gratuliere. Das war großartig gespielt.'],
-    },
-    skill: 19, depth: 16, multiPv: 2, blunder: 0, temperature: 5,
-  },
-  {
-    id: 'titan', name: 'Titan', rating: 3000, color: '#555c66', emoji: '🤖', tone: 'maschine',
-    title: 'Schachcomputer',
-    description: 'Volle Engine-Stärke. Nur für mutige Momente.',
-    skill: 20, depth: 18, multiPv: 1, blunder: 0, temperature: 0,
-  },
-]
-
-export const BOT_GROUPS = [
-  { name: 'Einsteiger', max: 800 },
-  { name: 'Fortgeschritten', max: 1400 },
-  { name: 'Stark', max: 2100 },
-  { name: 'Meister', max: 9999 },
-]
-
 // Picks a random line for an event, mixing personal and tone lines (personal lines are preferred).
 export function botLine(bot: Bot, event: ChatEvent): string | null {
-  const own = bot.lines?.[event] ?? []
+  if (!bot.tone) return null
+  const own = event === 'greet' && bot.greet ? [bot.greet] : []
   const tone = TONE_LINES[bot.tone][event] ?? []
   const pool = own.length && Math.random() < 0.65 ? own : [...own, ...tone]
   if (!pool.length) return null

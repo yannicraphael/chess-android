@@ -1,3 +1,4 @@
+import Icon from '../components/Icon'
 import { Chess, type Color, type Move, type PieceSymbol } from 'chess.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Board, { type SquarePair } from '../components/Board'
@@ -6,7 +7,8 @@ import { evaluate } from '../engine/stockfish'
 import { de, PIECE_ACC, VALUES, uciToSan } from '../lib/chessText'
 import { pieceUrl, settings } from '../lib/settings'
 import { playSound } from '../lib/sound'
-import { addXp, progress, recordGame, type XpGain } from '../lib/progress'
+import { addXp, progress, recordDaily, recordGame, type XpGain } from '../lib/progress'
+import BotAvatar from '../components/BotAvatar'
 import ReviewScreen from './ReviewScreen'
 import './GameScreen.css'
 
@@ -155,6 +157,7 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
     const prev = progress.get().bots[bot.id]
     const firstWin = r.outcome === 'win' && !(prev && prev.wins > 0)
     recordGame(bot.id, r.outcome)
+    recordDaily('game')
     let xp = r.outcome === 'win' ? 20 + Math.round(bot.rating / 50) : r.outcome === 'draw' ? 12 : 5
     if (firstWin) xp += 50
     const gain = addXp(xp)
@@ -329,13 +332,13 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
 
   const botBar = (
     <PlayerBar name={bot.name} sub={`(${bot.rating})`} color={botColor}
-      avatar={<span className="emoji-avatar" style={{ background: bot.color }}>{bot.emoji}</span>}
+      avatar={<BotAvatar bot={bot} size={40} />}
       captured={capturedBy[botColor]} diff={diff[botColor]} thinking={thinking}
       bubble={chat} bubbleBelow={top === 'bot'} />
   )
   const meBar = (
-    <PlayerBar name="Du" sub={s.coach ? '🎓 Trainer an' : ''} color={playerColor}
-      avatar={<span className="emoji-avatar" style={{ background: '#5d6670' }}>🙂</span>}
+    <PlayerBar name="Du" sub={s.coach ? 'Trainer an' : ''} color={playerColor}
+      avatar={<BotAvatar bot={null} size={40} />}
       captured={capturedBy[playerColor]} diff={diff[playerColor]} />
   )
 
@@ -351,9 +354,9 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
   return (
     <div className="game-screen">
       <header className="game-header">
-        <button className="icon-btn" onClick={onExit} aria-label="Zurück">‹</button>
+        <button className="icon-btn" onClick={onExit} aria-label="Zurück"><Icon name="back" /></button>
         <div className="game-title">Gegen {bot.name}</div>
-        <button className="icon-btn" onClick={() => setFlipped(!flipped)} aria-label="Brett drehen">⇅</button>
+        <button className="icon-btn" onClick={() => setFlipped(!flipped)} aria-label="Brett drehen"><Icon name="flip" /></button>
       </header>
 
       <div className="move-list" ref={moveListRef}>
@@ -382,7 +385,7 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
 
       {warning && (
         <div className="coach-banner">
-          <div className="coach-icon">🎓</div>
+          <div className="coach-icon"><Icon name="learn" /></div>
           <div className="coach-body">
             <div className="coach-text">{warning.text}</div>
             {warning.better && <div className="coach-better">Besser wäre zum Beispiel <strong>{warning.better}</strong>.</div>}
@@ -403,18 +406,18 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
       <nav className="game-actions">
         {result ? (
           <>
-            <button onClick={onExit}><span>⟲</span>Neue Partie</button>
-            <button onClick={() => setReviewing(true)}><span>🔍</span>Analyse</button>
+            <button onClick={onExit}><Icon name="refresh" />Neue Partie</button>
+            <button onClick={() => setReviewing(true)}><Icon name="chart" />Analyse</button>
           </>
         ) : (
           <>
-            <button onClick={() => setConfirmResign(true)}><span>⚑</span>Aufgeben</button>
-            <button onClick={showHint} disabled={!canAct || game.turn() !== playerColor}><span>💡</span>Tipp{hintsUsed > 0 ? ` (${hintsUsed})` : ''}</button>
-            <button onClick={undo} disabled={thinking || history.length === 0}><span>↶</span>Zurück</button>
+            <button onClick={() => setConfirmResign(true)}><Icon name="flag" />Aufgeben</button>
+            <button onClick={showHint} disabled={!canAct || game.turn() !== playerColor}><Icon name="bulb" />Tipp{hintsUsed > 0 ? ` (${hintsUsed})` : ''}</button>
+            <button onClick={undo} disabled={thinking || history.length === 0}><Icon name="undo" />Zurück</button>
           </>
         )}
-        <button onClick={() => setViewIndex(Math.max(0, shownPly - 1))} disabled={shownPly === 0}><span>‹</span>Zug</button>
-        <button onClick={() => setViewIndex(shownPly + 1 >= history.length ? null : shownPly + 1)} disabled={viewIndex === null}><span>›</span>Zug</button>
+        <button onClick={() => setViewIndex(Math.max(0, shownPly - 1))} disabled={shownPly === 0}><Icon name="back" />Zug</button>
+        <button onClick={() => setViewIndex(shownPly + 1 >= history.length ? null : shownPly + 1)} disabled={viewIndex === null}><Icon name="next" />Zug</button>
       </nav>
 
       {confirmResign && (
@@ -432,20 +435,20 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
       {result && showResult && (
         <div className="modal-backdrop" onClick={() => setShowResult(false)}>
           <div className={'modal result ' + result.outcome} onClick={(e) => e.stopPropagation()}>
-            <div className="result-emoji">{result.outcome === 'win' ? '🏆' : result.outcome === 'draw' ? '🤝' : bot.emoji}</div>
+            <div className={'result-icon ' + result.outcome}>{result.outcome === 'loss' ? <BotAvatar bot={bot} size={64} /> : <Icon name={result.outcome === 'win' ? 'trophy' : 'heart'} />}</div>
             <h2>{result.title}</h2>
             <p>{result.reason}</p>
             <p className="result-moves">{Math.ceil(history.length / 2)} Züge gegen {bot.name} ({bot.rating})</p>
-            {endLine && <div className="end-line"><span className="emoji-avatar" style={{ background: bot.color }}>{bot.emoji}</span><span>„{endLine}“</span></div>}
+            {endLine && <div className="end-line"><BotAvatar bot={bot} size={36} /><span>„{endLine}“</span></div>}
             {xpGain && (
               <div className="xp-gain">
                 <span className="xp-pill">+{xpGain.amount} XP</span>
                 {xpGain.levelUp && <span className="xp-pill level">Level {xpGain.newLevel}!</span>}
-                {xpGain.streakUp && xpGain.streak > 1 && <span className="xp-pill streak">🔥 {xpGain.streak} Tage</span>}
+                {xpGain.streakUp && xpGain.streak > 1 && <span className="xp-pill streak"><Icon name="flame" /> {xpGain.streak} Tage</span>}
               </div>
             )}
             {history.length > 1 && (
-              <button className="btn primary review-btn" onClick={() => { setShowResult(false); setReviewing(true) }}>🔍 Partie analysieren</button>
+              <button className="btn primary review-btn" onClick={() => { setShowResult(false); setReviewing(true) }}>Partie analysieren</button>
             )}
             <div className="modal-buttons">
               <button className="btn secondary" onClick={() => setShowResult(false)}>Brett ansehen</button>

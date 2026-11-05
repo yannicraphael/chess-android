@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { recordDaily } from '../lib/progress'
 import { loadPuzzles, motifPool, MOTIF_SET_SIZE, sample, type Puzzle } from '../lib/puzzles'
 import type { GameLevel } from './levels'
 import PuzzlePlayer, { type PuzzleOutcome } from './PuzzlePlayer'
@@ -17,6 +18,7 @@ export default function PuzzleSet({ level, onFinish }: { level: GameLevel; onFin
 
   function onDone(o: PuzzleOutcome) {
     setResults((r) => [...r, o.clean])
+    recordDaily('puzzle')
   }
 
   function next() {

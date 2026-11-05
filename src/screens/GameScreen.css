@@ -146,8 +146,8 @@
   gap: 10px;
   margin: 0 8px 6px;
   padding: 10px 12px;
-  background: #3d3523;
-  border: 1px solid #e0a930;
+  background: var(--warn-bg);
+  border: 1px solid var(--warn-line);
   border-radius: 12px;
   animation: pop 0.2s ease-out;
 }
@@ -161,16 +161,16 @@
 
 .xp-gain { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 10px 0 4px; }
 .xp-pill {
-  background: #2f4a1e;
-  color: #b8e986;
+  background: var(--good-bg);
+  color: var(--good-fg);
   font-weight: 800;
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 14px;
   animation: pop 0.35s ease-out;
 }
-.xp-pill.level { background: #4a3b10; color: #ffd75e; }
-.xp-pill.streak { background: #4a2310; color: #ffa45e; }
+.xp-pill.level { background: var(--gold-bg); color: var(--gold); }
+.xp-pill.streak { background: var(--fire-bg); color: var(--fire); }
 .review-btn { width: 100%; margin-top: 14px; }
 
 @keyframes pop {
@@ -203,3 +203,26 @@
 .speech.above::before { bottom: -8px; border-top-color: #fff; border-left-color: #fff; }
 .end-line { display: flex; align-items: center; gap: 10px; text-align: left; background: var(--card-2); border-radius: 12px; padding: 8px 10px; margin-top: 10px; font-size: 14px; font-style: italic; }
 .end-line .emoji-avatar { width: 34px; height: 34px; font-size: 20px; flex-shrink: 0; }
+
+/* v4 */
+.game-header { background: var(--header); }
+.game-title { font-family: var(--font-display); }
+.icon-btn { display: grid; place-items: center; }
+.icon-btn .icon { width: 24px; height: 24px; }
+.game-actions { background: var(--tabbar); border-top: 1px solid var(--line); }
+.game-actions button { gap: 3px; }
+.game-actions button .icon { width: 22px; height: 22px; color: var(--text); }
+.game-actions button:disabled .icon { color: var(--muted); }
+.player-name { font-weight: 800; }
+.coach-icon { color: var(--warn-line); }
+.coach-icon .icon { width: 28px; height: 28px; }
+.modal { border-radius: var(--radius); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.modal h2 { font-family: var(--font-display); }
+.result-icon .bot-av { width: 72px !important; height: 72px !important; }
+.xp-pill { display: inline-flex; align-items: center; gap: 4px; }
+.move-list { background: var(--card); border-bottom: 1px solid var(--line); }
+.mg-stat .icon { width: 20px; height: 20px; color: var(--muted); }
+.life .icon { width: 20px; height: 20px; color: inherit; }
+.level-n .icon { width: 16px; height: 16px; }
+.puzzle-tools .icon, .pz-streak .icon { width: 18px; height: 18px; }
+.pz-streak { display: inline-flex; align-items: center; gap: 3px; }

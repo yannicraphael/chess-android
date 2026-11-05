@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { addXp } from '../lib/progress'
+import { addXp, recordDaily } from '../lib/progress'
 import { loadPuzzles, pickRated, puzzleStats, ratingDelta, themeLabels, type Puzzle } from '../lib/puzzles'
 import { playSound } from '../lib/sound'
+import Icon from '../components/Icon'
 import PuzzlePlayer, { type PuzzleOutcome } from './PuzzlePlayer'
 
 // Endless rated puzzles that adapt to the player's tactics rating.
-export default function PuzzleRated({ onExit }: { onExit: () => void }) {
+export default function PuzzleRated({ onExit, firstId }: { onExit: () => void; firstId?: string }) {
   const st = puzzleStats.use()
   const [list, setList] = useState<Puzzle[] | null>(null)
   const [error, setError] = useState(false)
@@ -17,9 +18,9 @@ export default function PuzzleRated({ onExit }: { onExit: () => void }) {
   useEffect(() => {
     loadPuzzles().then((l) => {
       setList(l)
-      setPuzzle(pickRated(l, puzzleStats.get().rating, puzzleStats.get().seen))
+      setPuzzle((firstId && l.find((p) => p.id === firstId)) || pickRated(l, puzzleStats.get().rating, puzzleStats.get().seen))
     }).catch(() => setError(true))
-  }, [])
+  }, [firstId])
 
   function next() {
     if (!list) return
@@ -46,6 +47,7 @@ export default function PuzzleRated({ onExit }: { onExit: () => void }) {
       seen: [...s.seen.filter((id) => id !== puzzle.id), puzzle.id].slice(-1500),
       recent: [{ id: puzzle.id, ok, delta }, ...s.recent].slice(0, 20),
     })
+    recordDaily('puzzle')
     const gain = addXp(ok ? (rated ? 6 : 3) : 1)
     if (gain.levelUp) setTimeout(() => playSound('levelup'), 600)
     setResult({ delta, ok, xp: gain.amount, levelUp: gain.levelUp ? gain.newLevel : null })
@@ -68,8 +70,8 @@ export default function PuzzleRated({ onExit }: { onExit: () => void }) {
   return (
     <div className="training-play">
       <header className="game-header">
-        <button className="icon-btn" onClick={onExit} aria-label="Zurück">‹</button>
-        <div className="game-title">Taktik-Training</div>
+        <button className="icon-btn" onClick={onExit} aria-label="Zurück"><Icon name="back" /></button>
+        <div className="game-title">{firstId && puzzle?.id === firstId ? 'Aufgabe des Tages' : 'Taktik-Training'}</div>
         <span style={{ width: 44 }} />
       </header>
       <div className="puzzle-hud">
@@ -78,7 +80,7 @@ export default function PuzzleRated({ onExit }: { onExit: () => void }) {
           <span className="pz-rating-val">{st.rating}{result && result.delta !== 0 && <em className={result.delta > 0 ? 'up' : 'down'}>{result.delta > 0 ? '+' : ''}{result.delta}</em>}</span>
         </div>
         <div className="pz-recent">{recent.map((r, i) => <span key={i} className={r.ok ? 'ok' : 'no'}>{r.ok ? '✓' : '✗'}</span>)}</div>
-        {st.streak > 1 && <div className="pz-streak">🔥 {st.streak}</div>}
+        {st.streak > 1 && <div className="pz-streak"><Icon name="flame" /> {st.streak}</div>}
       </div>
       {error && <p className="mg-info">Die Aufgaben konnten nicht geladen werden. Bitte prüfe die Internetverbindung.</p>}
       {!puzzle && !error && <p className="mg-info">Aufgaben werden geladen…</p>}

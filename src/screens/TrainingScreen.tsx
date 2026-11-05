@@ -1,3 +1,5 @@
+import Icon, { type IconName } from '../components/Icon'
+import { pieceUrl } from '../lib/settings'
 import { useCallback, useState } from 'react'
 import CoordsGame from '../games/CoordsGame'
 import KnightGame from '../games/KnightGame'
@@ -12,7 +14,7 @@ import './Training.css'
 
 const Stars = ({ n, size = 16 }: { n: number; size?: number }) => (
   <span className="stars" style={{ fontSize: size }}>
-    {[0, 1, 2].map((i) => <span key={i} className={i < n ? 'on' : ''}>★</span>)}
+    {[0, 1, 2].map((i) => <span key={i} className={i < n ? 'on' : ''}><Icon name="star" fill /></span>)}
   </span>
 )
 
@@ -33,7 +35,7 @@ function LevelPath({ game, stars, onOpen, compact }: { game: MiniGame; stars: Re
         const unlocked = i === 0 || (stars[game.levels[i - 1].id] ?? 0) > 0
         return (
           <button key={l.id} className={'level-node' + (unlocked ? '' : ' locked') + (n === 3 ? ' perfect' : '')} disabled={!unlocked} onClick={() => onOpen(l)}>
-            <span className="level-n">{unlocked ? l.n : '🔒'}</span>
+            <span className="level-n">{unlocked ? l.n : <Icon name="lock" />}</span>
             {!compact && <span className="level-name">{l.name}</span>}
             <Stars n={n} size={12} />
           </button>
@@ -43,7 +45,7 @@ function LevelPath({ game, stars, onOpen, compact }: { game: MiniGame; stars: Re
   )
 }
 
-export default function TrainingScreen({ onPlaying }: { onPlaying: (playing: boolean) => void }) {
+export default function TrainingScreen({ section, onPlaying }: { section: 'tactics' | 'learn'; onPlaying: (playing: boolean) => void }) {
   const p = progress.use()
   const ps = puzzleStats.use()
   const [rated, setRated] = useState(false)
@@ -86,7 +88,7 @@ export default function TrainingScreen({ onPlaying }: { onPlaying: (playing: boo
     return (
       <div className="training-play">
         <header className="game-header">
-          <button className="icon-btn" onClick={close} aria-label="Zurück">‹</button>
+          <button className="icon-btn" onClick={close} aria-label="Zurück"><Icon name="back" /></button>
           <div className="game-title">{game.title} · {game.kind === 'motif' ? level.name : `Level ${level.n}`}</div>
           <span style={{ width: 44 }} />
         </header>
@@ -97,7 +99,7 @@ export default function TrainingScreen({ onPlaying }: { onPlaying: (playing: boo
         {result && (
           <div className="modal-backdrop">
             <div className="modal">
-              <div className="result-emoji">{result.stars === 3 ? '🏆' : result.stars > 0 ? '🎉' : '💪'}</div>
+              <div className={'result-icon ' + (result.stars > 0 ? 'win' : 'draw')}><Icon name={result.stars === 3 ? 'trophy' : result.stars > 0 ? 'star' : 'refresh'} fill={result.stars > 0 && result.stars < 3} /></div>
               <h2>{result.stars > 0 ? 'Geschafft!' : 'Fast!'}</h2>
               <Stars n={result.stars} size={34} />
               <p>{resultText(game, result.score, result.stars)}{result.best && result.score > 0 && game.kind !== 'knight' ? ' · neuer Rekord' : ''}</p>
@@ -124,12 +126,12 @@ export default function TrainingScreen({ onPlaying }: { onPlaying: (playing: boo
     return (
       <section key={g.id} className="mg-card">
         <div className="mg-head">
-          <span className="mg-icon">{g.icon}</span>
+          <span className="mg-icon"><Icon name={g.icon as IconName} /></span>
           <div>
             <div className="mg-title">{g.title}</div>
             <div className="mg-teaser">{g.teaser}</div>
           </div>
-          <span className="mg-total">{total}/{g.levels.length * 3} ★</span>
+          <span className="mg-total">{total}/{g.levels.length * 3} <Icon name="star" fill /></span>
         </div>
         <div className="mg-skill">Trainiert: {g.skill}</div>
         <LevelPath game={g} stars={p.stars} onOpen={(l) => open(g, l)} />
@@ -140,13 +142,13 @@ export default function TrainingScreen({ onPlaying }: { onPlaying: (playing: boo
 
   return (
     <div className="training-screen">
-      <h1 className="screen-title">Training</h1>
-      <p className="screen-sub">Kurze Übungen mit Leveln. Jeder Stern bringt XP.</p>
+      <h1 className="screen-title">{section === 'tactics' ? 'Taktik' : 'Lernen'}</h1>
+      <p className="screen-sub">{section === 'tactics' ? 'Muster erkennen, rechnen, gewinnen. Jede Lösung bringt XP.' : 'Kurze Übungen mit Leveln. Jeder Stern bringt XP.'}</p>
 
-      <h2 className="hub-title">🧩 Taktik</h2>
+      {section === 'tactics' && <>
       <button className="mg-card rated-card" onClick={() => { setRated(true); onPlaying(true) }}>
         <div className="mg-head">
-          <span className="mg-icon">🧩</span>
+          <span className="mg-icon"><Icon name="puzzle" /></span>
           <div>
             <div className="mg-title">Taktik-Training</div>
             <div className="mg-teaser">Endlos Aufgaben, die zu deiner Stärke passen. Deine Wertung steigt mit jeder Lösung.</div>
@@ -164,17 +166,17 @@ export default function TrainingScreen({ onPlaying }: { onPlaying: (playing: boo
 
       <section className="mg-card">
         <div className="mg-head">
-          <span className="mg-icon">🎓</span>
+          <span className="mg-icon"><Icon name="learn" /></span>
           <div>
             <div className="mg-title">Taktische Motive</div>
             <div className="mg-teaser">Je 5 Aufgaben zu einem Motiv. 3 Sterne, wenn du alle auf Anhieb löst.</div>
           </div>
-          <span className="mg-total">{motifStars}/{MOTIF_GAMES.length * 9} ★</span>
+          <span className="mg-total">{motifStars}/{MOTIF_GAMES.length * 9} <Icon name="star" fill /></span>
         </div>
         <div className="motif-list">
           {MOTIF_GAMES.map((g) => (
             <div key={g.id} className="motif-row">
-              <span className="motif-icon">{g.icon}</span>
+              <img className="motif-icon" src={pieceUrl(g.icon[0] as 'w' | 'b', g.icon[1])} alt="" />
               <div className="motif-text"><strong>{g.title}</strong><small>{g.teaser}</small></div>
               <LevelPath game={g} stars={p.stars} onOpen={(l) => open(g, l)} compact />
             </div>
@@ -182,18 +184,22 @@ export default function TrainingScreen({ onPlaying }: { onPlaying: (playing: boo
         </div>
       </section>
 
-      <h2 className="hub-title">🎯 Brett-Gefühl</h2>
+      </>}
+
+      {section === 'learn' && <>
+      <h2 className="hub-title">Brett-Gefühl</h2>
       {MINI_GAMES.map(card)}
 
       <section className="mg-card soon">
         <div className="mg-head">
-          <span className="mg-icon">📖</span>
+          <span className="mg-icon"><Icon name="book" /></span>
           <div>
             <div className="mg-title">Eröffnungen und Endspiele</div>
             <div className="mg-teaser">Kommen in den nächsten Versionen, ebenfalls mit Leveln und Sternen.</div>
           </div>
         </div>
       </section>
+      </>}
     </div>
   )
 }

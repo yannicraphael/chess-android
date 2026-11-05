@@ -1,3 +1,4 @@
+import Icon from '../components/Icon'
 import type { Color } from 'chess.js'
 import { useEffect, useRef, useState } from 'react'
 import Board from '../components/Board'
@@ -63,9 +64,9 @@ export default function CoordsGame({ level, onFinish }: { level: GameLevel; onFi
   return (
     <div className="minigame">
       <div className="mg-hud">
-        <div className="mg-stat"><span>⏱</span>{timeLeft}s</div>
+        <div className="mg-stat"><Icon name="clock" />{timeLeft}s</div>
         <div className="mg-target">{running ? target : '—'}</div>
-        <div className="mg-stat"><span>✓</span>{score}{combo >= 5 && <em className="combo">🔥{combo}</em>}</div>
+        <div className="mg-stat"><Icon name="check" />{score}{combo >= 5 && <em className="combo"><Icon name="flame" />{combo}</em>}</div>
       </div>
       <Board fen={EMPTY} orientation={orientation} showCoords={level.n === 1} marks={flash} onSquareTap={tap} />
       {!running && timeLeft === DURATION && (
