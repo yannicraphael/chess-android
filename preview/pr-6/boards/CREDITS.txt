@@ -1,0 +1,3 @@
+Bretter: Holzfotos aus dem Lichess-Projekt (lichess-org/lila, public/images/board, AGPLv3+).
+Ahorn & Nussbaum = wood4, Birke & Kirsche = maple2, Buche & Mahagoni = maple, Wurzelholz = wood.
+Die übrigen Bretter sind daraus umgefärbte Varianten (gleiche Lizenz).
