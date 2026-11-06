@@ -107,7 +107,7 @@ function GameRow({ g, onOpen }: { g: ArchivedGame; onOpen: () => void }) {
       <BotAvatar bot={bot ?? null} size={36} />
       <span className="gr-text">
         <strong>{g.botName} <small>({g.botRating})</small></strong>
-        <small>{date} · {g.moves} Züge · {g.color === 'w' ? 'Weiß' : 'Schwarz'}{g.tc ? ` · ${g.tc}` : ''}{g.accuracy != null ? ` · Genauigkeit ${g.accuracy}` : ''}</small>
+        <small>{date} · {g.moves === 1 ? '1 Zug' : `${g.moves} Züge`} · {g.color === 'w' ? 'Weiß' : 'Schwarz'}{g.tc ? ` · ${g.tc}` : ''}{g.accuracy != null ? ` · Genauigkeit ${g.accuracy}` : ''}</small>
       </span>
       {g.rated && g.ratingDelta != null
         ? <span className={'gr-delta ' + (g.ratingDelta >= 0 ? 'up' : 'down')}>{g.ratingDelta >= 0 ? '+' : '−'}{Math.abs(g.ratingDelta)}</span>
@@ -161,7 +161,7 @@ export default function ProfileScreen({ onPlaying }: { onPlaying: (playing: bool
           <div>
             <div className="rc-label">Deine Wertung</div>
             <div className="rc-value">{r.rating}{r.games < 10 && <span className="rc-prov" title="vorläufig">?</span>}</div>
-            <div className="rc-sub">{r.games === 0 ? 'Spiele eine Partie gegen einen Bot, um eingestuft zu werden.' : r.games < 10 ? `Vorläufig, noch ${10 - r.games} ${10 - r.games === 1 ? 'Partie' : 'Partien'} bis zur festen Wertung.` : `Beste Wertung ${r.peak} · ${r.games} gewertete Partien`}</div>
+            <div className="rc-sub">{r.games === 0 ? 'Spiele eine gewertete Partie gegen einen Bot, um eingestuft zu werden.' : r.games < 10 ? `Vorläufig, noch ${10 - r.games} ${10 - r.games === 1 ? 'Partie' : 'Partien'} bis zur festen Wertung.` : `Beste Wertung ${r.peak} · ${r.games} gewertete Partien`}</div>
           </div>
           {ratedGames.length > 0 && (
             <div className="rc-wdl"><span className="w">{wdl.win}</span><span className="d">{wdl.draw}</span><span className="l">{wdl.loss}</span><small>S · R · N</small></div>
@@ -316,7 +316,7 @@ export default function ProfileScreen({ onPlaying }: { onPlaying: (playing: bool
           })}
         </div>
         <Toggle k="coordinates" label="Koordinaten am Brett" />
-        <Toggle k="coach" label="Trainer-Hilfe" sub="Warnt dich in Partien vor groben Fehlern" />
+        <Toggle k="coach" label="Trainer-Hilfe" sub="Nur in Trainingspartien: warnt vor groben Fehlern" />
       </div>
 
       <BackupSection />

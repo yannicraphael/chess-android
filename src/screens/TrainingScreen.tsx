@@ -71,7 +71,7 @@ function loadLearnTab(): LearnTab {
   try { return (localStorage.getItem('learnTab') as LearnTab) || 'wissen' } catch { return 'wissen' }
 }
 
-const PieceIcon = ({ code }: { code: string }) => <img className="motif-icon" src={pieceUrl(code[0] as 'w' | 'b', code[1])} alt="" />
+const PieceIcon = ({ code }: { code: string }) => <img className={'motif-icon' + (code[0] === 'b' ? ' dark-piece' : '')} src={pieceUrl(code[0] as 'w' | 'b', code[1])} alt="" />
 
 export default function TrainingScreen({ section, onPlaying }: { section: 'tactics' | 'learn'; onPlaying: (playing: boolean) => void }) {
   const p = progress.use()
@@ -300,7 +300,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
         return (
           <section key={grp.id} className="mg-card">
             <div className="mg-head">
-              <span className="mg-icon"><PieceIcon code={grp.id === 'matt' ? 'bK' : grp.id === 'bauern' ? 'wP' : grp.id === 'figuren' ? 'wQ' : 'wR'} /></span>
+              <span className="mg-icon"><PieceIcon code={grp.id === 'matt' ? 'wK' : grp.id === 'bauern' ? 'wP' : grp.id === 'figuren' ? 'wQ' : 'wR'} /></span>
               <div>
                 <div className="mg-title">{grp.title}</div>
                 <div className="mg-teaser">{grp.teaser} Du spielst gegen die volle Engine.</div>

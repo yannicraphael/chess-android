@@ -271,3 +271,22 @@
 .mistake-count { font-family: var(--font); vertical-align: middle; margin-left: 8px; font-size: 12px; font-weight: 700; color: var(--fire); background: var(--fire-bg); border-radius: 999px; padding: 2px 8px; }
 .badge strong, .badge small { overflow-wrap: anywhere; hyphens: auto; max-width: 100%; }
 @media (max-width: 380px) { .badge-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+/* segment labels get the room they need, so "Eröffnungen" is never cut */
+.segmented, .segmented.three { display: flex; }
+.segmented button { flex: 1 1 auto; padding: 9px 6px; white-space: nowrap; min-width: 0; }
+@media (max-width: 370px) { .segmented button { font-size: 12px; padding: 9px 4px; } }
+/* black pieces as icons (openings with Black) need a light rim on dark cards */
+.motif-icon.dark-piece { filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.55)) drop-shadow(0 0 3px rgba(255, 255, 255, 0.18)); }
+/* motif rows on narrow phones: smaller level buttons, names may hyphenate */
+.motif-text strong { overflow-wrap: anywhere; hyphens: auto; line-height: 1.2; }
+@media (max-width: 400px) {
+  .motif-row { gap: 8px; padding: 8px; }
+  .level-path.compact { gap: 4px; }
+  .level-path.compact .level-node { min-width: 36px; padding: 4px 2px; }
+  .level-path.compact .level-n { width: 24px; height: 24px; font-size: 12px; }
+  .level-path.compact .stars { font-size: 8px; letter-spacing: -1px; }
+}
+.backup-buttons { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.backup-buttons .btn { justify-content: center; white-space: nowrap; }
+.backup-buttons .btn:first-child { grid-column: 1 / -1; }
+.motif-text small { overflow-wrap: anywhere; hyphens: auto; }

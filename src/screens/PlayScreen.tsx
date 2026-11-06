@@ -105,7 +105,7 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
         </button>
       </section>
 
-      <div className="tc-row">
+      <div className="tc-row" id="play-options">
         <span className="tc-label"><Icon name="clock" /> Bedenkzeit</span>
         <div className="tc-chips">
           {TIME_CONTROLS.map((t) => (
@@ -136,6 +136,11 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
       )}
 
       <div className="play-footer">
+        <button className="play-summary" onClick={() => document.getElementById('play-options')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+          <Icon name={mode === 'rated' ? 'trophy' : 'learn'} />
+          <span>{mode === 'rated' ? 'Gewertet' : 'Training'} · {TIME_CONTROLS.find((t) => t.id === tc)?.label ?? 'Ohne Uhr'}</span>
+          <small>ändern</small>
+        </button>
         <div className="color-picker">
           {(['w', 'random', 'b'] as ColorChoice[]).map((c) => (
             <button key={c} className={'color-opt' + (color === c ? ' active' : '')} onClick={() => setColor(c)} aria-label={c === 'w' ? 'Weiß' : c === 'b' ? 'Schwarz' : 'Zufall'}>

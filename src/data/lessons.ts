@@ -129,7 +129,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'mattbilder', title: 'Mattbilder', teaser: 'Typische Matts, die du sofort erkennen solltest.', icon: 'bK',
+    id: 'mattbilder', title: 'Mattbilder', teaser: 'Typische Matts, die du sofort erkennen solltest.', icon: 'wK',
     steps: [
       {
         title: 'Grundreihenmatt',
@@ -330,7 +330,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'abtausch', title: 'Wann tauschen?', teaser: 'Mit Vorteil tauschen, mit Nachteil Figuren behalten.', icon: 'bQ',
+    id: 'abtausch', title: 'Wann tauschen?', teaser: 'Mit Vorteil tauschen, mit Nachteil Figuren behalten.', icon: 'wQ',
     steps: [
       {
         title: 'Die Tauschregel',
@@ -352,7 +352,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'verteidigung', title: 'Gut verteidigen', teaser: 'Vier Antworten auf jede Drohung.', icon: 'bR',
+    id: 'verteidigung', title: 'Gut verteidigen', teaser: 'Vier Antworten auf jede Drohung.', icon: 'wR',
     steps: [
       {
         title: 'Vier Möglichkeiten',

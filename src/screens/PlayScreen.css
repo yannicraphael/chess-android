@@ -71,3 +71,10 @@
 .mode-opt.active { border-color: var(--accent); background: var(--card-2); }
 .mode-opt.active .icon { color: var(--accent); }
 .mode-row + .coach-toggle { margin-top: 8px; }
+/* the footer always shows what kind of game starts, the options sit below the bot list */
+.play-footer { flex-wrap: wrap; row-gap: 6px; }
+.play-summary { flex-basis: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; border: none; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 600; padding: 2px 0; cursor: pointer; }
+.play-summary svg { width: 15px; height: 15px; }
+.play-summary small { color: var(--accent); font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.play-footer { background: linear-gradient(to bottom, transparent, var(--bg) 18px); padding-top: 22px; }
+#play-options { scroll-margin-top: 12px; }

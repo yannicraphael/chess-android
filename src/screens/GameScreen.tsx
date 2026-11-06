@@ -574,8 +574,8 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
             {!strict && <button onClick={undo} disabled={thinking || history.length === 0}><Icon name="undo" />Zurück</button>}
           </>
         )}
-        <button onClick={() => setViewIndex(Math.max(0, shownPly - 1))} disabled={shownPly === 0}><Icon name="back" />Zug</button>
-        <button onClick={() => setViewIndex(shownPly + 1 >= history.length ? null : shownPly + 1)} disabled={viewIndex === null}><Icon name="next" />Zug</button>
+        <button onClick={() => setViewIndex(Math.max(0, shownPly - 1))} disabled={shownPly === 0}><Icon name="back" />Voriger</button>
+        <button onClick={() => setViewIndex(shownPly + 1 >= history.length ? null : shownPly + 1)} disabled={viewIndex === null}><Icon name="next" />Nächster</button>
       </nav>
 
       {confirmResign && (
@@ -583,7 +583,7 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2>Wirklich aufgeben?</h2>
             <div className="modal-buttons">
-              <button className="btn secondary" onClick={() => setConfirmResign(false)}>Abbrechen</button>
+              <button className="btn secondary" onClick={() => setConfirmResign(false)}>Weiterspielen</button>
               <button className="btn primary" onClick={resign}>Aufgeben</button>
             </div>
           </div>
@@ -596,7 +596,7 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
             <div className={'result-icon ' + result.outcome}>{result.outcome === 'loss' ? <BotAvatar bot={bot} size={64} /> : <Icon name={result.outcome === 'win' ? 'trophy' : 'heart'} />}</div>
             <h2>{result.title}</h2>
             <p>{result.reason}</p>
-            <p className="result-moves">{Math.ceil(history.length / 2)} Züge gegen {bot.name} ({bot.rating})</p>
+            <p className="result-moves">{Math.ceil(history.length / 2) === 1 ? '1 Zug' : `${Math.ceil(history.length / 2)} Züge`} gegen {bot.name} ({bot.rating})</p>
             {ratingResult ? (
               <p className="rating-change">Deine Wertung: {ratingResult.after} <span className={ratingResult.delta >= 0 ? 'up' : 'down'}>({ratingResult.delta >= 0 ? '+' : '−'}{Math.abs(ratingResult.delta)})</span></p>
             ) : <p className="rated-tag">Ungewertete Partie</p>}
