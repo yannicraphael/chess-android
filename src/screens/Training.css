@@ -290,3 +290,7 @@
 .backup-buttons .btn { justify-content: center; white-space: nowrap; }
 .backup-buttons .btn:first-child { grid-column: 1 / -1; }
 .motif-text small { overflow-wrap: anywhere; hyphens: auto; }
+.ot-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ot-idea { color: var(--muted); font-size: 12.5px; line-height: 1.35; margin-top: 3px; }
+.pz-theory { margin: 0 12px 4px; }
+.opening-trainer .puzzle-text { white-space: pre-line; }

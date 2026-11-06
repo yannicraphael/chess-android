@@ -2,6 +2,8 @@ import { Chess, type Color, type Move, type Square } from 'chess.js'
 import { useEffect, useRef, useState } from 'react'
 import Board, { type Arrow, type SquarePair } from '../components/Board'
 import Icon from '../components/Icon'
+import TheorySheet from '../components/TheorySheet'
+import { ENDGAME_THEORY } from '../data/learnTheory'
 import type { Endgame } from '../data/endgames'
 import { evaluate } from '../engine/stockfish'
 import { playSound } from '../lib/sound'
@@ -32,6 +34,7 @@ export default function EndgameTrainer({ endgame, onFinish }: { endgame: Endgame
   const [hints, setHints] = useState(0)
   const [message, setMessage] = useState<{ text: string; tone: '' | 'good' | 'bad' }>({ text: 'Du bist am Zug.', tone: '' })
   const [showTip, setShowTip] = useState(false)
+  const theory = ENDGAME_THEORY[endgame.id]
   const alive = useRef(true)
   useEffect(() => () => { alive.current = false }, [])
 
@@ -171,17 +174,18 @@ export default function EndgameTrainer({ endgame, onFinish }: { endgame: Endgame
       </div>
 
       {(status === 'intro' || showTip) && (
-        <div className="modal-backdrop" onClick={() => { setShowTip(false); if (status === 'intro') setStatus('play') }}>
-          <div className="modal eg-intro" onClick={(e) => e.stopPropagation()}>
-            <h2>{endgame.name}</h2>
-            <p className="eg-task">{endgame.task}</p>
-            <p>{endgame.tip}</p>
-            {endgame.stars && <p className="eg-stars">3 Sterne: höchstens {endgame.stars[0]} Züge · 2 Sterne: höchstens {endgame.stars[1]} Züge. Jeder Tipp kostet einen Stern.</p>}
-            <div className="modal-buttons">
-              <button className="btn primary" onClick={() => { setShowTip(false); if (status === 'intro') setStatus('play') }}>{status === 'intro' ? 'Los geht’s' : 'Weiter'}</button>
-            </div>
-          </div>
-        </div>
+        <TheorySheet
+          title={endgame.name}
+          intro={endgame.task}
+          button={status === 'intro' ? 'Los geht’s' : 'Weiter'}
+          onClose={() => { setShowTip(false); if (status === 'intro') setStatus('play') }}
+          blocks={theory ? [
+            { title: 'Die Idee', text: theory.idea },
+            { title: 'So gehst du vor', items: theory.steps, numbered: true },
+            { title: 'Typische Fehler', items: theory.mistakes },
+            { title: 'Sterne', text: endgame.stars ? `3 Sterne: höchstens ${endgame.stars[0]} Züge · 2 Sterne: höchstens ${endgame.stars[1]} Züge. Jeder Tipp kostet einen Stern.` : '' },
+          ] : [{ title: 'Die Idee', text: endgame.tip }]}
+        />
       )}
     </div>
   )

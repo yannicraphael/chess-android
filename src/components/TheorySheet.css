@@ -1,0 +1,17 @@
+.modal.theory-sheet { max-width: 520px; max-height: calc(100dvh - 32px); display: flex; flex-direction: column; text-align: left; padding: 18px 16px 14px; }
+.theory-sheet .ts-scroll { overflow-y: auto; overscroll-behavior: contain; padding-right: 2px; }
+.theory-sheet h2 { text-align: left; }
+.theory-sheet .ts-sub { font-size: 13px; margin-top: -2px; }
+.theory-sheet .ts-intro { color: var(--text); font-size: 15px; line-height: 1.45; margin: 8px 0 4px; }
+.ts-block { margin-top: 14px; }
+.ts-block h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin: 0 0 6px; }
+.ts-block p { color: var(--text); font-size: 14px; line-height: 1.45; margin: 0; }
+.ts-block ul, .ts-block ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.ts-block li { font-size: 14px; line-height: 1.45; color: var(--text); }
+.ts-block li::marker { color: var(--accent); font-weight: 700; }
+.ts-dev { display: flex; flex-direction: column; gap: 2px; }
+.ts-dev .ts-moves { font-weight: 700; font-variant-numeric: tabular-nums; }
+.ts-dev .ts-answer { color: var(--accent); font-weight: 800; }
+.ts-dev small { color: var(--muted); font-size: 13px; line-height: 1.4; }
+.theory-link { align-self: flex-start; border: none; background: none; padding: 2px 0 0; color: var(--accent); font: inherit; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.theory-link svg { width: 13px; height: 13px; }

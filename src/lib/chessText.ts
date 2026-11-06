@@ -30,3 +30,15 @@ export function evalText(cp: number, mate: number | null): string {
   const v = (cp / 100).toFixed(1).replace('.', ',')
   return cp > 0 ? `+${v}` : cp < 0 ? `−${v.slice(1)}` : '0,0'
 }
+
+// "1.e4 e5 2.Sf3" from English SAN moves, starting at ply `start`
+export function moveText(moves: string[], start = 0) {
+  return moves.map((m, i) => {
+    const ply = start + i
+    const n = Math.floor(ply / 2) + 1
+    const san = de(m)
+    if (ply % 2 === 0) return `${n}.${san}`
+    return i === 0 ? `${n}...${san}` : san
+  }).join(' ')
+}
+

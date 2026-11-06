@@ -94,3 +94,12 @@ Die App ist für einen Spieler gedacht, der vom Gelegenheitsspieler (ca. 750 bis
 | Partien | Vor dem Start „Gewertet“ (keine Hilfen) oder „Training“ (alle Hilfen, ungewertet). Abbrechen ohne Wertung vor dem zweiten eigenen Zug. Eine verlassene gewertete Partie zählt als verloren |
 | Uhr | Zeitüberschreitung ist Remis, wenn der Gegner nicht mehr mattsetzen kann. Die Uhr hält an, solange die App im Hintergrund ist |
 | Aufgabe des Tages | Gilt erst nach dem Lösen als erledigt |
+
+## Theorie in den Lernkapiteln
+
+| Bereich | Umsetzung |
+| --- | --- |
+| Eröffnungen | Jeder Zug aller 32 Varianten ist erklärt, auch die Nebenvarianten. Jede Eröffnung hat eine Theorieseite: Ideen, Pläne nach der Eröffnung, Bauernstruktur, Varianten, Worauf achten, Wenn der Gegner anders spielt (Antworten mit Stockfish geprüft), Fallen und typische Fehler |
+| Eröffnungstrainer | Stufe 1 beginnt mit der Theorie. Erklärung des eigenen Zugs und der Antwort stehen zusammen. Abweichungen von der Hauptvariante werden genannt. Bei einem falschen Zug kommt zuerst die Idee in Worten, beim zweiten der Pfeil |
+| Endspiele | Idee, Methode Schritt für Schritt und typische Fehler, vor dem Start und über „Erklärung“ |
+| Taktikmotive | Was das Motiv ist und woran man es erkennt, vor der ersten Stufe und jederzeit über „Erklärung zum Motiv“ |

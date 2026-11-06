@@ -9,7 +9,7 @@ import OpeningTrainer from '../games/OpeningTrainer'
 import { archive, dueMistakes } from '../lib/archive'
 import { ENDGAMES, ENDGAME_GROUPS } from '../data/endgames'
 import { LESSONS } from '../data/lessons'
-import { OPENINGS } from '../data/openings'
+import { OPENINGS, type Opening } from '../data/openings'
 import KnightGame from '../games/KnightGame'
 import SpotGame from '../games/SpotGame'
 import PuzzleRated from '../games/PuzzleRated'
@@ -21,6 +21,7 @@ import { addXp, progress, recordScore, recordWeekly, type XpGain } from '../lib/
 import { puzzleStats } from '../lib/puzzles'
 import { playSound } from '../lib/sound'
 import './Training.css'
+import OpeningTheorySheet from '../components/OpeningTheorySheet'
 
 const Stars = ({ n, size = 16 }: { n: number; size?: number }) => (
   <span className="stars" style={{ fontSize: size }}>
@@ -81,6 +82,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
   const mistakes = archive.use().mistakes
   const openMistakes = dueMistakes().length
   const [active, setActive] = useState<{ game: MiniGame; level: GameLevel } | null>(null)
+  const [theoryFor, setTheoryFor] = useState<Opening | null>(null)
   useBack(() => close(), !!active)
   const [result, setResult] = useState<{ score: number; stars: number; gain: XpGain; best: boolean } | null>(null)
   const [runKey, setRunKey] = useState(0)
@@ -187,6 +189,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
 
   return (
     <div className="training-screen">
+      {theoryFor && <OpeningTheorySheet opening={theoryFor} onClose={() => setTheoryFor(null)} />}
       <h1 className="screen-title">{section === 'tactics' ? 'Taktik' : 'Lernen'}</h1>
       <p className="screen-sub">{section === 'tactics' ? 'Muster erkennen, rechnen, gewinnen. Jede Lösung bringt XP.' : 'Wissen, Eröffnungen und Endspiele. Jeder Stern bringt XP.'}</p>
 
@@ -286,7 +289,9 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
             <div className="motif-list">
               {games.map((g) => (
                 <div key={g.id} className="motif-row">
-                  <div className="motif-text"><strong>{g.title}</strong><small>{g.teaser}</small></div>
+                  <div className="motif-text"><strong>{g.title}</strong><small>{g.teaser}</small>
+                    <button className="theory-link" onClick={() => setTheoryFor(OPENINGS.find((o) => o.id === g.ref) ?? null)}><Icon name="book" /> Theorie</button>
+                  </div>
                   <LevelPath game={g} stars={p.stars} onOpen={(l) => open(g, l)} compact />
                 </div>
               ))}
