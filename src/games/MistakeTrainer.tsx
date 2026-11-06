@@ -8,6 +8,7 @@ import { MOTIF_LABELS, type Motif } from '../lib/explain'
 import { de, uciToSan } from '../lib/chessText'
 import { addXp, recordDaily } from '../lib/progress'
 import { playSound } from '../lib/sound'
+import { useBack } from '../lib/back'
 
 type Status = 'play' | 'checking' | 'solved' | 'wrong' | 'shown'
 
@@ -48,6 +49,7 @@ export default function MistakeTrainer({ onExit }: { onExit: () => void }) {
   const [msg, setMsg] = useState('')
   const [solvedCount, setSolvedCount] = useState(0)
   const alive = useRef(true)
+  useBack(onExit)
   useEffect(() => () => { alive.current = false }, [])
 
   if (!pz) {

@@ -122,8 +122,8 @@ export default function HomeScreen({ resumeBot, onResume, onDaily, onTab }: {
             <div className="daily-text">
               <strong>{puzzle.fen.split(' ')[1] === 'w' ? 'Schwarz' : 'Weiß'} am Zug</strong>
               <span>{themeLabels(puzzle)[0] ?? 'Taktik'} · Wertung {puzzle.rating}</span>
-              <button className="btn primary" onClick={() => { try { localStorage.setItem('dailySolved', JSON.stringify(todayKey())) } catch { /* ignore */ } onDaily(puzzle.id) }}>
-                {solvedToday ? 'Nochmal ansehen' : 'Lösen'}
+              <button className="btn primary" onClick={() => onDaily(puzzle.id)}>
+                {solvedToday ? 'Gelöst ✓ Nochmal' : 'Lösen'}
               </button>
             </div>
           </div>

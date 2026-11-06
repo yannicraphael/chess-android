@@ -42,7 +42,12 @@ function buildPool(list: Puzzle[], mode: SpotMode, minValue: number): Task[] {
   const cached = pools.get(key)
   if (cached) return cached
   const out: Task[] = []
-  for (const p of list) {
+  // scanning every position is slow on a phone: mate tasks only look at mate puzzles,
+  // hanging pieces at an evenly spread sample of the database
+  const base = mode === 'mate1' ? list.filter((p) => /mateIn[123]\b/.test(p.themes)) : list
+  const step = Math.max(1, Math.floor(base.length / 2500))
+  const source = base.filter((_, i) => i % step === 0)
+  for (const p of source) {
     const moves = p.moves.split(' ')
     try {
       if (mode === 'mate1') {

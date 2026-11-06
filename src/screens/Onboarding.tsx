@@ -13,7 +13,7 @@ const LEVELS: { r: number; title: string; sub: string }[] = [
 ]
 
 const TOUR: { icon: IconName; title: string; text: string }[] = [
-  { icon: 'play', title: 'Spielen', text: '87 Gegner von 100 bis 2850 und eine Engine bis 3200. Jede Partie ohne Tipp zählt für deine Wertung.' },
+  { icon: 'play', title: 'Spielen', text: '87 Gegner von 100 bis 2850 und eine Engine bis 3200. Gewertete Partien ohne Hilfen bestimmen deine Wertung.' },
   { icon: 'puzzle', title: 'Taktik', text: 'Aufgaben passend zu deiner Stärke, Motive mit Leveln und deine eigenen Fehler als Übungen.' },
   { icon: 'learn', title: 'Lernen', text: 'Kurze Lektionen, zehn Eröffnungen zum Üben und die wichtigsten Endspiele gegen die Engine.' },
 ]

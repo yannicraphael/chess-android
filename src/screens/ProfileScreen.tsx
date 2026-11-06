@@ -32,7 +32,8 @@ function BackupSection() {
   const [paste, setPaste] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   async function save() {
-    const r = await shareOrDownload(makeBackup())
+    let r: string
+    try { r = await shareOrDownload(makeBackup()) } catch { setMsg('Speichern abgebrochen. Du kannst die Sicherung auch kopieren.'); return }
     setMsg(r === 'shared' ? 'Sicherung geteilt. Speichere sie zum Beispiel in deinen Dateien oder in der Cloud.' : 'Sicherung als Datei gespeichert (Ordner „Downloads“).')
   }
   async function copy() {
@@ -173,7 +174,7 @@ export default function ProfileScreen({ onPlaying }: { onPlaying: (playing: bool
             ? <>Nach der Qualität deiner Züge spielst du etwa wie <strong>{est}</strong> Elo (Schnitt der letzten {Math.min(10, r.perf.length)} Partien).</>
             : <>Nach drei analysierten Partien schätzt die Engine deine Spielstärke auch aus der Qualität deiner Züge.</>}</span>
         </div>
-        <p className="rc-note">Gewertet wird jede Partie ohne Tipp und ohne Zurücknehmen. Die Wertung ist eine Schätzung auf Basis der Bot-Stärken, keine offizielle Elo.</p>
+        <p className="rc-note">Gewertet werden Partien im Modus „Gewertet“ (ohne Hilfen). Wer eine laufende gewertete Partie für eine neue verlässt, verliert sie. Die Wertung ist eine Schätzung auf Basis der Bot-Stärken, keine offizielle Elo.</p>
       </section>
 
       <div className="profile-hero" style={{ marginTop: 12 }}>

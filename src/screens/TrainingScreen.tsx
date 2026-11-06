@@ -16,6 +16,7 @@ import PuzzleRated from '../games/PuzzleRated'
 import PuzzleSet from '../games/PuzzleSet'
 import PuzzleSprint from '../games/PuzzleSprint'
 import { ENDGAME_GAMES, LESSON_GAMES, MINI_GAMES, MOTIF_GAMES, OPENING_GAMES, SPRINT, starsFor, type GameLevel, type MiniGame } from '../games/levels'
+import { useBack } from '../lib/back'
 import { addXp, progress, recordScore, recordWeekly, type XpGain } from '../lib/progress'
 import { puzzleStats } from '../lib/puzzles'
 import { playSound } from '../lib/sound'
@@ -80,6 +81,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
   const mistakes = archive.use().mistakes
   const openMistakes = dueMistakes().length
   const [active, setActive] = useState<{ game: MiniGame; level: GameLevel } | null>(null)
+  useBack(() => close(), !!active)
   const [result, setResult] = useState<{ score: number; stars: number; gain: XpGain; best: boolean } | null>(null)
   const [runKey, setRunKey] = useState(0)
   const [learnTab, setLearnTabState] = useState<LearnTab>(loadLearnTab)

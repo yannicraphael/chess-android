@@ -1,3 +1,4 @@
+import { useBack } from '../lib/back'
 import { useEffect, useState } from 'react'
 import { addXp, recordDaily } from '../lib/progress'
 import { loadPuzzles, pickRated, puzzleStats, ratingDelta, themeLabels, type Puzzle } from '../lib/puzzles'
@@ -8,6 +9,7 @@ import PuzzlePlayer, { type PuzzleOutcome } from './PuzzlePlayer'
 // Endless rated puzzles that adapt to the player's tactics rating.
 export default function PuzzleRated({ onExit, firstId }: { onExit: () => void; firstId?: string }) {
   const st = puzzleStats.use()
+  useBack(onExit)
   const [list, setList] = useState<Puzzle[] | null>(null)
   const [error, setError] = useState(false)
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null)
@@ -48,6 +50,11 @@ export default function PuzzleRated({ onExit, firstId }: { onExit: () => void; f
       recent: [{ id: puzzle.id, ok, delta }, ...s.recent].slice(0, 20),
     })
     recordDaily('puzzle')
+    if (ok && firstId === puzzle.id) {
+      // puzzle of the day solved
+      const d = new Date()
+      try { localStorage.setItem('dailySolved', JSON.stringify(`${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`)) } catch { /* ignore */ }
+    }
     const gain = addXp(ok ? (rated ? 6 : 3) : 1)
     if (gain.levelUp) setTimeout(() => playSound('levelup'), 600)
     setResult({ delta, ok, xp: gain.amount, levelUp: gain.levelUp ? gain.newLevel : null })

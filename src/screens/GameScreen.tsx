@@ -13,6 +13,7 @@ import { rating, recordRatedGame } from '../lib/rating'
 import { parseTc } from '../lib/timeControl'
 import BotAvatar from '../components/BotAvatar'
 import ReviewScreen from './ReviewScreen'
+import { useBack } from '../lib/back'
 import './GameScreen.css'
 
 export interface SavedGame {
@@ -24,6 +25,7 @@ export interface SavedGame {
   tc?: string // time control, e.g. "10+0"; empty = no clock
   clock?: { w: number; b: number } // remaining milliseconds
   rated?: boolean // false once a hint or take-back was used
+  mode?: 'rated' | 'training' // rated: no help at all; training: every help, never rated (older saves: undefined)
 }
 
 export interface GameResult {
@@ -50,6 +52,14 @@ function detectResult(chess: Chess, playerColor: Color): GameResult | null {
   if (chess.isThreefoldRepetition()) return { title: 'Remis', reason: 'dreifache Stellungswiederholung', outcome: 'draw' }
   if (chess.isDraw()) return { title: 'Remis', reason: '50-Züge-Regel', outcome: 'draw' }
   return null
+}
+
+// FIDE rule: running out of time is only a loss if the opponent could still mate at all
+function canMate(chess: Chess, color: Color) {
+  const pieces = chess.board().flat().filter((p) => p && p.color === color && p.type !== 'k')
+  if (pieces.length === 0) return false
+  if (pieces.length === 1 && (pieces[0]!.type === 'n' || pieces[0]!.type === 'b')) return false
+  return true
 }
 
 function moveSound(m: Move, chess: Chess) {
@@ -93,11 +103,12 @@ function PlayerBar({ name, sub, avatar, color, captured, diff, thinking, bubble,
   )
 }
 
-export default function GameScreen({ bot, saved, onSave, onExit }: {
+export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
   bot: Bot
   saved: SavedGame
   onSave: (g: SavedGame) => void
   onExit: () => void
+  onAbort: () => void // leave a game in its first moves without any result
 }) {
   const s = settings.use()
   const playerColor = saved.playerColor
@@ -119,12 +130,19 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
   const [viewIndex, setViewIndex] = useState<number | null>(null) // null = live position
   const [flipped, setFlipped] = useState(false)
   const [confirmResign, setConfirmResign] = useState(false)
+  useBack(() => {
+    if (confirmResign) setConfirmResign(false)
+    else if (showResult) setShowResult(false)
+    else onExit()
+  })
   const [coachBusy, setCoachBusy] = useState(false)
   const [warning, setWarning] = useState<CoachWarning | null>(null)
   const [reviewing, setReviewing] = useState(false)
   const [chat, setChat] = useState<Chat | null>(null)
   const [endLine, setEndLine] = useState<string | null>(null)
-  const [rated, setRatedState] = useState(saved.rated ?? true)
+  const strict = saved.mode === 'rated' // rated game: no coach, hints or take-backs
+  const coachOn = s.coach && !strict
+  const [rated, setRatedState] = useState(saved.mode === 'training' ? false : saved.rated ?? true)
   const ratedRef = useRef(rated)
   const setRated = (v: boolean) => { ratedRef.current = v; setRatedState(v) }
   const [ratingResult, setRatingResult] = useState<{ after: number; delta: number } | null>(null)
@@ -175,7 +193,7 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
   }
 
   function snapshot(r: GameResult | null, ratedNow = ratedRef.current): SavedGame {
-    return { botId: bot.id, playerColor, pgn: game.pgn(), result: r, id: gameId.current, tc: saved.tc, clock: clockRef.current ?? undefined, rated: ratedNow }
+    return { botId: bot.id, playerColor, pgn: game.pgn(), result: r, id: gameId.current, tc: saved.tc, clock: clockRef.current ?? undefined, rated: ratedNow, mode: saved.mode }
   }
 
   function unrate(why: string) {
@@ -264,7 +282,7 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
       if (m.captured && VALUES[m.captured] >= 3) say('playerCapture', 0.6)
       else if (game.inCheck()) say('playerCheck', 0.4)
     }
-    if (!m || !s.coach || game.isGameOver()) return
+    if (!m || !coachOn || game.isGameOver()) return
     // Coach: compare the evaluation before and after the move
     setCoachBusy(true)
     const after = game.fen()
@@ -293,7 +311,14 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
   }
 
   // chess clock: the side to move loses time while nothing else is pending
-  const clockPaused = !!result || !!warning || coachBusy || reviewing
+  // the clock also stops while the app is in the background (offline game against a bot)
+  const [hidden, setHidden] = useState(() => typeof document !== 'undefined' && document.hidden)
+  useEffect(() => {
+    const on = () => setHidden(document.hidden)
+    document.addEventListener('visibilitychange', on)
+    return () => document.removeEventListener('visibilitychange', on)
+  }, [])
+  const clockPaused = !!result || !!warning || coachBusy || reviewing || hidden
   useEffect(() => {
     if (!clockRef.current) return
     tickFrom.current = Date.now()
@@ -309,9 +334,11 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
         token.current++
         setThinking(false)
         const playerFlagged = turn === playerColor
-        const r: GameResult = playerFlagged
-          ? { title: 'Du hast verloren', reason: 'Zeit abgelaufen', outcome: 'loss' }
-          : { title: 'Du hast gewonnen!', reason: `${bot.name} hat die Zeit überschritten`, outcome: 'win' }
+        const r: GameResult = !canMate(game, turn === 'w' ? 'b' : 'w')
+          ? { title: 'Remis', reason: 'Zeit abgelaufen, aber der Gegner kann nicht mehr mattsetzen', outcome: 'draw' }
+          : playerFlagged
+            ? { title: 'Du hast verloren', reason: 'Zeit abgelaufen', outcome: 'loss' }
+            : { title: 'Du hast gewonnen!', reason: `${bot.name} hat die Zeit überschritten`, outcome: 'win' }
         playSound('warn')
         finish(r)
         onSave(snapshot(r))
@@ -342,9 +369,9 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
 
   // pre-compute the evaluation of the player's position so the coach answers quickly
   useEffect(() => {
-    if (s.coach && !result && game.turn() === playerColor && !game.isGameOver()) void cachedEval(game.fen())
+    if (coachOn && !result && game.turn() === playerColor && !game.isGameOver()) void cachedEval(game.fen())
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fen, s.coach])
+  }, [fen, coachOn])
 
   // let the bot move whenever it is its turn
   useEffect(() => {
@@ -456,7 +483,7 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
       clock={clock ? clock[botColor] : null} running={!clockPaused && game.turn() === botColor} />
   )
   const meBar = (
-    <PlayerBar name="Du" sub={`(${rating.get().rating})${rated ? '' : ' · ungewertet'}${s.coach ? ' · Trainer an' : ''}`} color={playerColor}
+    <PlayerBar name="Du" sub={`(${rating.get().rating})${strict ? ' · gewertet' : rated ? '' : ' · Training'}${coachOn ? ' · Trainer an' : ''}`} color={playerColor}
       avatar={<BotAvatar bot={null} size={40} />}
       captured={capturedBy[playerColor]} diff={diff[playerColor]}
       clock={clock ? clock[playerColor] : null} running={!clockPaused && game.turn() === playerColor} />
@@ -470,6 +497,13 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
   })
 
   const canAct = !thinking && !coachBusy && !warning
+  // like on a chess server: before your second move the game can be cancelled without a result
+  const canAbort = !result && game.history({ verbose: true }).filter((m) => m.color === playerColor).length < 2
+  function abort() {
+    token.current++
+    setThinking(false)
+    onAbort()
+  }
 
   return (
     <div className="game-screen">
@@ -533,9 +567,11 @@ export default function GameScreen({ bot, saved, onSave, onExit }: {
           </>
         ) : (
           <>
-            <button onClick={() => setConfirmResign(true)}><Icon name="flag" />Aufgeben</button>
-            <button onClick={showHint} disabled={!canAct || game.turn() !== playerColor}><Icon name="bulb" />Tipp{hintsUsed > 0 ? ` (${hintsUsed})` : ''}</button>
-            <button onClick={undo} disabled={thinking || history.length === 0}><Icon name="undo" />Zurück</button>
+            {canAbort
+              ? <button onClick={abort}><Icon name="flag" />Abbrechen</button>
+              : <button onClick={() => setConfirmResign(true)}><Icon name="flag" />Aufgeben</button>}
+            {!strict && <button onClick={showHint} disabled={!canAct || game.turn() !== playerColor}><Icon name="bulb" />Tipp{hintsUsed > 0 ? ` (${hintsUsed})` : ''}</button>}
+            {!strict && <button onClick={undo} disabled={thinking || history.length === 0}><Icon name="undo" />Zurück</button>}
           </>
         )}
         <button onClick={() => setViewIndex(Math.max(0, shownPly - 1))} disabled={shownPly === 0}><Icon name="back" />Zug</button>
