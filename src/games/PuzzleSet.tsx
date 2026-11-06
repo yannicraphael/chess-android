@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { recordDaily } from '../lib/progress'
-import { loadPuzzles, motifPool, MOTIF_SET_SIZE, sample, type Puzzle } from '../lib/puzzles'
+import { loadPuzzles, MOTIFS, motifPool, MOTIF_SET_SIZE, sample, type Puzzle } from '../lib/puzzles'
+import Icon from '../components/Icon'
+import TheorySheet from '../components/TheorySheet'
+import { MOTIF_THEORY } from '../data/learnTheory'
 import type { GameLevel } from './levels'
 import PuzzlePlayer, { type PuzzleOutcome } from './PuzzlePlayer'
 
@@ -11,6 +14,10 @@ export default function PuzzleSet({ level, onFinish }: { level: GameLevel; onFin
   const [i, setI] = useState(0)
   const [results, setResults] = useState<boolean[]>([])
   const finished = useRef(false)
+  const motif = MOTIFS.find((m) => m.theme === level.theme)
+  const theory = level.theme ? MOTIF_THEORY[level.theme] : undefined
+  // the first level of a motif starts with the explanation
+  const [showTheory, setShowTheory] = useState(level.n === 1 && Boolean(theory))
 
   useEffect(() => {
     loadPuzzles().then((l) => setSet(sample(motifPool(l, level.theme!, level.n), MOTIF_SET_SIZE))).catch(() => setError(true))
@@ -37,6 +44,11 @@ export default function PuzzleSet({ level, onFinish }: { level: GameLevel; onFin
 
   return (
     <div className="minigame">
+      {theory && <button className="theory-link pz-theory" onClick={() => setShowTheory(true)}><Icon name="book" /> Erklärung zum Motiv</button>}
+      {showTheory && theory && (
+        <TheorySheet title={motif?.name ?? 'Motiv'} intro={theory.what} button={results.length === 0 && i === 0 ? 'Los geht’s' : 'Weiter'}
+          blocks={[{ title: 'So erkennst du es', items: theory.spot }]} onClose={() => setShowTheory(false)} />
+      )}
       <div className="pz-dots">
         {set.map((_, k) => <span key={k} className={k < results.length ? (results[k] ? 'ok' : 'no') : k === i ? 'cur' : ''}>{k < results.length ? (results[k] ? '✓' : '✗') : k + 1}</span>)}
       </div>

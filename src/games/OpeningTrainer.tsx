@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import Board, { type Arrow, type SquarePair } from '../components/Board'
 import Icon from '../components/Icon'
 import type { Opening } from '../data/openings'
+import { OPENING_THEORY } from '../data/openingTheory'
+import OpeningTheorySheet from '../components/OpeningTheorySheet'
 import { de } from '../lib/chessText'
 import { playSound } from '../lib/sound'
 
@@ -43,6 +45,8 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
   const [showHint, setShowHint] = useState(false)
   const [note, setNote] = useState<{ text: string; tone: '' | 'good' | 'bad' }>({ text: '', tone: '' })
   const [done, setDone] = useState(false)
+  // level 1 starts with the theory, the others can open it at any time
+  const [theory, setTheory] = useState(level === 1)
   const timers = useRef<number[]>([])
   const later = (fn: () => void, ms: number) => { timers.current.push(window.setTimeout(fn, ms)) }
   useEffect(() => () => timers.current.forEach(clearTimeout), [])
@@ -50,9 +54,19 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
   const side = opening.side
   const myTurn = !done && ply < moves.length && (ply % 2 === 0 ? 'w' : 'b') === side
 
+  const theoryData = OPENING_THEORY[opening.id]
+  const lineIdea = theoryData?.lineIdeas[order[lineNo]] ?? ''
+  // the ply where this line leaves the main line (the opponent plays something else)
+  const mainMoves = opening.lines[0].moves.split(' ')
+  const branchPly = order[lineNo] === 0 ? -1 : moves.findIndex((m, i) => m !== mainMoves[i])
+
+  function noteFor(p: number) {
+    return theoryData?.notes[order[lineNo]]?.[p] ?? line.notes?.[p] ?? ''
+  }
+
   function explain(p: number) {
     if (level === 3) return ''
-    return line.notes?.[p] ?? ''
+    return noteFor(p)
   }
 
   function play(san: string) {
@@ -86,19 +100,24 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
 
   // the opponent's moves are played automatically
   useEffect(() => {
-    if (done || ply >= moves.length) return
+    if (done || theory || ply >= moves.length) return
     const turn = ply % 2 === 0 ? 'w' : 'b'
     if (turn === side) return
     later(() => {
       play(moves[ply])
       const text = explain(ply)
-      if (text) setNote({ text: `${de(chess.history().slice(-1)[0])}: ${text}`, tone: '' })
+      const branch = ply === branchPly && level < 3 ? 'Hier weicht der Gegner von der Hauptvariante ab. ' : ''
+      if (text) {
+        const line2 = `${de(chess.history().slice(-1)[0])}: ${branch}${text}`
+        // keep the explanation of the player's own move above the reply
+        setNote((n) => ({ text: n.tone === 'good' && n.text ? `${n.text}\n${line2}` : line2, tone: '' }))
+      }
       const next = ply + 1
       setPly(next)
       if (next >= moves.length) lineFinished()
     }, ply === 0 ? 700 : 650)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ply, lineNo, done])
+  }, [ply, lineNo, done, theory])
 
   function onMove(from: string, to: string, promotion?: string) {
     if (!myTurn) return
@@ -124,8 +143,14 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
       setMarks({ [to]: 'mark-bad' })
       setMistakes((n) => n + 1)
       setTries((t) => t + 1)
-      if (level === 2 || tries >= 1) setShowHint(true)
-      setNote({ text: level === 3 && tries < 1 ? 'Das ist nicht der Zug aus der Variante. Versuch es nochmal.' : 'Nicht ganz. Der Pfeil zeigt dir den richtigen Zug.', tone: 'bad' })
+      // first wrong try: the idea of the move in words (level 1 and 2), second: the arrow
+      const idea = noteFor(ply)
+      if (tries >= 1) setShowHint(true)
+      let text: string
+      if (tries >= 1) text = `Der Pfeil zeigt den Zug.${idea ? ' ' + idea : ''}`
+      else if (level === 3) text = 'Das ist nicht der Zug aus der Variante. Versuch es nochmal.'
+      else text = idea ? `Nicht ganz. Denk an die Idee: ${idea}` : 'Nicht ganz. Versuch es nochmal.'
+      setNote({ text, tone: 'bad' })
       later(() => setMarks({}), 600)
     }
   }
@@ -150,8 +175,12 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
   return (
     <div className="puzzle-player opening-trainer">
       <div className="ot-head">
-        <strong>{line.name}</strong>
+        <div className="ot-title-row">
+          <strong>{line.name}</strong>
+          <button className="theory-link" onClick={() => setTheory(true)}><Icon name="book" /> Theorie</button>
+        </div>
         <span>{opening.first}{order.length > 1 ? ` · Variante ${lineNo + 1} von ${order.length}` : ''}</span>
+        {level < 3 && lineIdea && <small className="ot-idea">{lineIdea}</small>}
       </div>
       <div className="ot-progress" aria-label={`${myDone} von ${myMoves} Zügen`}>
         {Array.from({ length: myMoves }, (_, i) => <span key={i} className={i < myDone ? 'on' : ''} />)}
@@ -161,9 +190,10 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
         <span className={'turn-dot ' + side} />
         <span className="puzzle-text">{prompt}</span>
       </div>
+      {theory && <OpeningTheorySheet opening={opening} button={level === 1 && ply === 0 && lineNo === 0 ? 'Los geht’s' : 'Weiter'} onClose={() => setTheory(false)} />}
       {level === 2 && !done && (
         <div className="puzzle-tools">
-          <button className="btn secondary small" onClick={() => { setShowHint(true); setMistakes((n) => n + 1) }} disabled={!myTurn || showHint}><Icon name="bulb" /> Tipp</button>
+          <button className="btn secondary small" onClick={() => { setShowHint(true); setMistakes((n) => n + 1); const idea = noteFor(ply); if (idea) setNote({ text: idea, tone: '' }) }} disabled={!myTurn || showHint}><Icon name="bulb" /> Tipp</button>
         </div>
       )}
     </div>
