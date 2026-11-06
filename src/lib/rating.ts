@@ -9,6 +9,7 @@ export interface RatingState {
   history: { d: string; r: number }[] // rating after each rated game (last 100)
   perf: number[] // move-quality estimates of the last games (last 20)
   start: number // starting rating chosen at the first launch
+  calib?: number // version of the bot strength calibration the rating is based on (see recalibrate.ts)
 }
 
 export const rating = createStore<RatingState>('rating', {

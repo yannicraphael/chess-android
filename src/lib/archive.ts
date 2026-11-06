@@ -28,6 +28,7 @@ export interface ArchivedGame {
   accuracy?: number
   perf?: number
   blunders?: number // player's moves that lost 2.5 pawns or more
+  cal?: number // bot strength calibration the game was played with (missing = before November 2026)
 }
 
 export interface MistakePuzzle {
@@ -50,7 +51,7 @@ export interface MistakePuzzle {
 export const archive = createStore<{ games: ArchivedGame[]; mistakes: MistakePuzzle[] }>('archive', { games: [], mistakes: [] })
 
 export function addGame(g: ArchivedGame) {
-  archive.set((s) => ({ games: [g, ...s.games].slice(0, 200) }))
+  archive.set((s) => ({ games: [{ cal: 2, ...g }, ...s.games].slice(0, 200) }))
   void analyzeStored(g.id)
 }
 
