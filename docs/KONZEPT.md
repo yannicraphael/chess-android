@@ -79,8 +79,18 @@ Die App ist für einen Spieler gedacht, der vom Gelegenheitsspieler (ca. 750 bis
 | --- | --- |
 | Bots | Fehler wie Menschen: gierig schlagen ohne Rückschlag zu prüfen, natürlich aussehende Züge, die etwas hängen lassen |
 | Analyse | „Warum?“ bei jedem Fehler: Gegenzug in Worten (ungedeckte Figur, Gabel, Doppelangriff, Matt) und was der bessere Zug erreicht hätte |
-| Eigene Fehler | Wiederholung nach 3, 10 und 30 Tagen, mit Erklärung |
+| Eigene Fehler | Wiederholung nach 3, 10 und 30 Tagen, mit Erklärung. Gleiche Stellungen werden zusammengefasst (wiederholte Fehler zuerst), Auswahl nach Motiv: Matt übersehen, Figur hängen gelassen, Gabel übersehen, Gewinn verpasst, Stellungsfehler |
 | Motivation | Wochenziele (5 Partien, 30 Aufgaben, 3 Lerneinheiten) und 24 Abzeichen mit Hinweis beim Freischalten |
 | Mini-Spiele | „Hängende Figur“ und „Matt in einem Zug“ gegen die Uhr, je 3 Level |
 | Inhalt | 14 Eröffnungen (neu: Wiener Partie, Englisch, Slawisch, Russisch), 12 Endspiele (neu: Durchbruch, entfernter Freibauer, Dame gegen Bauer, falscher Läufer), 14 Lektionen (neu: Fesselung, Königssicherheit, Abtausch, Verteidigung) |
-| Einstellungen | Animationstempo (aus, schnell, normal, langsam), Datensicherung als Datei oder Text |
+| Einstellungen | Animationstempo (aus, schnell, normal, langsam), Datensicherung als Datei (in der App über das Teilen-Menü) oder Text |
+
+## Letzte Durchsicht
+
+| Bereich | Umsetzung |
+| --- | --- |
+| Android | Zurück-Taste schließt erst Fenster und Unterseiten, dann geht es zur Startseite, erst dann wird die App minimiert |
+| Taktik | 10 782 Lichess-Aufgaben, davon über 6000 unter 1300 |
+| Partien | Vor dem Start „Gewertet“ (keine Hilfen) oder „Training“ (alle Hilfen, ungewertet). Abbrechen ohne Wertung vor dem zweiten eigenen Zug. Eine verlassene gewertete Partie zählt als verloren |
+| Uhr | Zeitüberschreitung ist Remis, wenn der Gegner nicht mehr mattsetzen kann. Die Uhr hält an, solange die App im Hintergrund ist |
+| Aufgabe des Tages | Gilt erst nach dem Lösen als erledigt |

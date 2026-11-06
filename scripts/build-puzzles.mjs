@@ -1,5 +1,6 @@
 // Builds public/puzzles.json from Lichess puzzle CSV files (Lichess puzzle database, CC0).
-// Usage: node scripts/build-puzzles.mjs file1.csv file2.csv ...
+// Usage: node scripts/build-puzzles.mjs [existing.json] file1.csv file2.csv ...
+// A .json argument (e.g. the current public/puzzles.json) is kept and extended.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { Chess } from 'chess.js'
 
@@ -20,7 +21,10 @@ function parseCsv(text) {
 }
 
 const seen = new Map()
-for (const f of process.argv.slice(2)) {
+for (const f of process.argv.slice(2).filter((x) => x.endsWith('.json'))) {
+  for (const p of JSON.parse(readFileSync(f, 'utf8'))) seen.set(p.id, p)
+}
+for (const f of process.argv.slice(2).filter((x) => !x.endsWith('.json'))) {
   for (const r of parseCsv(readFileSync(f, 'utf8'))) {
     if (!r.PuzzleId || !r.FEN || !r.Moves || seen.has(r.PuzzleId)) continue
     const moves = r.Moves.trim().split(' ')

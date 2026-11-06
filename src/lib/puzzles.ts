@@ -104,14 +104,14 @@ export interface Motif {
 }
 
 export const MOTIFS: Motif[] = [
-  { theme: 'mateIn1', name: 'Matt in 1', icon: 'bK', tip: 'Ein Zug, und der König ist matt.' },
+  { theme: 'mateIn1', name: 'Matt in 1', icon: 'wK', tip: 'Ein Zug, und der König ist matt.' },
   { theme: 'hangingPiece', name: 'Hängende Figur', icon: 'wP', tip: 'Schlage die ungedeckte Figur.' },
   { theme: 'backRankMate', name: 'Grundreihenmatt', icon: 'wR', tip: 'Der König ist hinter seinen Bauern gefangen.' },
   { theme: 'fork', name: 'Gabel', icon: 'wN', tip: 'Eine Figur greift zwei auf einmal an.' },
   { theme: 'pin', name: 'Fesselung', icon: 'wB', tip: 'Die Figur darf oder sollte nicht wegziehen.' },
   { theme: 'skewer', name: 'Spieß', icon: 'wR', tip: 'Wie die Fesselung, nur steht die wertvollere Figur vorn.' },
   { theme: 'discoveredAttack', name: 'Abzugsangriff', icon: 'wB', tip: 'Ziehe eine Figur weg und öffne die Linie dahinter.' },
-  { theme: 'mateIn2', name: 'Matt in 2', icon: 'bK', tip: 'Zwei Züge bis zum Matt. Schach zuerst prüfen!' },
+  { theme: 'mateIn2', name: 'Matt in 2', icon: 'wK', tip: 'Zwei Züge bis zum Matt. Schach zuerst prüfen!' },
   { theme: 'sacrifice', name: 'Opfer', icon: 'wQ', tip: 'Gib Material her, um mehr zurückzubekommen.' },
 ]
 

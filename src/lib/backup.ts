@@ -1,3 +1,7 @@
+import { Capacitor } from '@capacitor/core'
+import { Directory, Encoding, Filesystem } from '@capacitor/filesystem'
+import { Share } from '@capacitor/share'
+
 // Backup of everything the app stores on this device (progress, rating, games, settings),
 // so it can be moved to a new phone or survive a reinstall.
 
@@ -35,11 +39,14 @@ export function restoreBackup(text: string): string | null {
 
 export async function shareOrDownload(text: string) {
   const name = backupFileName()
-  const file = new File([text], name, { type: 'application/json' })
-  const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean }
-  if (nav.canShare?.({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: 'Schach-Sicherung' }); return 'shared' } catch { /* cancelled or not possible */ }
+  if (Capacitor.isNativePlatform()) {
+    // Android app: write the file and open the share menu (Drive, mail, files, ...)
+    const { uri } = await Filesystem.writeFile({ path: name, data: text, directory: Directory.Cache, encoding: Encoding.UTF8 })
+    await Share.share({ title: 'Schach-Sicherung', files: [uri], dialogTitle: 'Sicherung speichern' })
+    return 'shared'
   }
+  // browser: a normal download into the downloads folder
+  const file = new File([text], name, { type: 'application/json' })
   const url = URL.createObjectURL(file)
   const a = document.createElement('a')
   a.href = url

@@ -11,8 +11,10 @@ import './PlayScreen.css'
 
 type ColorChoice = 'w' | 'random' | 'b'
 
+export type GameMode = 'rated' | 'training'
+
 export default function PlayScreen({ onStart, resumeBot, onResume }: {
-  onStart: (bot: Bot, color: Color, tc: string) => void
+  onStart: (bot: Bot, color: Color, tc: string, mode: GameMode) => void
   resumeBot: Bot | null
   onResume: () => void
 }) {
@@ -24,6 +26,8 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
   const [engineRating, setEngineRating] = useState(() => Number(localStorage.getItem('engineRating')) || 1500)
   const [color, setColor] = useState<ColorChoice>('w')
   const [tc, setTcState] = useState(() => localStorage.getItem('timeControl') ?? '')
+  const [mode, setModeState] = useState<GameMode>(() => (localStorage.getItem('gameMode') as GameMode) || 'rated')
+  const setMode = (v: GameMode) => { setModeState(v); try { localStorage.setItem('gameMode', v) } catch { /* ignore */ } }
   const setTc = (v: string) => { setTcState(v); try { localStorage.setItem('timeControl', v) } catch { /* ignore */ } }
   const bot = botId.startsWith('engine-') ? engineBot(engineRating) : findBot(botId) ?? BOTS[0]
   const beaten = (id: string) => (p.bots[id]?.wins ?? 0) > 0
@@ -31,7 +35,7 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
   function start() {
     localStorage.setItem('lastBot', bot.id)
     const c: Color = color === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : color
-    onStart(bot, c, tc)
+    onStart(bot, c, tc, mode)
   }
 
   function setEngine(r: number) {
@@ -101,7 +105,7 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
         </button>
       </section>
 
-      <div className="tc-row">
+      <div className="tc-row" id="play-options">
         <span className="tc-label"><Icon name="clock" /> Bedenkzeit</span>
         <div className="tc-chips">
           {TIME_CONTROLS.map((t) => (
@@ -110,13 +114,33 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
         </div>
       </div>
 
-      <button className="coach-toggle" onClick={() => settings.set({ coach: !st.coach })}>
-        <Icon name="learn" />
-        <span className="ct-text"><strong>Trainer-Hilfe</strong><small>Warnt vor groben Fehlern und schlägt Besseres vor</small></span>
-        <span className={'switch' + (st.coach ? ' on' : '')} />
-      </button>
+      <div className="mode-row" role="radiogroup" aria-label="Art der Partie">
+        <button className={'mode-opt' + (mode === 'rated' ? ' active' : '')} role="radio" aria-checked={mode === 'rated'} onClick={() => setMode('rated')}>
+          <Icon name="trophy" />
+          <strong>Gewertet</strong>
+          <small>Ohne Hilfen, zählt für deine Wertung</small>
+        </button>
+        <button className={'mode-opt' + (mode === 'training' ? ' active' : '')} role="radio" aria-checked={mode === 'training'} onClick={() => setMode('training')}>
+          <Icon name="learn" />
+          <strong>Training</strong>
+          <small>Tipps und Zurücknehmen, ohne Wertung</small>
+        </button>
+      </div>
+
+      {mode === 'training' && (
+        <button className="coach-toggle" onClick={() => settings.set({ coach: !st.coach })}>
+          <Icon name="learn" />
+          <span className="ct-text"><strong>Trainer-Hilfe</strong><small>Warnt vor groben Fehlern und schlägt Besseres vor</small></span>
+          <span className={'switch' + (st.coach ? ' on' : '')} />
+        </button>
+      )}
 
       <div className="play-footer">
+        <button className="play-summary" onClick={() => document.getElementById('play-options')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+          <Icon name={mode === 'rated' ? 'trophy' : 'learn'} />
+          <span>{mode === 'rated' ? 'Gewertet' : 'Training'} · {TIME_CONTROLS.find((t) => t.id === tc)?.label ?? 'Ohne Uhr'}</span>
+          <small>ändern</small>
+        </button>
         <div className="color-picker">
           {(['w', 'random', 'b'] as ColorChoice[]).map((c) => (
             <button key={c} className={'color-opt' + (color === c ? ' active' : '')} onClick={() => setColor(c)} aria-label={c === 'w' ? 'Weiß' : c === 'b' ? 'Schwarz' : 'Zufall'}>

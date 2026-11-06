@@ -6,6 +6,7 @@ import { analyze, archive, performance, updateGame, type PosEval } from '../lib/
 import { de, evalText, uciToSan } from '../lib/chessText'
 import { explainMistake } from '../lib/explain'
 import { playSound } from '../lib/sound'
+import { useBack } from '../lib/back'
 import './ReviewScreen.css'
 
 type Grade = 'best' | 'good' | 'inaccuracy' | 'mistake' | 'blunder'
@@ -41,6 +42,7 @@ export default function ReviewScreen({ history, playerColor, opponent, gameId, p
   const [progressN, setProgressN] = useState(stored ? fens.length : 0)
   const [ply, setPly] = useState(0)
   const [copied, setCopied] = useState(false)
+  useBack(onClose)
 
   useEffect(() => {
     if (stored) return
