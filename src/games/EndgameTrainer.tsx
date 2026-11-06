@@ -7,6 +7,7 @@ import { ENDGAME_THEORY } from '../data/learnTheory'
 import { EndgameTheoryPage } from '../screens/TheoryPage'
 import type { Endgame } from '../data/endgames'
 import { evaluate } from '../engine/stockfish'
+import { hasMethodHint, loadTable, methodHint } from '../lib/methodHint'
 import { playSound } from '../lib/sound'
 
 function moveSound(m: Move, chess: Chess) {
@@ -135,6 +136,18 @@ export default function EndgameTrainer({ endgame, onFinish }: { endgame: Endgame
   async function hint() {
     if (status !== 'play') return
     const before = chess.fen()
+    // basic mates: the tip follows the method from the theory page, with the step it belongs to
+    if (hasMethodHint(endgame.id)) {
+      const tb = await loadTable(endgame.id, import.meta.env.BASE_URL).catch(() => null)
+      if (!alive.current || chess.fen() !== before) return
+      const h = methodHint(endgame.id, before, tb, [endgame.fen, ...chess.history({ verbose: true }).map((m) => m.after)])
+      if (h) {
+        setHints((n) => n + 1)
+        setHintArrow({ from: h.from, to: h.to })
+        setMessage({ text: h.text, tone: '' })
+        return
+      }
+    }
     setStatus('thinking')
     const e = await evaluate(before, DEPTH)
     if (!alive.current) return
