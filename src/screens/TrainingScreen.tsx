@@ -9,7 +9,7 @@ import OpeningTrainer from '../games/OpeningTrainer'
 import { archive, dueMistakes } from '../lib/archive'
 import { ENDGAMES, ENDGAME_GROUPS } from '../data/endgames'
 import { LESSONS } from '../data/lessons'
-import { OPENINGS, type Opening } from '../data/openings'
+import { OPENINGS } from '../data/openings'
 import KnightGame from '../games/KnightGame'
 import SpotGame from '../games/SpotGame'
 import PuzzleRated from '../games/PuzzleRated'
@@ -21,7 +21,7 @@ import { addXp, progress, recordScore, recordWeekly, type XpGain } from '../lib/
 import { puzzleStats } from '../lib/puzzles'
 import { playSound } from '../lib/sound'
 import './Training.css'
-import OpeningTheorySheet from '../components/OpeningTheorySheet'
+import { EndgameTheoryPage, MotifTheoryPage, OpeningTheoryPage } from './TheoryPage'
 
 const Stars = ({ n, size = 16 }: { n: number; size?: number }) => (
   <span className="stars" style={{ fontSize: size }}>
@@ -74,6 +74,13 @@ function loadLearnTab(): LearnTab {
 
 const PieceIcon = ({ code }: { code: string }) => <img className={'motif-icon' + (code[0] === 'b' ? ' dark-piece' : '')} src={pieceUrl(code[0] as 'w' | 'b', code[1])} alt="" />
 
+function TheoryFor({ game, onClose, onPractice }: { game: MiniGame; onClose: () => void; onPractice: () => void }) {
+  if (game.kind === 'opening') return <OpeningTheoryPage opening={OPENINGS.find((o) => o.id === game.ref)!} onClose={onClose} onPractice={onPractice} />
+  if (game.kind === 'endgame') return <EndgameTheoryPage endgame={ENDGAMES.find((e) => e.id === game.ref)!} onClose={onClose} onPractice={onPractice} />
+  if (game.kind === 'motif' && game.levels[0].theme) return <MotifTheoryPage theme={game.levels[0].theme} onClose={onClose} onPractice={onPractice} />
+  return null
+}
+
 export default function TrainingScreen({ section, onPlaying }: { section: 'tactics' | 'learn'; onPlaying: (playing: boolean) => void }) {
   const p = progress.use()
   const ps = puzzleStats.use()
@@ -82,7 +89,8 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
   const mistakes = archive.use().mistakes
   const openMistakes = dueMistakes().length
   const [active, setActive] = useState<{ game: MiniGame; level: GameLevel } | null>(null)
-  const [theoryFor, setTheoryFor] = useState<Opening | null>(null)
+  // a theory page opened from the lists, with the game to practise afterwards
+  const [theoryFor, setTheoryFor] = useState<{ game: MiniGame } | null>(null)
   useBack(() => close(), !!active)
   const [result, setResult] = useState<{ score: number; stars: number; gain: XpGain; best: boolean } | null>(null)
   const [runKey, setRunKey] = useState(0)
@@ -189,7 +197,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
 
   return (
     <div className="training-screen">
-      {theoryFor && <OpeningTheorySheet opening={theoryFor} onClose={() => setTheoryFor(null)} />}
+      {theoryFor && <TheoryFor game={theoryFor.game} onClose={() => setTheoryFor(null)} onPractice={() => { const g = theoryFor.game; setTheoryFor(null); open(g, g.levels[0]) }} />}
       <h1 className="screen-title">{section === 'tactics' ? 'Taktik' : 'Lernen'}</h1>
       <p className="screen-sub">{section === 'tactics' ? 'Muster erkennen, rechnen, gewinnen. Jede Lösung bringt XP.' : 'Wissen, Eröffnungen und Endspiele. Jeder Stern bringt XP.'}</p>
 
@@ -236,7 +244,9 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
           {MOTIF_GAMES.map((g) => (
             <div key={g.id} className="motif-row">
               <img className="motif-icon" src={pieceUrl(g.icon[0] as 'w' | 'b', g.icon[1])} alt="" />
-              <div className="motif-text"><strong>{g.title}</strong><small>{g.teaser}</small></div>
+              <div className="motif-text"><strong>{g.title}</strong><small>{g.teaser}</small>
+                <button className="theory-link" onClick={() => setTheoryFor({ game: g })}><Icon name="book" /> Theorie</button>
+              </div>
               <LevelPath game={g} stars={p.stars} onOpen={(l) => open(g, l)} compact />
             </div>
           ))}
@@ -290,7 +300,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
               {games.map((g) => (
                 <div key={g.id} className="motif-row">
                   <div className="motif-text"><strong>{g.title}</strong><small>{g.teaser}</small>
-                    <button className="theory-link" onClick={() => setTheoryFor(OPENINGS.find((o) => o.id === g.ref) ?? null)}><Icon name="book" /> Theorie</button>
+                    <button className="theory-link" onClick={() => setTheoryFor({ game: g })}><Icon name="book" /> Theorie</button>
                   </div>
                   <LevelPath game={g} stars={p.stars} onOpen={(l) => open(g, l)} compact />
                 </div>
@@ -314,10 +324,12 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
             </div>
             <div className="motif-list">
               {games.map((g) => (
-                <button key={g.id} className="motif-row row-button" onClick={() => open(g, g.levels[0])}>
-                  <div className="motif-text"><strong>{g.title}</strong><small>{g.teaser}</small></div>
-                  <Stars n={p.stars[g.levels[0].id] ?? 0} size={13} />
-                </button>
+                <div key={g.id} className="motif-row">
+                  <div className="motif-text"><strong>{g.title}</strong><small>{g.teaser}</small>
+                    <button className="theory-link" onClick={() => setTheoryFor({ game: g })}><Icon name="book" /> Theorie</button>
+                  </div>
+                  <LevelPath game={g} stars={p.stars} onOpen={(l) => open(g, l)} compact />
+                </div>
               ))}
             </div>
           </section>

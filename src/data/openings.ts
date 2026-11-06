@@ -353,8 +353,8 @@ export const OPENINGS: Opening[] = [
 
 export const OPENING_LEVELS = [
   { n: 1, name: 'Kennenlernen', description: 'Die Hauptvariante Zug für Zug, mit Erklärungen' },
-  { n: 2, name: 'Mit Hilfe', description: 'Du ziehst selbst, ein Pfeil hilft bei Bedarf' },
-  { n: 3, name: 'Auswendig', description: 'Alle Varianten, ohne Hilfe' },
+  { n: 2, name: 'Mit Hilfe', description: 'Du ziehst selbst. Tipp zeigt erst die Idee, dann den Zug' },
+  { n: 3, name: 'Auswendig', description: 'Alle Varianten, ohne Erklärungen' },
 ] as const
 
 export function openingLevelId(o: Opening, n: number) {

@@ -4,6 +4,7 @@ import Board, { type Arrow, type SquarePair } from '../components/Board'
 import Icon from '../components/Icon'
 import TheorySheet from '../components/TheorySheet'
 import { ENDGAME_THEORY } from '../data/learnTheory'
+import { EndgameTheoryPage } from '../screens/TheoryPage'
 import type { Endgame } from '../data/endgames'
 import { evaluate } from '../engine/stockfish'
 import { playSound } from '../lib/sound'
@@ -167,26 +168,26 @@ export default function EndgameTrainer({ endgame, onFinish }: { endgame: Endgame
         <span className="puzzle-text">{status === 'thinking' ? 'Die Engine überlegt…' : message.text}</span>
       </div>
       <div className="puzzle-tools">
-        <button className="btn secondary small" onClick={() => setShowTip(true)}><Icon name="book" /> Erklärung</button>
+        <button className="btn secondary small" onClick={() => setShowTip(true)}><Icon name="book" /> Theorie</button>
         {status === 'lost'
           ? <button className="btn primary small" onClick={restart}><Icon name="refresh" /> Nochmal</button>
           : <button className="btn secondary small" onClick={hint} disabled={status !== 'play'}><Icon name="bulb" /> Tipp</button>}
       </div>
 
-      {(status === 'intro' || showTip) && (
+      {status === 'intro' && (
         <TheorySheet
           title={endgame.name}
           intro={endgame.task}
-          button={status === 'intro' ? 'Los geht’s' : 'Weiter'}
-          onClose={() => { setShowTip(false); if (status === 'intro') setStatus('play') }}
-          blocks={theory ? [
-            { title: 'Die Idee', text: theory.idea },
-            { title: 'So gehst du vor', items: theory.steps, numbered: true },
-            { title: 'Typische Fehler', items: theory.mistakes },
+          button="Los geht’s"
+          onClose={() => setStatus('play')}
+          blocks={[
+            { title: 'Die Idee', text: theory?.idea ?? endgame.tip },
+            { title: 'Methode', text: 'Die Methode Schritt für Schritt mit Stellungsbild findest du jederzeit unter „Theorie“.' },
             { title: 'Sterne', text: endgame.stars ? `3 Sterne: höchstens ${endgame.stars[0]} Züge · 2 Sterne: höchstens ${endgame.stars[1]} Züge. Jeder Tipp kostet einen Stern.` : '' },
-          ] : [{ title: 'Die Idee', text: endgame.tip }]}
+          ]}
         />
       )}
+      {showTip && <EndgameTheoryPage endgame={endgame} onClose={() => setShowTip(false)} />}
     </div>
   )
 }

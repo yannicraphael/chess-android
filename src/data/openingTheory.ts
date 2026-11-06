@@ -18,6 +18,8 @@ export interface OpeningTheory {
   traps: string[]
   lineIdeas: string[] // one per line: what this variation is about
   notes: string[][] // one string per ply for every line
+  heroPly: number // plies of the main line that show the opening's typical position
+  trapBoards?: { moves: string; caption: string }[] // trap lines shown as diagrams (final position)
 }
 
 // shared first moves of the open games (1.e4 e5 2.Sf3 Sc6)
@@ -30,6 +32,10 @@ const E4E5 = [
 
 export const OPENING_THEORY: Record<string, OpeningTheory> = {
   italienisch: {
+    heroPly: 5,
+    trapBoards: [
+      { moves: 'e4 e5 Nf3 Nc6 Bc4 Nd4 Nxe5 Qg5', caption: 'Nach 4.Sxe5? Dg5! hängen der Springer e5 und der Bauer g2. Nach 5.Sxf7?? Dxg2 6.Tf1 Dxe4+ 7.Le2 Sf3 ist es sogar Matt.' },
+    ],
     plans: [
       'Aufbau: Lc4, c3, d3, 0-0, Te1, h3, dann der Springer b1 über d2 und f1 nach g3.',
       'Erst wenn alles entwickelt ist, kommt d3-d4 und öffnet das Zentrum.',
@@ -52,7 +58,6 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
     ],
     traps: [
       'Spiele nicht früh Sg5 und Lxf7 ohne Grund. Solche Angriffe gegen f7 funktionieren nur, wenn Schwarz Fehler macht, und kosten sonst Zeit.',
-      'Nach ...Sd4 nicht Sxe5?: ...Dg5! greift Springer und g2 an. Nach Sxf7?? Dxg2 Tf1 Dxe4+ Le2 Sf3 ist es sogar Matt.',
       'Vergiss h3 nicht: Nach ...Lg4 und ...Sd4 kann es auf f3 unangenehm werden.',
     ],
     lineIdeas: [
@@ -100,6 +105,11 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
   },
 
   spanisch: {
+    heroPly: 5,
+    trapBoards: [
+      { moves: 'e4 e5 Nf3 Nc6 Bb5 a6 Ba4 d6 d4 b5 Bb3 Nxd4 Nxd4 exd4 Qxd4 c5', caption: 'Arche-Noah-Falle: Nach 8.Dxd4? c5! und ...c4 ist der Läufer b3 gefangen.' },
+      { moves: 'e4 e5 Nf3 Nc6 Bb5 a6 Bxc6 dxc6 Nxe5 Qd4', caption: 'Nach Lxc6 dxc6 Sxe5? greift Dd4! Springer und e4 an und holt den Bauern zurück.' },
+    ],
     plans: [
       'Aufbau: 0-0, Te1, c3, h3, dann d4. Der Läufer zieht sich über a4 und b3 bis c2 zurück, wenn er gejagt wird.',
       'Der Springer b1 geht über d2 und f1 nach g3: von dort hilft er am Königsflügel.',
@@ -119,8 +129,6 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
       { after: 'e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O', move: 'Nxe4', answer: 'd4', why: 'Offene Spanische Partie. Der schwarze König steht noch in der Mitte. Mit d4 öffnest du das Zentrum und holst den Bauern zurück.' },
     ],
     traps: [
-      'Arche-Noah-Falle: Wenn Schwarz ...a6, ...b5 und ...d6 gespielt hat, schlage nach ...Sxd4 Sxd4 exd4 nicht mit der Dame zurück. ...c5 und ...c4 fangen deinen Läufer auf b3.',
-      'Nach Lxc6 dxc6 nicht sofort Sxe5: ...Dd4 greift Springer und e4 an und holt den Bauern zurück.',
       'Lass den Läufer nicht auf a4 stehen, wenn ...b5 kommt. Ziehe ihn nach b3.',
     ],
     lineIdeas: [
@@ -166,6 +174,7 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
   },
 
   london: {
+    heroPly: 3,
     plans: [
       'Der Aufbau ist fast immer gleich: d4, Lf4, e3, Sf3, c3, Sbd2, Ld3, 0-0.',
       'Gegen ...d5 springt der Springer nach e5. Dann folgen oft f4, Df3 oder Dh5 und ein Angriff am Königsflügel.',
@@ -234,6 +243,12 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
   },
 
   damengambit: {
+    heroPly: 3,
+    trapBoards: [
+      { moves: 'd4 d5 c4 e6 Nc3 Nf6 Bg5 Nbd7 cxd5 exd5 Nxd5 Nxd5 Bxd8 Bb4+', caption: 'Elefantenfalle: Nach 6.Sxd5? Sxd5! 7.Lxd8 Lb4+ muss die Dame dazwischen, und Schwarz gewinnt eine Figur.' },
+      { moves: 'd4 d5 c4 dxc4 e3 b5 a4 c6 axb5 cxb5 Qf3', caption: 'Hält Schwarz den Bauern mit ...b5, kommt a4 und Df3: Der Turm a8 hängt.' },
+      { moves: 'd4 d5 c4 e5 dxe5 d4 e3 Bb4+ Bd2 dxe3 Bxb4 exf2+ Ke2 fxg1=N+', caption: 'Lasker-Falle im Albin: Nach 4.e3? endet es mit Umwandlung in einen Springer mit Schach.' },
+    ],
     plans: [
       'Aufbau: d4, c4, Sc3, Lg5, e3, Sf3, Tc1, Ld3. Die Figuren üben Druck auf d5 aus.',
       'Der Turm auf c1 wartet auf die Öffnung der c-Linie.',
@@ -253,8 +268,6 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
       { after: 'd4 d5 c4 dxc4 e3', move: 'b5', answer: 'a4', why: 'Schwarz will den Bauern halten. Nach a4 c6 axb5 cxb5 droht Df3 mit Angriff auf den Turm a8.' },
     ],
     traps: [
-      'Elefantenfalle: Nach ...Sbd7 nicht cxd5 exd5 und Sxd5?, denn ...Sxd5! Lxd8 Lb4+ und Schwarz gewinnt eine Figur.',
-      'Lasker-Falle im Albin: Nach 3.dxe5 d4 4.e3? Lb4+ 5.Ld2 dxe3 6.Lxb4?? exf2+ 7.Ke2 fxg1=S+! verliert Weiß.',
       'Nimm nach 2...dxc4 den Bauern nicht mit b3 oder b4 zurück. Erst e3 und Lxc4: Das entwickelt gleichzeitig.',
     ],
     lineIdeas: [
@@ -302,6 +315,7 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
   },
 
   schottisch: {
+    heroPly: 5,
     plans: [
       'Weiß öffnet sofort das Zentrum und entwickelt schnell: Sc3, Lc4 oder Ld3, 0-0, Te1.',
       'Der Bauer e4 gegen keinen schwarzen e-Bauern gibt Weiß mehr Raum im Zentrum.',
@@ -360,6 +374,7 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
   },
 
   wiener: {
+    heroPly: 3,
     plans: [
       'Gegen 2...Sf6 spielt Weiß f4 und öffnet die f-Linie. Danach Sf3, d4, Ld3 und 0-0 mit Angriff über die f-Linie.',
       'Gegen 2...Sc6 spielt Weiß ruhig wie in der Italienischen Partie: Lc4, d3, Sf3, 0-0.',
@@ -425,6 +440,7 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
   },
 
   englisch: {
+    heroPly: 1,
     plans: [
       'Aufbau: c4, Sc3, g3, Lg2, Sf3, 0-0, d3. Das ist fast immer gleich.',
       'Danach Angriff am Damenflügel: a3, Tb1 und b4. Der Läufer g2 hilft auf der langen Diagonale.',
@@ -504,6 +520,10 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
   },
 
   carokann: {
+    heroPly: 2,
+    trapBoards: [
+      { moves: 'e4 c6 d4 d5 Nc3 dxe4 Nxe4 Nd7 Qe2 Ngf6 Nd6', caption: 'Erstickt Matt: Nach 5.De2 nie 5...Sgf6??, denn Sd6 ist Matt. Spiele erst ...e6 oder ...Sdf6.' },
+    ],
     plans: [
       'Aufbau: ...c6, ...d5, ...Lf5 (vor ...e6!), ...e6, ...Sd7, ...Sgf6, ...Le7 und Rochade.',
       'Im Mittelspiel befreit sich Schwarz mit ...c5 oder ...e5 und greift das weiße Zentrum an.',
@@ -523,7 +543,6 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
       { after: 'e4 c6 d4 d5', move: 'Nd2', answer: 'dxe4', why: 'Das ist dasselbe wie 3.Sc3: Tausche im Zentrum und spiele ...Lf5.' },
     ],
     traps: [
-      'Erstickt Matt: 1.e4 c6 2.d4 d5 3.Sc3 dxe4 4.Sxe4 Sd7 5.De2 Sgf6?? 6.Sd6#. Nach De2 also erst ...e6 oder ...Sdf6.',
       'Spiele ...e6 erst nach ...Lf5, sonst sperrst du den Läufer ein.',
       'Vergiss nach h4 nicht ...h6, sonst fängt h5 den Läufer auf g6.',
     ],
@@ -593,6 +612,7 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
   },
 
   sizilianisch: {
+    heroPly: 2,
     plans: [
       'Schwarz tauscht seinen c-Bauern gegen den weißen d-Bauern. Dafür hat Schwarz die halboffene c-Linie und mehr Zentrumsbauern.',
       'Im Najdorf mit ...e5: Läufer nach e7 und e6, Rochade, dann ...Sbd7, ...Tc8 und ...b5.',
@@ -661,6 +681,7 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
   },
 
   franzoesisch: {
+    heroPly: 2,
     plans: [
       'Schwarz baut die Kette e6 und d5 und greift das weiße Zentrum mit ...c5 an, später auch mit ...f6.',
       'Die Figuren richten sich gegen d4: ...Sc6, ...Db6, ...Sf5 oder ...Se7-f5.',
@@ -742,6 +763,7 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
   },
 
   skandinavisch: {
+    heroPly: 2,
     plans: [
       'Aufbau: ...d5, ...Dxd5, ...Da5, ...Sf6, ...c6, ...Lf5 (vor ...e6), ...e6, ...Sbd7, ...Le7 oder ...Lb4.',
       'Die Bauern auf c6 und e6 sind fest, die Figuren stehen frei. Schwarz spielt später ...Sbd7 und ...Lb4 oder ...Le7.',
@@ -802,6 +824,7 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
   },
 
   koenigsindisch: {
+    heroPly: 4,
     plans: [
       'Aufbau: ...Sf6, ...g6, ...Lg7, ...0-0, ...d6, dann der Gegenschlag ...e5.',
       'Schließt Weiß das Zentrum mit d5, greift Schwarz am Königsflügel an: ...Se8 oder ...Sd7, dann ...f5, ...f4 und ...g5.',
@@ -885,6 +908,7 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
   },
 
   slawisch: {
+    heroPly: 4,
     plans: [
       'Aufbau: ...d5, ...c6, ...Sf6, ...Lf5 (vor ...e6!), ...e6, ...Sbd7, ...Lb4 oder ...Ld6, Rochade.',
       'Später befreit sich Schwarz mit ...c5 oder ...e5.',
@@ -972,6 +996,10 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
   },
 
   russisch: {
+    heroPly: 4,
+    trapBoards: [
+      { moves: 'e4 e5 Nf3 Nf6 Nxe5 Nxe4 Qe2 Nf6 Nc6+', caption: 'Nach 3...Sxe4? 4.De2 Sf6?? 5.Sc6+ ist es Abzugsschach, und die Dame d8 geht verloren. Darum immer erst 3...d6!' },
+    ],
     plans: [
       'Schwarz greift e4 an, statt e5 zu decken. Nach Sxe5 erst ...d6, dann ...Sxe4.',
       'Danach: ...d5, ...Ld6 oder ...Le7, ...Sc6, ...0-0. Der Springer e4 steht stark, solange d5 ihn stützt.',
@@ -990,7 +1018,6 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
       { after: 'e4 e5 Nf3 Nf6', move: 'Bc4', answer: 'Nxe4', why: 'Nimm den Bauern. Nach Sc3 tauschst du mit ...Sxc3 dxc3 und sicherst e5 mit ...f6 oder ...d6.' },
     ],
     traps: [
-      '3.Sxe5 Sxe4? 4.De2! Sf6?? 5.Sc6+ und die Dame ist weg (Abzugsschach). Darum immer erst 3...d6!',
       'Nach 3...d6 4.Sf3 Sxe4 5.De2 nicht 5...d5?? 6.d3 und der Springer e4 ist gefesselt. Spiele 5...De7.',
     ],
     lineIdeas: [
