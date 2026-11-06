@@ -42,25 +42,27 @@ export const BOT_GROUPS: { id: GroupId; name: string }[] = [
   { id: 'top', name: 'Topspieler' },
 ]
 
-// Engine settings by playing strength, interpolated between these anchor points
+// Engine settings by playing strength, interpolated between these anchor points.
+// Measured in Nov 2026 with scripts/calibrate-bots (bot-vs-bot games, every move graded by
+// Stockfish with the same accuracy-to-rating scale the app uses for the player).
 const ANCHORS: [number, number, number, number, number, number][] = [
   // rating, skill, depth, multiPv, blunder, temperature
-  [100, 0, 1, 12, 0.75, 900],
-  [250, 0, 1, 10, 0.5, 600],
-  [400, 0, 1, 8, 0.35, 400],
-  [550, 0, 1, 7, 0.25, 320],
-  [700, 1, 2, 6, 0.18, 250],
-  [850, 2, 3, 6, 0.12, 190],
-  [1000, 3, 4, 5, 0.08, 140],
-  [1150, 4, 5, 5, 0.06, 110],
-  [1300, 6, 6, 4, 0.04, 80],
-  [1450, 8, 8, 4, 0.025, 60],
-  [1600, 10, 9, 3, 0.015, 40],
-  [1800, 12, 10, 3, 0.008, 28],
-  [2000, 15, 12, 2, 0, 15],
-  [2200, 17, 14, 2, 0, 10],
-  [2500, 19, 16, 2, 0, 5],
-  [2800, 20, 18, 1, 0, 2],
+  [100, 0, 1, 12, 0.9, 1200],
+  [250, 0, 1, 12, 0.75, 1000],
+  [400, 0, 1, 10, 0.6, 700],
+  [550, 0, 1, 8, 0.45, 450],
+  [700, 0, 2, 6, 0.3, 300],
+  [850, 0, 2, 6, 0.22, 250],
+  [1000, 0, 3, 6, 0.15, 200],
+  [1150, 0, 3, 5, 0.13, 180],
+  [1300, 0, 4, 5, 0.08, 140],
+  [1450, 1, 4, 4, 0.07, 120],
+  [1600, 2, 5, 4, 0.05, 100],
+  [1800, 4, 6, 4, 0.035, 75],
+  [2000, 6, 7, 3, 0.02, 55],
+  [2200, 8, 8, 3, 0.012, 40],
+  [2500, 15, 13, 2, 0, 10],
+  [2800, 19, 16, 2, 0, 4],
   [3200, 20, 22, 1, 0, 0],
 ]
 
