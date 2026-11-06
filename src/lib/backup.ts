@@ -45,11 +45,8 @@ export async function shareOrDownload(text: string) {
     await Share.share({ title: 'Schach-Sicherung', files: [uri], dialogTitle: 'Sicherung speichern' })
     return 'shared'
   }
+  // browser: a normal download into the downloads folder
   const file = new File([text], name, { type: 'application/json' })
-  const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean }
-  if (nav.canShare?.({ files: [file] })) {
-    try { await navigator.share({ files: [file], title: 'Schach-Sicherung' }); return 'shared' } catch { /* cancelled or not possible */ }
-  }
   const url = URL.createObjectURL(file)
   const a = document.createElement('a')
   a.href = url

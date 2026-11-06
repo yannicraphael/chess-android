@@ -18,7 +18,7 @@
 .bot-group { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
 .group-head { display: flex; align-items: baseline; gap: 8px; font-weight: 800; font-size: 16px; }
 .group-head small { color: var(--muted); font-weight: 700; }
-.bot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.bot-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .bot-tile { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; background: var(--card); border: 2px solid transparent; border-radius: var(--radius-sm); padding: 6px 2px 4px; color: var(--text); cursor: pointer; font: inherit; }
 .bot-tile .bot-av { width: 100% !important; height: auto !important; aspect-ratio: 1; }
 .bot-tile.active { border-color: var(--accent); }
@@ -63,7 +63,7 @@
 .tc-chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .tc-chip { border: 1.5px solid var(--line); background: var(--card-2); color: var(--text); font: inherit; font-size: 13px; font-weight: 700; padding: 7px 12px; border-radius: 999px; cursor: pointer; }
 .tc-chip.active { border-color: var(--accent); background: var(--accent); color: var(--on-accent); }
-.mode-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.mode-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin-top: 12px; }
 .mode-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; background: var(--card); color: var(--text); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 10px 12px; font: inherit; cursor: pointer; }
 .mode-opt .icon { width: 20px; height: 20px; color: var(--muted); margin-bottom: 2px; }
 .mode-opt strong { font-size: 15px; }

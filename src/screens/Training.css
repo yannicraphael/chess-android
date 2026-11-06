@@ -10,7 +10,7 @@
 .mg-total { margin-left: auto; color: var(--gold); font-weight: 800; white-space: nowrap; }
 .mg-skill { font-size: 12px; color: var(--muted); margin: 8px 0 10px; }
 
-.level-path { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.level-path { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .level-node {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   background: var(--card-2); border: 2px solid transparent; border-radius: 12px;
@@ -53,12 +53,12 @@
 .xp-bar { height: 10px; background: var(--card-2); border-radius: 5px; overflow: hidden; margin: 6px 0 3px; }
 .xp-bar div { height: 100%; background: var(--accent); }
 .xp-text { font-size: 12px; color: var(--muted); }
-.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0; }
+.stat-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
 .stat { background: var(--card); border-radius: 12px; padding: 10px; text-align: center; }
 .stat strong { display: block; font-size: 22px; }
 .stat span { font-size: 12px; color: var(--muted); }
 .section-title { font-weight: 800; margin: 18px 0 8px; }
-.trophies { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.trophies { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .trophy { background: var(--card); border-radius: 12px; padding: 8px 4px; text-align: center; font-size: 12px; position: relative; }
 .trophy .emoji-avatar { width: 40px; height: 40px; font-size: 24px; margin: 0 auto 4px; }
 .trophy.none { opacity: 0.4; }
@@ -153,18 +153,18 @@
 .trophy-row .cup { position: absolute; top: 2px; right: 3px; color: var(--gold); }
 .trophy-row .cup .icon { width: 14px; height: 14px; }
 .trophy-row small { color: var(--muted); font-size: 11px; font-weight: 700; }
-.design-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.design-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .design-card { background: var(--card); border: 2px solid var(--line); border-radius: var(--radius); padding: 10px; color: var(--text); display: flex; flex-direction: column; gap: 4px; text-align: left; cursor: pointer; font: inherit; }
 .design-card.active { border-color: var(--accent); }
 .design-card small { color: var(--muted); font-size: 11px; }
 .design-preview { height: 46px; border-radius: 8px; position: relative; border: 1px solid rgba(128, 128, 128, 0.3); }
 .design-preview i { position: absolute; left: 8px; right: 30%; bottom: 8px; height: 10px; border-radius: 5px; }
-.board-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.board-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .board-choice, .piece-choice { background: var(--card); border: 2px solid transparent; border-radius: var(--radius-sm); padding: 6px; color: var(--text); display: flex; flex-direction: column; gap: 4px; cursor: pointer; font: inherit; }
 .board-choice.active, .piece-choice.active { border-color: var(--accent); }
 .board-thumb { display: block; aspect-ratio: 1; border-radius: 6px; background-size: 200%; background-position: center; }
 .board-choice small, .piece-choice small { font-size: 11px; font-weight: 700; text-align: center; line-height: 1.2; }
-.piece-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.piece-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .piece-choice { background-size: 300%; background-position: center; }
 .piece-choice span { display: flex; justify-content: center; }
 .piece-choice img { width: 50%; aspect-ratio: 1; }
@@ -188,7 +188,7 @@
 .result-icon.win { background: var(--gold-bg); color: var(--gold); }
 
 /* v5: learn tab */
-.segmented { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: var(--card); border-radius: 12px; padding: 4px; margin-bottom: 14px; position: sticky; top: 0; z-index: 5; }
+.segmented { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; background: var(--card); border-radius: 12px; padding: 4px; margin-bottom: 14px; position: sticky; top: 0; z-index: 5; }
 .segmented button { border: none; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 700; padding: 9px 2px; border-radius: 9px; cursor: pointer; }
 .segmented button.active { background: var(--accent); color: var(--on-accent); }
 .row-button { width: 100%; border: none; text-align: left; color: var(--text); font: inherit; cursor: pointer; }
@@ -219,7 +219,7 @@
 .empty-state p { color: var(--muted); max-width: 40ch; }
 
 /* v5: profile */
-.segmented.three { grid-template-columns: repeat(3, 1fr); margin-top: 10px; }
+.segmented.three { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 10px; }
 .rating-card { background: var(--card); border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 .rc-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
 .rc-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 700; }
@@ -256,7 +256,7 @@
 .backup-msg { color: var(--text); }
 .backup-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
 .backup-paste textarea { width: 100%; box-sizing: border-box; background: var(--bg); color: var(--text); border: 1px solid var(--line, #5553); border-radius: 8px; padding: 8px; font: 12px monospace; margin-bottom: 8px; }
-.badge-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.badge-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .badge { background: var(--card); border-radius: var(--radius-sm, 10px); padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; opacity: 0.55; }
 .badge.got { opacity: 1; }
 .badge-icon { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--bg); color: var(--muted); }
@@ -269,3 +269,5 @@
 .motif-chips .chip { flex: none; border: 1px solid var(--line, #5554); background: var(--card); color: var(--text); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; white-space: nowrap; }
 .motif-chips .chip.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 700; }
 .mistake-count { font-family: var(--font); vertical-align: middle; margin-left: 8px; font-size: 12px; font-weight: 700; color: var(--fire); background: var(--fire-bg); border-radius: 999px; padding: 2px 8px; }
+.badge strong, .badge small { overflow-wrap: anywhere; hyphens: auto; max-width: 100%; }
+@media (max-width: 380px) { .badge-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
