@@ -1,0 +1,42 @@
+.theory-page { position: fixed; inset: 0; z-index: 90; background: var(--bg); overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; animation: tp-in 0.18s ease-out; }
+@keyframes tp-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.tp-header { position: sticky; top: 0; z-index: 2; background: var(--bg); }
+.tp-body { max-width: 640px; width: 100%; margin: 0 auto; padding: 4px 16px 28px; display: flex; flex-direction: column; gap: 18px; }
+.tp-hero { display: flex; flex-direction: column; gap: 10px; }
+.tp-kicker { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); font-weight: 700; }
+.tp-lead { font-size: 16px; line-height: 1.5; color: var(--text); margin: 4px 0 0; }
+.tp-section { background: var(--card); border-radius: var(--radius); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.tp-section h2 { font-family: var(--font-display); font-size: 20px; margin: 0; }
+.tp-section h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin: 6px 0 0; }
+.tp-section p { margin: 0; font-size: 15px; line-height: 1.5; color: var(--text); }
+.tp-muted { color: var(--muted) !important; }
+.tp-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 7px; }
+.tp-list li { font-size: 15px; line-height: 1.45; }
+.tp-list li::marker { color: var(--accent); font-weight: 700; }
+.tp-idea { color: var(--muted) !important; font-size: 14px !important; }
+.tp-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tp-tabs button { border: 1px solid var(--line); background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 700; padding: 7px 12px; border-radius: 999px; cursor: pointer; }
+.tp-tabs button.active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.diagram { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.diagram-board { width: 100%; max-width: 360px; align-self: center; pointer-events: none; border-radius: 8px; overflow: hidden; }
+.diagram.small .diagram-board { max-width: 100%; }
+.diagram figcaption { font-size: 13px; color: var(--muted); text-align: center; }
+.tp-cards { display: flex; flex-direction: column; gap: 12px; }
+.tp-card { display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr); gap: 12px; align-items: start; background: var(--card-2); border-radius: 12px; padding: 10px; }
+.tp-card-text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tp-card-text p { font-size: 14px !important; line-height: 1.45; }
+.tp-moves { font-weight: 700; font-size: 13px; overflow-wrap: anywhere; }
+.tp-answer { color: var(--accent); font-weight: 800; }
+@media (max-width: 400px) { .tp-card { grid-template-columns: minmax(0, 1fr); } .tp-card .diagram-board { max-width: 260px; } }
+.tp-action { align-self: stretch; }
+.line-viewer { display: flex; flex-direction: column; gap: 8px; }
+.lv-board { width: 100%; max-width: 400px; align-self: center; }
+.lv-note { background: var(--card-2); border-radius: 10px; padding: 10px 12px; font-size: 15px; line-height: 1.45; min-height: 66px; }
+.lv-controls { display: flex; gap: 8px; align-items: center; }
+.lv-controls .btn { flex: 1; justify-content: center; }
+.lv-moves { display: flex; flex-wrap: wrap; gap: 4px; }
+.lv-move { border: none; background: var(--card-2); color: var(--text); font: inherit; font-size: 13px; padding: 4px 7px; border-radius: 6px; cursor: pointer; font-variant-numeric: tabular-nums; }
+.lv-move.active { background: var(--accent); color: var(--on-accent); }
+.lv-num { color: var(--muted); margin-right: 2px; }
+.lv-move.active .lv-num { color: inherit; }
+.tp-first { display: block; margin-top: 4px; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
