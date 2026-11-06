@@ -41,6 +41,7 @@ export default function Board({ fen, orientation, movableColor = null, lastMove,
   const [rect, setRect] = useState<DOMRect | null>(null)
   const wasSelected = useRef(false)
   const draggedTo = useRef<string | null>(null)
+  const dragStart = useRef({ x: 0, y: 0 }) // pointer position where the drag began
 
   // reset selection whenever the position changes
   const [prevFen, setPrevFen] = useState(fen)
@@ -115,6 +116,7 @@ export default function Board({ fen, orientation, movableColor = null, lastMove,
       wasSelected.current = selected === sq
       setSelected(sq)
       setRect(boardRef.current?.getBoundingClientRect() ?? null)
+      dragStart.current = { x: e.clientX, y: e.clientY }
       setDrag({ from: sq, x: e.clientX, y: e.clientY, moved: false })
       boardRef.current?.setPointerCapture(e.pointerId)
     } else {
@@ -124,7 +126,7 @@ export default function Board({ fen, orientation, movableColor = null, lastMove,
 
   function onPointerMove(e: React.PointerEvent) {
     if (!drag) return
-    const moved = drag.moved || Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 4
+    const moved = drag.moved || Math.hypot(e.clientX - drag.x, e.clientY - drag.y) > 8
     setDrag({ ...drag, x: e.clientX, y: e.clientY, moved })
   }
 
@@ -133,10 +135,13 @@ export default function Board({ fen, orientation, movableColor = null, lastMove,
     const sq = squareAt(e.clientX, e.clientY)
     const from = drag.from
     setDrag(null)
-    if (sq && sq !== from) {
-      draggedTo.current = drag.moved ? sq : null
+    // only a real drag moves the piece: a tap that slips a few pixels over the square border keeps
+    // the piece selected instead of playing an unwanted move
+    const moved = drag.moved || Math.hypot(e.clientX - dragStart.current.x, e.clientY - dragStart.current.y) > 8
+    if (sq && sq !== from && moved) {
+      draggedTo.current = sq
       if (!tryMove(from, sq)) setSelected(null)
-    } else if (sq === from && wasSelected.current && !drag.moved) {
+    } else if (sq === from && wasSelected.current && !moved) {
       setSelected(null)
     }
   }

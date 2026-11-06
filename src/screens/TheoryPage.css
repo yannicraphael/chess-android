@@ -40,3 +40,7 @@
 .lv-num { color: var(--muted); margin-right: 2px; }
 .lv-move.active .lv-num { color: inherit; }
 .tp-first { display: block; margin-top: 4px; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
+/* smooth scrolling: sections outside the screen are not rendered, boards are painted in isolation */
+.diagram-board, .lv-board { contain: layout paint; }
+.diagram .piece.slide { animation: none; }
+.diagram-canvas { display: block; width: 100%; aspect-ratio: 1; border-radius: var(--board-radius, 4px); box-shadow: var(--board-shadow, none); }

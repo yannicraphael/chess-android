@@ -5,7 +5,7 @@ import Icon from '../components/Icon'
 import type { Opening } from '../data/openings'
 import { OPENING_THEORY } from '../data/openingTheory'
 import { OpeningTheoryPage } from '../screens/TheoryPage'
-import { de } from '../lib/chessText'
+import { de, moveText } from '../lib/chessText'
 import { playSound } from '../lib/sound'
 
 function moveSound(m: Move, chess: Chess) {
@@ -41,6 +41,7 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
   const [last, setLast] = useState<SquarePair | null>(null)
   const [marks, setMarks] = useState<Record<string, string>>({})
   const [mistakes, setMistakes] = useState(0)
+  const [errors, setErrors] = useState<string[]>([]) // wrong moves, e.g. "7.c3 statt 7.Te1"
   const [tries, setTries] = useState(0) // wrong tries on the current move
   const [showHint, setShowHint] = useState(false)
   const [note, setNote] = useState<{ text: string; tone: '' | 'good' | 'bad' }>({ text: '', tone: '' })
@@ -94,7 +95,8 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
     setDone(true)
     playSound('correct')
     const stars = level === 1 ? 3 : mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1
-    setNote({ text: level === 1 ? 'Geschafft! Du kennst jetzt die Hauptvariante.' : mistakes === 0 ? 'Fehlerfrei, ausgezeichnet!' : `Geschafft, mit ${mistakes} ${mistakes === 1 ? 'Fehler' : 'Fehlern'}.`, tone: 'good' })
+    const list = errors.length ? `\nGezählt: ${errors.join(', ')}` : ''
+    setNote({ text: level === 1 ? 'Geschafft! Du kennst jetzt die Hauptvariante.' : mistakes === 0 ? 'Fehlerfrei, ausgezeichnet!' : `Geschafft, mit ${mistakes} ${mistakes === 1 ? 'Fehler' : 'Fehlern'}.${list}`, tone: 'good' })
     later(() => onFinish(stars), 900)
   }
 
@@ -103,7 +105,7 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
     if (done || theory || ply >= moves.length) return
     const turn = ply % 2 === 0 ? 'w' : 'b'
     if (turn === side) return
-    later(() => {
+    const id = window.setTimeout(() => {
       play(moves[ply])
       const branch = ply === branchPly && level < 3 ? 'Hier weicht der Gegner von der Hauptvariante ab. ' : ''
       const text = explain(ply) || (branch && level === 2 ? `Variante „${line.name}“.` : '')
@@ -116,6 +118,8 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
       setPly(next)
       if (next >= moves.length) lineFinished()
     }, ply === 0 ? 700 : 650)
+    // a pending reply is cancelled when the theory page opens, so it is never played twice
+    return () => clearTimeout(id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ply, lineNo, done, theory])
 
@@ -159,7 +163,15 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
       chess.undo()
       playSound('wrong')
       setMarks({ [to]: 'mark-bad' })
+      later(() => setMarks({}), 600)
+      // a move of this line that only comes later (another move order) is not counted as a mistake
+      const mine = (i: number) => (i % 2 === 0 ? 'w' : 'b') === side
+      if (moves.some((s2, i) => i > ply && mine(i) && clean(s2) === clean(m.san))) {
+        setNote({ text: `${de(m.san)} kommt in dieser Variante etwas später. Was spielst du davor?`, tone: 'bad' })
+        return
+      }
       setMistakes((n) => n + 1)
+      setErrors((e) => [...e, `${moveText([m.san], ply)} statt ${moveText([expected], ply)}`])
       setTries((t) => t + 1)
       // level 1: idea and arrow at once. Level 2: try again, then the idea, then the arrow.
       // Level 3: try again, then only the arrow (without explanation).
@@ -172,7 +184,6 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
       else if (level === 3 && n === 1) text = 'Das ist nicht der Zug aus der Variante. Versuch es nochmal.'
       else { text = 'Der Pfeil zeigt den richtigen Zug.'; setShowHint(true) }
       setNote({ text, tone: 'bad' })
-      later(() => setMarks({}), 600)
     }
   }
 
@@ -217,6 +228,7 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
           <button className="btn secondary small" disabled={!myTurn || showHint} onClick={() => {
             // first the idea in words, then the arrow; each costs like a mistake
             setMistakes((n) => n + 1)
+            setErrors((e) => [...e, 'Tipp'])
             const idea = noteFor(ply)
             if (!ideaShown && idea) { setIdeaShown(true); setNote({ text: `Die Idee: ${idea}`, tone: '' }) }
             else { setShowHint(true); setNote({ text: 'Der Pfeil zeigt den Zug.', tone: '' }) }
