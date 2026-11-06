@@ -1,6 +1,6 @@
 import type { Color } from 'chess.js'
 import { useEffect, useState } from 'react'
-import { resumeAnalysis } from './lib/archive'
+import { groupStoredMistakes, resumeAnalysis } from './lib/archive'
 import { settings } from './lib/settings'
 import Onboarding from './screens/Onboarding'
 import BadgeToast from './components/BadgeToast'
@@ -42,7 +42,7 @@ export default function App() {
   const [fullscreen, setFullscreen] = useState(false) // a training game hides the tab bar
   const [daily, setDaily] = useState<string | null>(null)
   const st = settings.use()
-  useEffect(() => { resumeAnalysis() }, [])
+  useEffect(() => { groupStoredMistakes(); resumeAnalysis() }, [])
 
   const savedBot = saved ? findBot(saved.botId) : null
   const resumable = saved && savedBot && !saved.result && saved.pgn ? savedBot : null
