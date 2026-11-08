@@ -1,6 +1,6 @@
 // Painted paper-cut landscapes of Schachland, drawn procedurally on a canvas.
 // One region is REG_H tall and LW wide in logical units; callers scale it to their size.
-// The mood (Sommer/Herbst/Nacht) recolours everything.
+// The mood (Sommer, Herbst, Nacht, Frühling, Winter, Dämmerung) recolours everything.
 import type { DesignId } from './settings'
 
 export type Mood = DesignId
@@ -56,13 +56,37 @@ class Painter {
       if (h >= 50 && h <= 175 && s > 0.15) { h = 22 + ((h - 50) / 125) * 26; s = Math.min(0.75, s * 1.05 + 0.08); l *= 0.96 }
       return hsl(h, s, l)
     }
+    if (this.mood === 'fruehling') {
+      if (h >= 50 && h <= 175 && s > 0.15) { h -= 8; s = Math.min(0.8, s * 1.12); l = Math.min(0.8, l + 0.05) }
+      return hsl(h, s, l)
+    }
+    if (this.mood === 'winter') {
+      // meadows and hills under snow, dark pines stay dark and frosty
+      if (l > 0.36 || s < 0.12) return hsl(208, 0.28 * Math.min(1, s + 0.3), 0.8 + l * 0.17)
+      return hsl(170 + (h - 120) * 0.2, s * 0.35, l * 0.9 + 0.04)
+    }
+    if (this.mood === 'daemmerung') {
+      // warm dusk: meadows turn mauve and violet, everything a little darker
+      if (h >= 18 && h <= 175 && s > 0.12) return hsl(h < 50 ? 345 - (50 - h) * 0.3 : 300 + ((h - 50) / 125) * 30, s * 0.42, l * (h < 50 ? 0.7 : 0.62))
+      return hsl(h + (h < 160 ? 0 : (300 - h) * 0.3), s * 0.6, l * 0.7)
+    }
     s *= 0.32; l = l * 0.36 + 0.05
     return hsl(h, s, l)
   }
-  sky(a: RegionArt): [string, string] { return this.mood === 'nacht' ? ['#0f1630', '#2a3762'] : this.mood === 'herbst' ? ['#f4c896', '#fbe9d4'] : a.sky }
+  get dark() { return this.mood === 'nacht' || this.mood === 'daemmerung' }
+  sky(a: RegionArt): [string, string] {
+    switch (this.mood) {
+      case 'nacht': return ['#0f1630', '#2a3762']
+      case 'herbst': return ['#f4c896', '#fbe9d4']
+      case 'winter': return ['#c9d9ea', '#eef4fa']
+      case 'daemmerung': return ['#5b4a8c', '#f2a07a']
+      case 'fruehling': return ['#cbe8f7', '#f5fbff']
+      default: return a.sky
+    }
+  }
   soft(on: boolean) {
     const g = this.g
-    g.shadowColor = on ? (this.mood === 'nacht' ? 'rgba(0,0,0,0.35)' : 'rgba(40,30,20,0.16)') : 'transparent'
+    g.shadowColor = on ? (this.dark ? 'rgba(0,0,0,0.35)' : 'rgba(40,30,20,0.16)') : 'transparent'
     g.shadowBlur = on ? 8 : 0; g.shadowOffsetY = on ? 2 : 0
   }
   ridge(y0: number, amp: number, col: string, seed: number) {
@@ -86,6 +110,8 @@ class Painter {
     } else {
       g.beginPath(); g.ellipse(x, y - s * 0.55, s * 0.34, s * 0.42, 0, 0, 7); g.fill()
       g.fillStyle = 'rgba(255,255,255,0.12)'; g.beginPath(); g.ellipse(x - s * 0.1, y - s * 0.68, s * 0.14, s * 0.2, -0.4, 0, 7); g.fill()
+      if (this.mood === 'fruehling') { g.fillStyle = '#f7c6d3'; for (let b = 0; b < 5; b++) { g.beginPath(); g.arc(x + Math.cos(b * 1.3 + x) * s * 0.22, y - s * 0.55 + Math.sin(b * 1.7 + y) * s * 0.26, s * 0.06, 0, 7); g.fill() } }
+      if (this.mood === 'winter') { g.fillStyle = 'rgba(255,255,255,0.9)'; g.beginPath(); g.ellipse(x, y - s * 0.8, s * 0.24, s * 0.12, 0, 0, 7); g.fill() }
     }
     this.soft(false)
   }
@@ -93,7 +119,7 @@ class Painter {
     const g = this.g
     this.soft(true); g.fillStyle = this.c(wall); g.fillRect(x - s / 2, y - s * 0.7, s, s * 0.7)
     g.fillStyle = this.c(roof); g.beginPath(); g.moveTo(x - s * 0.6, y - s * 0.68); g.lineTo(x, y - s * 1.12); g.lineTo(x + s * 0.6, y - s * 0.68); g.fill(); this.soft(false)
-    const night = this.mood === 'nacht'
+    const night = this.dark
     g.fillStyle = night ? '#ffd36b' : this.c('#f3dca0')
     if (night) { g.shadowColor = '#ffcc55'; g.shadowBlur = 10 }
     g.fillRect(x - s * 0.15, y - s * 0.46, s * 0.18, s * 0.18); g.shadowBlur = 0; g.shadowColor = 'transparent'
@@ -149,8 +175,10 @@ class Painter {
       g.globalAlpha = 1; g.fillStyle = '#f4ead0'; g.shadowColor = 'rgba(255,240,200,0.6)'; g.shadowBlur = 24
       g.beginPath(); g.arc(226, oy + 196, 20, 0, 7); g.fill(); g.shadowBlur = 0; g.shadowColor = 'transparent'
       g.fillStyle = sc[0]; g.beginPath(); g.arc(234, oy + 190, 17, 0, 7); g.fill()
-    } else if (k === 0 || k === 2 || k === 9 || this.mood === 'herbst') {
-      const sy = this.mood === 'herbst' ? 236 : 196, col = this.mood === 'herbst' ? '#f2a24e' : '#ffd66b'
+    } else if (k === 0 || k === 2 || k === 9 || this.mood === 'herbst' || this.mood === 'daemmerung' || this.mood === 'winter') {
+      const m = this.mood
+      const sy = m === 'herbst' ? 236 : m === 'daemmerung' ? 268 : 196
+      const col = m === 'herbst' ? '#f2a24e' : m === 'daemmerung' ? '#ff9a5c' : m === 'winter' ? '#fff4d6' : '#ffd66b'
       g.fillStyle = col; g.globalAlpha = 0.3; g.beginPath(); g.arc(220, oy + sy, 44, 0, 7); g.fill(); g.globalAlpha = 1; g.beginPath(); g.arc(220, oy + sy, 28, 0, 7); g.fill()
     }
     this.ridge(oy + 180, 26, a.hills[0], k * 11 + 1)
@@ -159,11 +187,13 @@ class Painter {
     this.ridge(oy + 560, 22, a.hills[2], k * 11 + 3)
     const dark = a.deco === 'forest' || a.deco === 'mountain' || a.deco === 'ridge'
     for (let i = 0; i < 7; i++) this.tree(r() * LW, oy + 640 + r() * 110, 18 + r() * 12, dark ? '#336d3e' : '#4b8f47', dark ? 'pine' : 'round')
-    if (this.mood !== 'nacht') for (let i = 0; i < 14; i++) { g.fillStyle = this.c(['#ffffff', '#f2cf5b', '#ef9aa8', '#d2e3f7'][i % 4]); g.beginPath(); g.arc(r() * LW, oy + 600 + r() * 150, 2, 0, 7); g.fill() }
+    if (this.mood === 'winter') { g.fillStyle = 'rgba(255,255,255,0.85)'; for (let i = 0; i < 46; i++) { g.beginPath(); g.arc(r() * LW, oy + r() * REG_H, 0.8 + r() * 1.4, 0, 7); g.fill() } }
+    if (this.mood === 'fruehling') for (let i = 0; i < 22; i++) { g.fillStyle = ['#f6b8c8', '#ffffff', '#f9d86b'][i % 3]; g.beginPath(); g.arc(r() * LW, oy + 300 + r() * 450, 2.2, 0, 7); g.fill() }
+    if (!this.dark && this.mood !== 'winter') for (let i = 0; i < 14; i++) { g.fillStyle = this.c(['#ffffff', '#f2cf5b', '#ef9aa8', '#d2e3f7'][i % 4]); g.beginPath(); g.arc(r() * LW, oy + 600 + r() * 150, 2, 0, 7); g.fill() }
   }
   pawn(x: number, y: number, size: number) {
     const g = this.g
-    g.font = `${size}px ${FIG_FONT}`; g.textAlign = 'center'; this.soft(true); g.fillStyle = this.mood === 'nacht' ? '#f1ece0' : '#24232c'; g.fillText('♟', x, y); this.soft(false)
+    g.font = `${size}px ${FIG_FONT}`; g.textAlign = 'center'; this.soft(true); g.fillStyle = this.dark ? '#f1ece0' : '#24232c'; g.fillText('♟', x, y); this.soft(false)
     const s = size / 38
     g.fillStyle = '#c8413e'; g.fillRect(x - 9 * s, y - 16 * s, 18 * s, 4 * s); g.fillRect(x + 5 * s, y - 16 * s, 4 * s, 10 * s)
   }
@@ -220,7 +250,7 @@ export function paintMap(g: CanvasRenderingContext2D, mood: Mood, o: {
     p.soft(true); g.fillStyle = now ? col.gold : done ? col.accent : col.surface; g.beginPath(); g.arc(x, y, rad, 0, 7); g.fill(); p.soft(false)
     if (!done && !now) { g.strokeStyle = col.line; g.lineWidth = 2; g.stroke() }
     if (now) { g.strokeStyle = col.surface; g.lineWidth = 3; g.stroke() }
-    g.fillStyle = done ? col.onAccent : now ? (mood === 'nacht' ? '#1b1608' : '#fff') : col.muted
+    g.fillStyle = done ? col.onAccent : now ? (mood === 'nacht' || mood === 'daemmerung' ? '#1b1608' : '#fff') : col.muted
     g.font = `800 ${pass ? 13 : 11.5}px 'Nunito Sans Variable', sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle'
     g.fillText(String(i + 1), x, y + 0.5); g.textBaseline = 'alphabetic'
     if (done) {

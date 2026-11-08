@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { paintScene } from '../lib/landscape'
+import { paintScene, type Mood } from '../lib/landscape'
 import { designOf, settings } from '../lib/settings'
 import './Scene.css'
 
@@ -17,11 +17,12 @@ export function landscapeFonts() {
 }
 
 // A painted landscape (one Schachland region) filling its box. Repaints on resize and mood change.
-export default function Scene({ region, offset = -200, pawn = false, className = '', children }: {
-  region: number; offset?: number; pawn?: boolean; className?: string; children?: React.ReactNode
+export default function Scene({ region, offset = -200, pawn = false, className = '', mood: fixed, children }: {
+  region: number; offset?: number; pawn?: boolean; className?: string; mood?: Mood; children?: React.ReactNode
 }) {
   const ref = useRef<HTMLCanvasElement>(null)
-  const mood = designOf(settings.use().design)
+  const chosen = designOf(settings.use().design)
+  const mood = fixed ?? chosen
   useEffect(() => {
     const cv = ref.current
     if (!cv) return

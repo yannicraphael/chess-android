@@ -269,7 +269,7 @@ export default function ProfileScreen({ onPlaying }: { onPlaying: (playing: bool
       <div className="design-grid">
         {DESIGNS.map((d) => (
           <button key={d.id} className={'design-card' + (designOf(s.design) === d.id ? ' active' : '')} onClick={() => settings.set({ design: d.id })}>
-            <span className="design-preview" style={{ background: d.swatch[0] }}><i style={{ background: d.swatch[1] }} /></span>
+            <Scene className="design-preview" region={2} offset={-110} mood={d.id}><i style={{ background: d.swatch[1] }} /></Scene>
             <strong>{d.name}</strong>
             <small>{d.desc}</small>
           </button>

@@ -63,6 +63,9 @@ export const DESIGNS = L([
   { id: 'sommer', name: 'Sommer', desc: 'Hell mit Waldgrün', swatch: ['#f6f2ea', '#2e7a4e'] },
   { id: 'herbst', name: 'Herbst', desc: 'Warmes Holz und Rost', swatch: ['#f5ede2', '#b4532a'] },
   { id: 'nacht', name: 'Nacht', desc: 'Dunkel mit Laternengold', swatch: ['#12151d', '#e3ab45'] },
+  { id: 'fruehling', name: 'Frühling', desc: 'Kirschblüten und frisches Grün', swatch: ['#f8f4f0', '#c4577a'] },
+  { id: 'winter', name: 'Winter', desc: 'Schnee und Eisblau', swatch: ['#eef2f6', '#2f6690'] },
+  { id: 'daemmerung', name: 'Dämmerung', desc: 'Abendrot und Pflaume', swatch: ['#1c1726', '#f08a5d'] },
 ] as const)
 // designs of earlier versions
 const OLD_DESIGNS: Record<string, DesignId> = { klubhaus: 'nacht', arena: 'nacht', studio: 'sommer' }
