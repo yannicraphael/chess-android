@@ -60,6 +60,8 @@ async function dynamicKeys() {
       ...readdirSync(join(SRC, 'data')).filter((f) => f.endsWith('.ts')).map((f) => '/src/data/' + f),
       '/src/bots.ts', '/src/games/levels.ts',
       ...readdirSync(join(SRC, 'lib')).filter((f) => f.endsWith('.ts')).map((f) => '/src/lib/' + f),
+      // screens and games keep a few tables in L(...) too
+      ...['screens', 'games', 'components'].flatMap((d) => readdirSync(join(SRC, d)).filter((f) => /\.tsx?$/.test(f)).map((f) => `/src/${d}/` + f)),
     ]
     for (const m of mods) {
       const before = new Set(i18n.missingKeys())

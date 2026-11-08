@@ -1,4 +1,4 @@
-import { t, tk } from '../i18n'
+import { quote, t, tk } from '../i18n'
 import Icon from '../components/Icon'
 import { Chess, type Color, type Move, type PieceSymbol } from 'chess.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -601,7 +601,7 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
             {ratingResult ? (
               <p className="rating-change">{t('Deine Wertung:')} {ratingResult.after} <span className={ratingResult.delta >= 0 ? 'up' : 'down'}>({ratingResult.delta >= 0 ? '+' : '−'}{Math.abs(ratingResult.delta)})</span></p>
             ) : <p className="rated-tag">{t('Ungewertete Partie')}</p>}
-            {endLine && <div className="end-line"><BotAvatar bot={bot} size={36} /><span>{t('„{text}“', { text: endLine })}</span></div>}
+            {endLine && <div className="end-line"><BotAvatar bot={bot} size={36} /><span>{quote(endLine)}</span></div>}
             {xpGain && (
               <div className="xp-gain">
                 <span className="xp-pill">+{xpGain.amount} XP</span>

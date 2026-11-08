@@ -124,6 +124,9 @@ export function L<T>(data: T): T {
 // numbers with the decimal separator of the language
 export const decimal = (s: string) => (lang === 'en' ? s : s.replace('.', ','))
 
+// a quoted text with the quotation marks of the language
+export const quote = (s: string) => (lang === 'en' ? `“${s}”` : lang === 'es' ? `«${s}»` : `„${s}“`)
+
 // "a, b und c"
 export function joinList(list: string[]) {
   if (list.length <= 1) return list.join('')
