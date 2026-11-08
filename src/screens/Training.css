@@ -157,6 +157,10 @@
 .design-card { background: var(--card); border: 2px solid var(--line); border-radius: var(--radius); padding: 10px; color: var(--text); display: flex; flex-direction: column; gap: 4px; text-align: left; cursor: pointer; font: inherit; }
 .design-card.active { border-color: var(--accent); }
 .design-card small { color: var(--muted); font-size: 11px; }
+.lang-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.lang-card { align-items: center; text-align: center; }
+.lang-card small { letter-spacing: 0.08em; }
+.setting-note { margin: 8px 2px 0; font-size: 13px; color: var(--muted); line-height: 1.4; }
 .design-preview { height: 46px; border-radius: 8px; position: relative; border: 1px solid rgba(128, 128, 128, 0.3); }
 .design-preview i { position: absolute; left: 8px; right: 30%; bottom: 8px; height: 10px; border-radius: 5px; }
 .board-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }

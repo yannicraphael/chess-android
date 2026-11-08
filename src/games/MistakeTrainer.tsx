@@ -1,11 +1,12 @@
+import { t } from '../i18n'
 import { Chess, type Color, type Move } from 'chess.js'
 import { useEffect, useRef, useState } from 'react'
 import Board, { type Arrow, type SquarePair } from '../components/Board'
 import Icon from '../components/Icon'
 import { evaluate } from '../engine/stockfish'
-import { dueMistakes, markMistake, mistakeMotif, type MistakePuzzle } from '../lib/archive'
+import { dueMistakes, markMistake, mistakeMotif, mistakeWhy, type MistakePuzzle } from '../lib/archive'
 import { MOTIF_LABELS, type Motif } from '../lib/explain'
-import { de, uciToSan } from '../lib/chessText'
+import { notate, uciToSan } from '../lib/chessText'
 import { addXp, recordDaily } from '../lib/progress'
 import { playSound } from '../lib/sound'
 import { useBack } from '../lib/back'
@@ -37,7 +38,7 @@ export default function MistakeTrainer({ onExit }: { onExit: () => void }) {
 
   const chips = groups.length > 1 && (
     <div className="motif-chips" role="tablist">
-      <button className={'chip' + (filter === 'alle' ? ' active' : '')} onClick={() => choose('alle')}>Alle {all.length}</button>
+      <button className={'chip' + (filter === 'alle' ? ' active' : '')} onClick={() => choose('alle')}>{t('Alle')} {all.length}</button>
       {groups.map((g) => (
         <button key={g} className={'chip' + (filter === g ? ' active' : '')} onClick={() => choose(g)}>{MOTIF_LABELS[g]} {counts.get(g)}</button>
       ))}
@@ -56,16 +57,16 @@ export default function MistakeTrainer({ onExit }: { onExit: () => void }) {
     return (
       <div className="training-play">
         <header className="game-header">
-          <button className="icon-btn" onClick={onExit} aria-label="Zurück"><Icon name="back" /></button>
-          <div className="game-title">Eigene Fehler</div>
+          <button className="icon-btn" onClick={onExit} aria-label={t('Zurück')}><Icon name="back" /></button>
+          <div className="game-title">{t('Eigene Fehler')}</div>
           <span style={{ width: 44 }} />
         </header>
         {filter !== 'alle' && chips}
         <div className="empty-state">
           <Icon name="check" />
-          <h2>{filter !== 'alle' ? 'Diese Gruppe ist erledigt' : solvedCount > 0 ? 'Alle Fehler aufgearbeitet!' : 'Gerade nichts zu wiederholen'}</h2>
-          <p>Nach jeder Partie analysiert die Engine deine Züge. Klare Fehler landen hier als Aufgaben. Gelöste Stellungen kommen nach einigen Tagen noch einmal, damit du sie dir wirklich merkst.</p>
-          <button className="btn primary" onClick={onExit}>Zurück</button>
+          <h2>{filter !== 'alle' ? t('Diese Gruppe ist erledigt') : solvedCount > 0 ? t('Alle Fehler aufgearbeitet!') : t('Gerade nichts zu wiederholen')}</h2>
+          <p>{t('Nach jeder Partie analysiert die Engine deine Züge. Klare Fehler landen hier als Aufgaben. Gelöste Stellungen kommen nach einigen Tagen noch einmal, damit du sie dir wirklich merkst.')}</p>
+          <button className="btn primary" onClick={onExit}>{t('Zurück')}</button>
         </div>
       </div>
     )
@@ -102,12 +103,12 @@ export default function MistakeTrainer({ onExit }: { onExit: () => void }) {
       playSound('correct')
       setStatus('solved')
       setArrow(null)
-      setMsg(alt ? `Auch stark! Die Engine hätte ${uciToSan(pz.fen, pz.best)} gespielt.` : 'Richtig! Diesmal hättest du es gefunden.' + (pz.why ? ` In der Partie: ${pz.why}` : ''))
+      setMsg(alt ? t('Auch stark! Die Engine hätte {san} gespielt.', { san: uciToSan(pz.fen, pz.best) }) : t('Richtig! Diesmal hättest du es gefunden.') + (mistakeWhy(pz) ? ` ${t('In der Partie:')} ${mistakeWhy(pz)}` : ''))
       markSolved()
     } else {
       playSound('wrong')
       setStatus('wrong')
-      setMsg('Nicht besser als in der Partie. Versuch es nochmal.')
+      setMsg(t('Nicht besser als in der Partie. Versuch es nochmal.'))
       window.setTimeout(() => { if (alive.current) { setFen(pz.fen); setLast(null) } }, 700)
     }
   }
@@ -116,7 +117,7 @@ export default function MistakeTrainer({ onExit }: { onExit: () => void }) {
     setArrow({ from: pz.best.slice(0, 2), to: pz.best.slice(2, 4), color: 'info' })
     setStatus('shown')
     markMistake(pz.id, false)
-    setMsg(pz.why || `Besser war ${uciToSan(pz.fen, pz.best)}.`)
+    setMsg(mistakeWhy(pz) || t('Besser war {san}.', { san: uciToSan(pz.fen, pz.best) }))
   }
 
   function next() {
@@ -136,25 +137,25 @@ export default function MistakeTrainer({ onExit }: { onExit: () => void }) {
   return (
     <div className="training-play">
       <header className="game-header">
-        <button className="icon-btn" onClick={onExit} aria-label="Zurück"><Icon name="back" /></button>
-        <div className="game-title">Eigene Fehler · {i + 1}/{queue.length}</div>
+        <button className="icon-btn" onClick={onExit} aria-label={t('Zurück')}><Icon name="back" /></button>
+        <div className="game-title">{t('Eigene Fehler')} · {i + 1}/{queue.length}</div>
         <span style={{ width: 44 }} />
       </header>
       <div className="puzzle-player">
         {chips}
         <div className="ot-head">
-          <strong>Gegen {pz.opponent}{(pz.count ?? 1) > 1 && <span className="mistake-count">{pz.count}× falsch gespielt</span>}</strong>
-          <span>{MOTIF_LABELS[mistakeMotif(pz)]} · Du hast hier {de(pz.played)} gespielt. Finde einen besseren Zug.{pz.box ? ' (Wiederholung)' : ''}</span>
+          <strong>{t('Gegen {name}', { name: pz.opponent })}{(pz.count ?? 1) > 1 && <span className="mistake-count">{t('{n}× falsch gespielt', { n: pz.count })}</span>}</strong>
+          <span>{MOTIF_LABELS[mistakeMotif(pz)]} · {t('Du hast hier {san} gespielt. Finde einen besseren Zug.', { san: notate(pz.played) })}{pz.box ? ` ${t('(Wiederholung)')}` : ''}</span>
         </div>
         <Board fen={fen} orientation={side} movableColor={done || status === 'checking' ? null : side} lastMove={last} arrows={arrow ? [arrow] : []} onMove={onMove} />
         <div className={'puzzle-status ' + tone}>
           <span className={'turn-dot ' + side} />
-          <span className="puzzle-text">{status === 'checking' ? 'Die Engine prüft deinen Zug…' : msg || `${side === 'w' ? 'Weiß' : 'Schwarz'} am Zug.`}</span>
+          <span className="puzzle-text">{status === 'checking' ? t('Die Engine prüft deinen Zug…') : msg || (side === 'w' ? t('Weiß am Zug.') : t('Schwarz am Zug.'))}</span>
         </div>
         <div className="puzzle-tools">
           {done
-            ? <button className="btn primary small" onClick={next}>{i + 1 < queue.length ? 'Nächster Fehler' : 'Fertig'} <Icon name="next" /></button>
-            : <button className="btn secondary small" onClick={reveal} disabled={status === 'checking'}><Icon name="eye" /> Lösung</button>}
+            ? <button className="btn primary small" onClick={next}>{i + 1 < queue.length ? t('Nächster Fehler') : t('Fertig')} <Icon name="next" /></button>
+            : <button className="btn secondary small" onClick={reveal} disabled={status === 'checking'}><Icon name="eye" /> {t('Lösung')}</button>}
         </div>
       </div>
     </div>

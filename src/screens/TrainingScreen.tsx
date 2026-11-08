@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import Icon, { type IconName } from '../components/Icon'
 import { pieceUrl } from '../lib/settings'
 import { useCallback, useState } from 'react'
@@ -31,15 +32,15 @@ const Stars = ({ n, size = 16 }: { n: number; size?: number }) => (
 
 function resultText(game: MiniGame, score: number, stars: number) {
   switch (game.kind) {
-    case 'coords': return `${score} Felder getroffen`
-    case 'hanging': return `${score} ungedeckte ${score === 1 ? 'Figur' : 'Figuren'} geschlagen`
-    case 'mate1': return `${score} ${score === 1 ? 'Matt' : 'Matts'} gefunden`
-    case 'knight': return stars === 3 ? 'Ohne einen einzigen Umweg!' : 'Alle Ziele erreicht'
-    case 'sprint': return `${score} ${score === 1 ? 'Aufgabe' : 'Aufgaben'} gelöst`
-    case 'motif': return `${score} von 5 auf Anhieb gelöst`
-    case 'opening': return stars === 3 ? 'Ohne Fehler gespielt' : 'Variante geschafft'
-    case 'endgame': return 'Aufgabe gelöst'
-    case 'lesson': return stars === 3 ? 'Lektion ohne Fehler abgeschlossen' : 'Lektion abgeschlossen'
+    case 'coords': return score === 1 ? t('1 Feld getroffen') : t('{n} Felder getroffen', { n: score })
+    case 'hanging': return score === 1 ? t('1 ungedeckte Figur geschlagen') : t('{n} ungedeckte Figuren geschlagen', { n: score })
+    case 'mate1': return score === 1 ? t('1 Matt gefunden') : t('{n} Matts gefunden', { n: score })
+    case 'knight': return stars === 3 ? t('Ohne einen einzigen Umweg!') : t('Alle Ziele erreicht')
+    case 'sprint': return score === 1 ? t('1 Aufgabe gelöst') : t('{n} Aufgaben gelöst', { n: score })
+    case 'motif': return t('{n} von 5 auf Anhieb gelöst', { n: score })
+    case 'opening': return stars === 3 ? t('Ohne Fehler gespielt') : t('Variante geschafft')
+    case 'endgame': return t('Aufgabe gelöst')
+    case 'lesson': return stars === 3 ? t('Lektion ohne Fehler abgeschlossen') : t('Lektion abgeschlossen')
   }
 }
 
@@ -63,10 +64,10 @@ function LevelPath({ game, stars, onOpen, compact }: { game: MiniGame; stars: Re
 
 type LearnTab = 'wissen' | 'eroeffnungen' | 'endspiele' | 'uebungen'
 const LEARN_TABS: { id: LearnTab; label: string }[] = [
-  { id: 'wissen', label: 'Wissen' },
-  { id: 'eroeffnungen', label: 'Eröffnungen' },
-  { id: 'endspiele', label: 'Endspiele' },
-  { id: 'uebungen', label: 'Übungen' },
+  { id: 'wissen', label: t('Wissen') },
+  { id: 'eroeffnungen', label: t('Eröffnungen') },
+  { id: 'endspiele', label: t('Endspiele') },
+  { id: 'uebungen', label: t('Übungen') },
 ]
 function loadLearnTab(): LearnTab {
   try { return (localStorage.getItem('learnTab') as LearnTab) || 'wissen' } catch { return 'wissen' }
@@ -138,8 +139,8 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
     return (
       <div className="training-play">
         <header className="game-header">
-          <button className="icon-btn" onClick={close} aria-label="Zurück"><Icon name="back" /></button>
-          <div className="game-title">{game.kind === 'endgame' || game.kind === 'lesson' ? game.title : `${game.title} · ${game.kind === 'motif' || game.kind === 'opening' ? level.name : `Level ${level.n}`}`}</div>
+          <button className="icon-btn" onClick={close} aria-label={t('Zurück')}><Icon name="back" /></button>
+          <div className="game-title">{game.kind === 'endgame' || game.kind === 'lesson' ? game.title : `${game.title} · ${game.kind === 'motif' || game.kind === 'opening' ? level.name : t('Level {n}', { n: level.n })}`}</div>
           <span style={{ width: 44 }} />
         </header>
         {game.kind === 'coords' && <CoordsGame key={runKey} level={level} onFinish={finish} />}
@@ -154,19 +155,19 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
           <div className="modal-backdrop">
             <div className="modal">
               <div className={'result-icon ' + (result.stars > 0 ? 'win' : 'draw')}><Icon name={result.stars === 3 ? 'trophy' : result.stars > 0 ? 'star' : 'refresh'} fill={result.stars > 0 && result.stars < 3} /></div>
-              <h2>{result.stars > 0 ? 'Geschafft!' : 'Fast!'}</h2>
+              <h2>{result.stars > 0 ? t('Geschafft!') : t('Fast!')}</h2>
               <Stars n={result.stars} size={34} />
-              <p>{resultText(game, result.score, result.stars)}{result.best && result.score > 0 && ['coords', 'sprint', 'motif', 'hanging', 'mate1'].includes(game.kind) ? ' · neuer Rekord' : ''}</p>
-              {result.stars === 0 && <p>Für einen Stern brauchst du {level.stars[0]}.</p>}
+              <p>{resultText(game, result.score, result.stars)}{result.best && result.score > 0 && ['coords', 'sprint', 'motif', 'hanging', 'mate1'].includes(game.kind) ? ` · ${t('neuer Rekord')}` : ''}</p>
+              {result.stars === 0 && <p>{t('Für einen Stern brauchst du {n}.', { n: level.stars[0] })}</p>}
               <div className="xp-gain">
                 <span className="xp-pill">+{result.gain.amount} XP</span>
-                {result.gain.levelUp && <span className="xp-pill level">Level {result.gain.newLevel}!</span>}
+                {result.gain.levelUp && <span className="xp-pill level">{t('Level {n}!', { n: result.gain.newLevel })}</span>}
               </div>
               <div className="modal-buttons">
-                <button className="btn secondary" onClick={() => open(game, level)}>Nochmal</button>
+                <button className="btn secondary" onClick={() => open(game, level)}>{t('Nochmal')}</button>
                 {nextLevel && result.stars > 0
-                  ? <button className="btn primary" onClick={() => open(game, nextLevel)}>{game.kind === 'motif' || game.kind === 'opening' ? nextLevel.name : `Level ${nextLevel.n}`}</button>
-                  : <button className="btn primary" onClick={close}>Fertig</button>}
+                  ? <button className="btn primary" onClick={() => open(game, nextLevel)}>{game.kind === 'motif' || game.kind === 'opening' ? nextLevel.name : t('Level {n}', { n: nextLevel.n })}</button>
+                  : <button className="btn primary" onClick={close}>{t('Fertig')}</button>}
               </div>
             </div>
           </div>
@@ -187,7 +188,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
           </div>
           <span className="mg-total">{total}/{g.levels.length * 3} <Icon name="star" fill /></span>
         </div>
-        <div className="mg-skill">Trainiert: {g.skill}</div>
+        <div className="mg-skill">{t('Trainiert:')} {g.skill}</div>
         <LevelPath game={g} stars={p.stars} onOpen={(l) => open(g, l)} />
       </section>
     )
@@ -198,23 +199,23 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
   return (
     <div className="training-screen">
       {theoryFor && <TheoryFor game={theoryFor.game} onClose={() => setTheoryFor(null)} onPractice={() => { const g = theoryFor.game; setTheoryFor(null); open(g, g.levels[0]) }} />}
-      <h1 className="screen-title">{section === 'tactics' ? 'Taktik' : 'Lernen'}</h1>
-      <p className="screen-sub">{section === 'tactics' ? 'Muster erkennen, rechnen, gewinnen. Jede Lösung bringt XP.' : 'Wissen, Eröffnungen und Endspiele. Jeder Stern bringt XP.'}</p>
+      <h1 className="screen-title">{section === 'tactics' ? t('Taktik') : t('Lernen')}</h1>
+      <p className="screen-sub">{section === 'tactics' ? t('Muster erkennen, rechnen, gewinnen. Jede Lösung bringt XP.') : t('Wissen, Eröffnungen und Endspiele. Jeder Stern bringt XP.')}</p>
 
       {section === 'tactics' && <>
       <button className="mg-card rated-card" onClick={() => { setRated(true); onPlaying(true) }}>
         <div className="mg-head">
           <span className="mg-icon"><Icon name="puzzle" /></span>
           <div>
-            <div className="mg-title">Taktik-Training</div>
-            <div className="mg-teaser">Endlos Aufgaben, die zu deiner Stärke passen. Deine Wertung steigt mit jeder Lösung.</div>
+            <div className="mg-title">{t('Taktik-Training')}</div>
+            <div className="mg-teaser">{t('Endlos Aufgaben, die zu deiner Stärke passen. Deine Wertung steigt mit jeder Lösung.')}</div>
           </div>
         </div>
         <div className="rated-row">
-          <span className="rated-val">{ps.rating}<small>Wertung</small></span>
-          <span className="rated-val">{ps.solved}<small>gelöst</small></span>
-          <span className="rated-val">{ps.bestStreak}<small>beste Serie</small></span>
-          <span className="btn primary small">Start</span>
+          <span className="rated-val">{ps.rating}<small>{t('Wertung')}</small></span>
+          <span className="rated-val">{ps.solved}<small>{t('gelöst')}</small></span>
+          <span className="rated-val">{ps.bestStreak}<small>{t('beste Serie')}</small></span>
+          <span className="btn primary small">{t('Start')}</span>
         </div>
       </button>
 
@@ -222,10 +223,10 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
         <div className="mg-head">
           <span className="mg-icon"><Icon name="target" /></span>
           <div>
-            <div className="mg-title">Eigene Fehler</div>
-            <div className="mg-teaser">{mistakes.length === 0 ? 'Nach jeder Partie werden deine klaren Fehler hier zu Aufgaben.' : 'Stellungen aus deinen Partien. Gelöste kommen nach 3, 10 und 30 Tagen wieder, bis sie sitzen.'}</div>
+            <div className="mg-title">{t('Eigene Fehler')}</div>
+            <div className="mg-teaser">{mistakes.length === 0 ? t('Nach jeder Partie werden deine klaren Fehler hier zu Aufgaben.') : t('Stellungen aus deinen Partien. Gelöste kommen nach 3, 10 und 30 Tagen wieder, bis sie sitzen.')}</div>
           </div>
-          <span className="mg-total">{openMistakes > 0 ? `${openMistakes} offen` : mistakes.length > 0 ? 'alle erledigt' : ''}</span>
+          <span className="mg-total">{openMistakes > 0 ? t('{n} offen', { n: openMistakes }) : mistakes.length > 0 ? t('alle erledigt') : ''}</span>
         </div>
       </button>
 
@@ -235,8 +236,8 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
         <div className="mg-head">
           <span className="mg-icon"><Icon name="learn" /></span>
           <div>
-            <div className="mg-title">Taktische Motive</div>
-            <div className="mg-teaser">Je 5 Aufgaben zu einem Motiv. 3 Sterne, wenn du alle auf Anhieb löst.</div>
+            <div className="mg-title">{t('Taktische Motive')}</div>
+            <div className="mg-teaser">{t('Je 5 Aufgaben zu einem Motiv. 3 Sterne, wenn du alle auf Anhieb löst.')}</div>
           </div>
           <span className="mg-total">{motifStars}/{MOTIF_GAMES.length * 9} <Icon name="star" fill /></span>
         </div>
@@ -245,7 +246,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
             <div key={g.id} className="motif-row">
               <img className="motif-icon" src={pieceUrl(g.icon[0] as 'w' | 'b', g.icon[1])} alt="" />
               <div className="motif-text"><strong>{g.title}</strong><small>{g.teaser}</small>
-                <button className="theory-link" onClick={() => setTheoryFor({ game: g })}><Icon name="book" /> Theorie</button>
+                <button className="theory-link" onClick={() => setTheoryFor({ game: g })}><Icon name="book" /> {t('Theorie')}</button>
               </div>
               <LevelPath game={g} stars={p.stars} onOpen={(l) => open(g, l)} compact />
             </div>
@@ -257,8 +258,8 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
 
       {section === 'learn' && <>
       <div className="segmented" role="tablist">
-        {LEARN_TABS.map((t) => (
-          <button key={t.id} role="tab" aria-selected={learnTab === t.id} className={learnTab === t.id ? 'active' : ''} onClick={() => setLearnTab(t.id)}>{t.label}</button>
+        {LEARN_TABS.map((x) => (
+          <button key={x.id} role="tab" aria-selected={learnTab === x.id} className={learnTab === x.id ? 'active' : ''} onClick={() => setLearnTab(x.id)}>{x.label}</button>
         ))}
       </div>
 
@@ -267,8 +268,8 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
           <div className="mg-head">
             <span className="mg-icon"><Icon name="book" /></span>
             <div>
-              <div className="mg-title">Schachwissen</div>
-              <div className="mg-teaser">Kurze Lektionen mit Übungsbrett. Jede dauert zwei bis drei Minuten.</div>
+              <div className="mg-title">{t('Schachwissen')}</div>
+              <div className="mg-teaser">{t('Kurze Lektionen mit Übungsbrett. Jede dauert zwei bis drei Minuten.')}</div>
             </div>
             <span className="mg-total">{starSum(LESSON_GAMES)}/{LESSON_GAMES.length * 3} <Icon name="star" fill /></span>
           </div>
@@ -291,8 +292,8 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
             <div className="mg-head">
               <span className="mg-icon"><PieceIcon code={side + 'N'} /></span>
               <div>
-                <div className="mg-title">{side === 'w' ? 'Mit Weiß' : 'Mit Schwarz'}</div>
-                <div className="mg-teaser">{side === 'w' ? 'Dein Repertoire für den ersten Zug.' : 'Antworten auf 1.e4 und 1.d4.'} Je drei Stufen: kennenlernen, mit Hilfe, auswendig.</div>
+                <div className="mg-title">{side === 'w' ? t('Mit Weiß') : t('Mit Schwarz')}</div>
+                <div className="mg-teaser">{side === 'w' ? t('Dein Repertoire für den ersten Zug.') : t('Antworten auf 1.e4 und 1.d4.')} {t('Je drei Stufen: kennenlernen, mit Hilfe, auswendig.')}</div>
               </div>
               <span className="mg-total">{starSum(games)}/{games.length * 9} <Icon name="star" fill /></span>
             </div>
@@ -300,7 +301,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
               {games.map((g) => (
                 <div key={g.id} className="motif-row">
                   <div className="motif-text"><strong>{g.title}</strong><small>{g.teaser}</small>
-                    <button className="theory-link" onClick={() => setTheoryFor({ game: g })}><Icon name="book" /> Theorie</button>
+                    <button className="theory-link" onClick={() => setTheoryFor({ game: g })}><Icon name="book" /> {t('Theorie')}</button>
                   </div>
                   <LevelPath game={g} stars={p.stars} onOpen={(l) => open(g, l)} compact />
                 </div>
@@ -318,7 +319,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
               <span className="mg-icon"><PieceIcon code={grp.id === 'matt' ? 'wK' : grp.id === 'bauern' ? 'wP' : grp.id === 'figuren' ? 'wQ' : 'wR'} /></span>
               <div>
                 <div className="mg-title">{grp.title}</div>
-                <div className="mg-teaser">{grp.teaser} Du spielst gegen die volle Engine.</div>
+                <div className="mg-teaser">{grp.teaser} {t('Du spielst gegen die volle Engine.')}</div>
               </div>
               <span className="mg-total">{starSum(games)}/{games.length * 3} <Icon name="star" fill /></span>
             </div>
@@ -326,7 +327,7 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
               {games.map((g) => (
                 <div key={g.id} className="motif-row">
                   <div className="motif-text"><strong>{g.title}</strong><small>{g.teaser}</small>
-                    <button className="theory-link" onClick={() => setTheoryFor({ game: g })}><Icon name="book" /> Theorie</button>
+                    <button className="theory-link" onClick={() => setTheoryFor({ game: g })}><Icon name="book" /> {t('Theorie')}</button>
                   </div>
                   <LevelPath game={g} stars={p.stars} onOpen={(l) => open(g, l)} compact />
                 </div>

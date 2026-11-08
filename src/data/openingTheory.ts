@@ -1,3 +1,4 @@
+import { L } from '../i18n'
 // Theory for the opening trainer: why the moves are played, the plans after the opening,
 // the pawn structure, typical traps and what to do when the opponent leaves the book.
 // `notes[line][ply]` explains every move of every line (same order as OPENINGS[].lines).
@@ -30,7 +31,7 @@ const E4E5 = [
   'Schwarz deckt e5 mit einer Figur statt mit einem Bauern und entwickelt sich dabei.',
 ]
 
-export const OPENING_THEORY: Record<string, OpeningTheory> = {
+export const OPENING_THEORY: Record<string, OpeningTheory> = L<Record<string, OpeningTheory>>({
   italienisch: {
     heroPly: 5,
     trapBoards: [
@@ -1080,4 +1081,4 @@ export const OPENING_THEORY: Record<string, OpeningTheory> = {
       ],
     ],
   },
-}
+})

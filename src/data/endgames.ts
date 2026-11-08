@@ -1,3 +1,4 @@
+import { L } from '../i18n'
 // Endgame training: the player plays a position against the full-strength engine.
 // Positions were checked with Stockfish (win / draw as stated).
 
@@ -16,14 +17,14 @@ export interface Endgame {
   maxMoves: number // give up after this many player moves
 }
 
-export const ENDGAME_GROUPS: { id: Endgame['group']; title: string; teaser: string }[] = [
+export const ENDGAME_GROUPS: { id: Endgame['group']; title: string; teaser: string }[] = L<{ id: Endgame['group']; title: string; teaser: string }[]>([
   { id: 'matt', title: 'Mattführung', teaser: 'Mit wenig Material sicher mattsetzen.' },
   { id: 'bauern', title: 'Bauernendspiele', teaser: 'Opposition, Quadratregel und Reservetempo.' },
   { id: 'figuren', title: 'Dame und Läufer', teaser: 'Dame gegen Bauer und der „falsche“ Läufer.' },
   { id: 'turm', title: 'Turmendspiele', teaser: 'Die zwei wichtigsten Stellungen der Schachgeschichte.' },
-]
+])
 
-export const ENDGAMES: Endgame[] = [
+export const ENDGAMES: Endgame[] = L<Endgame[]>([
   {
     id: 'dame', group: 'matt', name: 'Matt mit der Dame', fen: '8/8/8/4k3/8/8/8/3QK3 w - - 0 1', goal: 'mate',
     task: 'Setze mit Dame und König matt.',
@@ -96,7 +97,7 @@ export const ENDGAMES: Endgame[] = [
     tip: 'Stelle deinen Turm auf die sechste Reihe, so kann der weiße König nicht vorrücken. Erst wenn der Bauer nach e6 zieht, gehst du mit dem Turm ganz nach hinten und gibst Schach von hinten.',
     holdMoves: 15, maxMoves: 15,
   },
-]
+])
 
 export function endgameLevelId(e: Endgame) {
   return `endgame-${e.id}`

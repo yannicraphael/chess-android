@@ -1,22 +1,23 @@
+import { L, lang, LANGS, t } from '../i18n'
 import { useState } from 'react'
 import Icon, { type IconName } from '../components/Icon'
 import { puzzleStats } from '../lib/puzzles'
 import { setStartRating } from '../lib/rating'
-import { pieceUrl, settings } from '../lib/settings'
+import { pieceUrl, settings, switchLanguage } from '../lib/settings'
 import './Onboarding.css'
 
-const LEVELS: { r: number; title: string; sub: string }[] = [
+const LEVELS: { r: number; title: string; sub: string }[] = L([
   { r: 400, title: 'Ich lerne gerade die Regeln', sub: 'Wie die Figuren ziehen, weiß ich schon.' },
   { r: 800, title: 'Ich spiele ab und zu', sub: 'Gegen Freunde oder online, ohne Training.' },
   { r: 1200, title: 'Ich spiele regelmäßig', sub: 'Ich kenne Eröffnungen und Taktiken.' },
   { r: 1600, title: 'Ich spiele Turniere', sub: 'Im Verein oder mit Wertungszahl.' },
-]
+])
 
-const TOUR: { icon: IconName; title: string; text: string }[] = [
+const TOUR: { icon: IconName; title: string; text: string }[] = L([
   { icon: 'play', title: 'Spielen', text: '87 Gegner von 100 bis 2850 und eine Engine bis 3200. Gewertete Partien ohne Hilfen bestimmen deine Wertung.' },
   { icon: 'puzzle', title: 'Taktik', text: 'Aufgaben passend zu deiner Stärke, Motive mit Leveln und deine eigenen Fehler als Übungen.' },
-  { icon: 'learn', title: 'Lernen', text: 'Kurze Lektionen, zehn Eröffnungen zum Üben und die wichtigsten Endspiele gegen die Engine.' },
-]
+  { icon: 'learn', title: 'Lernen', text: 'Kurze Lektionen, 15 Eröffnungen zum Üben und die wichtigsten Endspiele gegen die Engine.' },
+])
 
 // First start: name, playing strength (sets the starting ratings) and a short tour.
 export default function Onboarding({ onDone }: { onDone: () => void }) {
@@ -44,18 +45,23 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
             <img src={pieceUrl('w', 'n')} alt="" />
             <img src={pieceUrl('b', 'k')} alt="" />
           </div>
-          <h1>Willkommen!</h1>
-          <p>Deine persönliche Schachschule: spielen, trainieren, besser werden. Komplett offline.</p>
-          <label className="ob-label" htmlFor="ob-name">Wie heißt du?</label>
+          <div className="ob-langs" role="radiogroup" aria-label="Sprache / Language / Idioma">
+            {LANGS.map((l) => (
+              <button key={l.id} role="radio" aria-checked={lang === l.id} className={'ob-lang' + (lang === l.id ? ' active' : '')} onClick={() => switchLanguage(l.id)}>{l.name}</button>
+            ))}
+          </div>
+          <h1>{t('Willkommen!')}</h1>
+          <p>{t('Deine persönliche Schachschule: spielen, trainieren, besser werden. Komplett offline.')}</p>
+          <label className="ob-label" htmlFor="ob-name">{t('Wie heißt du?')}</label>
           <input id="ob-name" className="name-input" value={s.name} maxLength={20} onChange={(e) => settings.set({ name: e.target.value })} />
-          <button className="btn primary big" onClick={() => setStep(1)}>Weiter</button>
+          <button className="btn primary big" onClick={() => setStep(1)}>{t('Weiter')}</button>
         </div>
       )}
 
       {step === 1 && (
         <div className="ob-step">
-          <h1>Wie stark spielst du?</h1>
-          <p>Damit starten deine Wertung und die Aufgaben auf dem richtigen Niveau. Danach passt sich alles automatisch an.</p>
+          <h1>{t('Wie stark spielst du?')}</h1>
+          <p>{t('Damit starten deine Wertung und die Aufgaben auf dem richtigen Niveau. Danach passt sich alles automatisch an.')}</p>
           <div className="ob-levels">
             {LEVELS.map((l) => (
               <button key={l.r} className={'ob-level' + (level === l.r ? ' active' : '')} onClick={() => setLevel(l.r)}>
@@ -65,13 +71,13 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
               </button>
             ))}
           </div>
-          <button className="btn primary big" disabled={level === null} onClick={() => setStep(2)}>Weiter</button>
+          <button className="btn primary big" disabled={level === null} onClick={() => setStep(2)}>{t('Weiter')}</button>
         </div>
       )}
 
       {step === 2 && (
         <div className="ob-step">
-          <h1>So funktioniert’s</h1>
+          <h1>{t('So funktioniert’s')}</h1>
           <div className="ob-tour">
             {TOUR.map((t) => (
               <div key={t.title} className="ob-tour-row">
@@ -80,7 +86,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
               </div>
             ))}
           </div>
-          <button className="btn primary big" onClick={finish}>Los geht’s</button>
+          <button className="btn primary big" onClick={finish}>{t('Los geht’s')}</button>
         </div>
       )}
     </div>

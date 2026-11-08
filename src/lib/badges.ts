@@ -1,3 +1,4 @@
+import { L } from '../i18n'
 import { BOTS } from '../bots'
 import { ENDGAMES, endgameLevelId } from '../data/endgames'
 import { LESSONS, lessonLevelId } from '../data/lessons'
@@ -12,7 +13,7 @@ import { rating } from './rating'
 
 export interface Badge { id: string; name: string; text: string; icon: string; group: string }
 
-export const BADGES: Badge[] = [
+export const BADGES: Badge[] = L<Badge[]>([
   { id: 'game-1', group: 'Partien', name: 'Erste Partie', text: 'Spiele deine erste Partie.', icon: 'play' },
   { id: 'game-10', group: 'Partien', name: 'Stammgast', text: 'Spiele 10 Partien.', icon: 'play' },
   { id: 'game-50', group: 'Partien', name: 'Vereinsspieler', text: 'Spiele 50 Partien.', icon: 'play' },
@@ -37,7 +38,7 @@ export const BADGES: Badge[] = [
   { id: 'lessons', group: 'Wissen', name: 'Schachschüler', text: 'Schließe alle Lektionen ab.', icon: 'book' },
   { id: 'endgames', group: 'Wissen', name: 'Endspielkenner', text: 'Schaffe alle Endspiele.', icon: 'crown' },
   { id: 'openings-5', group: 'Wissen', name: 'Repertoire', text: 'Spiele 5 Eröffnungen auswendig (Stufe 3).', icon: 'book' },
-]
+])
 
 function earnedNow(): Set<string> {
   const p = progress.get()

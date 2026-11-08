@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import { Chess, type Color, type Move, type Square } from 'chess.js'
 
 // Tips for the basic mates that follow the method from the theory page instead of the engine's
@@ -149,7 +150,7 @@ function queenHint(c: Chess, me: Color, tb: Table, seen: Set<string>): MethodHin
   const bk = find(c, them, 'k')[0]
   if (!find(c, me, 'q').length) return null
   const mate = mateInOne(c)
-  if (mate) return out(mate, 'Schritt 4: Jetzt ist es Matt.')
+  if (mate) return out(mate, t('Schritt 4: Jetzt ist es Matt.'))
   const all = scored(c, me, tb, 'q')
   if (!all.length) return null
   const bestD = Math.min(...all.map((x) => x.d))
@@ -157,27 +158,27 @@ function queenHint(c: Chess, me: Color, tb: Table, seen: Set<string>): MethodHin
   const cur = box(c, me)
   if (hanging(c, me)) {
     const flee = best(optimal.filter((x) => x.m.piece === 'q'), (x) => [x.d]) ?? best(optimal, (x) => [x.d])!
-    return out(flee.m, 'Deine Dame steht ungedeckt neben dem König. Bring sie in Sicherheit, ohne den König freizulassen.')
+    return out(flee.m, t('Deine Dame steht ungedeckt neben dem König. Bring sie in Sicherheit, ohne den König freizulassen.'))
   }
   if (onEdge(bk) && sameEdge(cur)) {
     // step 3: no more queen moves, bring the king until it faces the other king
     const k = best(optimal.filter((x) => x.m.piece === 'k'), (x) => [dist(x.m.to, inward(bk))])
-    if (k) return out(k.m, 'Schritt 3: Der König steht am Rand. Jetzt keine Damenzüge mehr: Hole deinen König heran, bis er dem anderen König gegenübersteht.')
+    if (k) return out(k.m, t('Schritt 3: Der König steht am Rand. Jetzt keine Damenzüge mehr: Hole deinen König heran, bis er dem anderen König gegenübersteht.'))
     const q = best(optimal, (x) => [x.area])!
-    return out(q.m, 'Dein König steht fast bereit. Ein ruhiger Damenzug hält den König am Rand fest, dann muss er ziehen.')
+    return out(q.m, t('Dein König steht fast bereit. Ein ruhiger Damenzug hält den König am Rand fest, dann muss er ziehen.'))
   }
   // steps 1 and 2: the queen a knight's move away from the king, the rectangle shrinks
   const shrink = best(all.filter((x) => x.m.piece === 'q' && x.area < cur.length), (x) => [knightApart(x.m.to, bk) ? 0 : 1, x.d, x.area])
   if (shrink) return out(shrink.m, knightApart(shrink.m.to, bk)
-    ? 'Schritt 1 und 2: Die Dame geht einen Springerzug vom König entfernt. So wird sein Rechteck kleiner.'
-    : 'Schritt 1 und 2: Die Dame macht das Rechteck des Königs kleiner. Achte darauf, dass er noch ein Feld hat (kein Patt).')
+    ? t('Schritt 1 und 2: Die Dame geht einen Springerzug vom König entfernt. So wird sein Rechteck kleiner.')
+    : t('Schritt 1 und 2: Die Dame macht das Rechteck des Königs kleiner. Achte darauf, dass er noch ein Feld hat (kein Patt).'))
   // step 2: follow the king with the queen in knight distance (without repeating a position)
   const follow = best(all.filter((x) => x.m.piece === 'q' && x.area <= cur.length && knightApart(x.m.to, bk) && x.d <= bestD + 4 && !seen.has(key(x.c.fen()))), (x) => [x.area, x.d])
-  if (follow) return out(follow.m, 'Schritt 2: Folge dem König mit der Dame, wieder im Springerabstand.')
+  if (follow) return out(follow.m, t('Schritt 2: Folge dem König mit der Dame, wieder im Springerabstand.'))
   const o = best(optimal, (x) => [x.m.piece === 'q' ? 0 : 1, x.area])!
   return out(o.m, o.m.piece === 'k'
-    ? 'Das Rechteck kann gerade nicht kleiner werden. Hole deinen König heran, damit die Dame weiter drücken kann.'
-    : 'Folge dem König mit der Dame im Springerabstand.')
+    ? t('Das Rechteck kann gerade nicht kleiner werden. Hole deinen König heran, damit die Dame weiter drücken kann.')
+    : t('Folge dem König mit der Dame im Springerabstand.'))
 }
 
 // all squares of the box lie on one edge line
@@ -201,7 +202,7 @@ function rookHint(c: Chess, me: Color, tb: Table): MethodHint | null {
   const rook = find(c, me, 'r')[0]
   if (!rook) return null
   const mate = mateInOne(c)
-  if (mate) return out(mate, 'Schritt 5: Die Könige stehen in Opposition am Rand. Das Turmschach ist Matt.')
+  if (mate) return out(mate, t('Schritt 5: Die Könige stehen in Opposition am Rand. Das Turmschach ist Matt.'))
   const all = scored(c, me, tb, 'r')
   if (!all.length) return null
   const bestD = Math.min(...all.map((x) => x.d))
@@ -213,22 +214,22 @@ function rookHint(c: Chess, me: Color, tb: Table): MethodHint | null {
   if (hanging(c, me)) {
     const flee = best(optimal, (x) => [x.m.piece === 'r' ? 0 : 1])!
     return out(flee.m, flee.m.piece === 'r'
-      ? 'Dein Turm steht ungedeckt neben dem König. Zieh ihn weit weg, die Box bleibt.'
-      : 'Dein Turm wird angegriffen. Decke ihn mit dem König.')
+      ? t('Dein Turm steht ungedeckt neben dem König. Zieh ihn weit weg, die Box bleibt.')
+      : t('Dein Turm wird angegriffen. Decke ihn mit dem König.'))
   }
   // every tip is a best move (so it always leads to mate), chosen in the order of the method:
   // steps 1 and 3: a rook move that makes the box smaller (in opposition: the check)
   const shrink = best(optimal.filter((x) => x.m.piece === 'r' && x.area < cur && safeFrom(x, me, bk)), (x) => [x.area])
   if (shrink) return out(shrink.m, shrink.c.inCheck() && opposition
-    ? 'Schritt 3: Die Könige stehen in Opposition. Jetzt gibt der Turm Schach und der König muss eine Reihe zurück.'
-    : 'Schritt 1: Der Turm macht die Box kleiner. Der König kommt nicht über die Sperrlinie.')
+    ? t('Schritt 3: Die Könige stehen in Opposition. Jetzt gibt der Turm Schach und der König muss eine Reihe zurück.')
+    : t('Schritt 1: Der Turm macht die Box kleiner. Der König kommt nicht über die Sperrlinie.'))
   const o = best(optimal, (x) => [x.m.piece === 'k' ? 0 : 1, x.area])!
-  if (o.m.piece === 'k') return out(o.m, 'Schritt 2: Dein König geht auf den gegnerischen König zu, bis sie sich gegenüberstehen.')
-  if (o.c.inCheck()) return out(o.m, opposition ? 'Schritt 3: Die Könige stehen in Opposition. Jetzt gibt der Turm Schach.' : 'Ein Turmschach treibt den König zurück. Die Box wird nicht größer.')
+  if (o.m.piece === 'k') return out(o.m, t('Schritt 2: Dein König geht auf den gegnerischen König zu, bis sie sich gegenüberstehen.'))
+  if (o.c.inCheck()) return out(o.m, opposition ? t('Schritt 3: Die Könige stehen in Opposition. Jetzt gibt der Turm Schach.') : t('Ein Turmschach treibt den König zurück. Die Box wird nicht größer.'))
   if (fileOf(o.m.to) === fileOf(rook) || rankOf(o.m.to) === rankOf(rook)) {
-    if (o.area <= cur) return out(o.m, 'Schritt 4: Keine Opposition. Mache einen Wartezug mit dem Turm entlang der Sperrlinie, dann muss der König ziehen.')
+    if (o.area <= cur) return out(o.m, t('Schritt 4: Keine Opposition. Mache einen Wartezug mit dem Turm entlang der Sperrlinie, dann muss der König ziehen.'))
   }
-  return out(o.m, 'Stelle den Turm auf eine bessere Sperrlinie, weit weg vom König.')
+  return out(o.m, t('Stelle den Turm auf eine bessere Sperrlinie, weit weg vom König.'))
 }
 
 // two rooks: the ladder. One rook cuts a line, the other checks on the next one.
@@ -236,7 +237,7 @@ function rookHint(c: Chess, me: Color, tb: Table): MethodHint | null {
 function rooksHint(c: Chess, me: Color): MethodHint | null {
   const them: Color = me === 'w' ? 'b' : 'w'
   const mate = mateInOne(c)
-  if (mate) return out(mate, 'Matt: Der eine Turm sperrt die Reihe davor, der andere gibt Schach am Rand.')
+  if (mate) return out(mate, t('Matt: Der eine Turm sperrt die Reihe davor, der andere gibt Schach am Rand.'))
   const bk = find(c, them, 'k')[0]
   const rooks = find(c, me, 'r')
   if (rooks.length < 2) return null
@@ -281,37 +282,37 @@ function rooksHint(c: Chess, me: Color): MethodHint | null {
       // the king attacks the cutting rook: move it to the far end of its line
       if (far(cx) <= 1) {
         const ends = [0, 7].sort((a, b) => far(b) - far(a))
-        for (const x of ends) { const m = ok(cutRook, F.back(x, by - 1)); if (m) return out(m, 'Der König kommt deinem Turm zu nahe. Zieh ihn weit weg ans andere Ende der Linie, die Sperre bleibt.') }
+        for (const x of ends) { const m = ok(cutRook, F.back(x, by - 1)); if (m) return out(m, t('Der König kommt deinem Turm zu nahe. Zieh ihn weit weg ans andere Ende der Linie, die Sperre bleibt.')) }
       }
       // the other rook checks on the king's line, far away from it
       const [ox, oy] = F.to(other)
       // a check from column x along the king's line must not be blocked by my king
       const myK = F.to(find(c, me, 'k')[0])
       const clear = (x: number) => !(myK[1] === by && (myK[0] - x) * (myK[0] - bx) < 0)
-      if (far(ox) >= 2 && clear(ox)) { const m = ok(other, F.back(ox, by)); if (m) return out(m, 'Treppe: Ein Turm sperrt, der andere gibt auf der nächsten Linie Schach. Der König muss eine Reihe zurück.') }
+      if (far(ox) >= 2 && clear(ox)) { const m = ok(other, F.back(ox, by)); if (m) return out(m, t('Treppe: Ein Turm sperrt, der andere gibt auf der nächsten Linie Schach. Der König muss eine Reihe zurück.')) }
       // first bring the other rook to a file far from the king
       const xs = [0, 7, 1, 6].filter((x) => far(x) >= 2 && clear(x) && x !== ox && !c.get(F.back(x, by) as Square) && clearPath(F, x, oy, x, by)).sort((a, b) => far(b) - far(a))
-      for (const x of xs) { const m = ok(other, F.back(x, oy)); if (m) return out(m, 'Bring den zweiten Turm auf eine Linie weit weg vom König. Von dort gibt er gleich Schach.') }
+      for (const x of xs) { const m = ok(other, F.back(x, oy)); if (m) return out(m, t('Bring den zweiten Turm auf eine Linie weit weg vom König. Von dort gibt er gleich Schach.')) }
     } else {
       // no rook cuts yet: one rook goes to the line in front of the king
       // the rook that is not cutting yet moves up, so the rooks take turns (the ladder)
       const order = [...rooks].sort((a, b) => Math.abs(F.to(b)[1] - (by - 1)) - Math.abs(F.to(a)[1] - (by - 1)))
       for (const r of order) {
         const [rx] = F.to(r)
-        if (far(rx) >= 2) { const m = ok(r, F.back(rx, by - 1)); if (m) return out(m, 'Ein Turm sperrt die Linie vor dem König ab. Abwechselnd rücken die Türme so Linie für Linie vor.') }
+        if (far(rx) >= 2) { const m = ok(r, F.back(rx, by - 1)); if (m) return out(m, t('Ein Turm sperrt die Linie vor dem König ab. Abwechselnd rücken die Türme so Linie für Linie vor.')) }
       }
       for (const r of rooks) {
         const [rx, ry] = F.to(r)
         for (const x of [0, 7, 1, 6].filter((x) => far(x) >= 2 && x !== rx).sort((a, b) => far(b) - far(a))) {
           if (c.get(F.back(x, by - 1) as Square) || !clearPath(F, x, ry, x, by - 1)) continue
-          const m = ok(r, F.back(x, ry)); if (m) return out(m, 'Bring den Turm zuerst weit weg vom König, damit er die Linie vor ihm sperren kann.')
+          const m = ok(r, F.back(x, ry)); if (m) return out(m, t('Bring den Turm zuerst weit weg vom König, damit er die Linie vor ihm sperren kann.'))
         }
       }
     }
   }
   // fallback: any safe rook move far away from the king
   const any = best(candidates(c, me, (m) => m.piece === 'r').filter((x) => safeFrom(x, me, bk)), (x) => [x.area, -dist(x.m.to, bk)])
-  return any ? out(any.m, 'Bring den Turm weit weg vom König auf eine freie Linie.') : null
+  return any ? out(any.m, t('Bring den Turm weit weg vom König auf eine freie Linie.')) : null
 }
 
 const tables: Partial<Record<'q' | 'r', Promise<Table>>> = {}
@@ -341,7 +342,7 @@ export function methodHint(endgameId: string, fen: string, tb: Table | null, see
     // the ladder would repeat a position: take another safe rook move that makes progress
     const bk = find(c, me === 'w' ? 'b' : 'w', 'k')[0]
     const alt = best(candidates(c, me, (m) => m.piece === 'r').filter((x) => safeFrom(x, me, bk) && !old.has(key(x.c.fen()))), (x) => [x.area, x.c.inCheck() ? 0 : 1, -dist(x.m.to, bk)])
-    return alt ? out(alt.m, alt.c.inCheck() ? 'Treppe: Ein Turm gibt Schach, der andere sperrt. Der König muss zurück.' : 'Stelle den Turm so, dass er die nächste Linie sperrt, weit weg vom König.') : h
+    return alt ? out(alt.m, alt.c.inCheck() ? t('Treppe: Ein Turm gibt Schach, der andere sperrt. Der König muss zurück.') : t('Stelle den Turm so, dass er die nächste Linie sperrt, weit weg vom König.')) : h
   }
   return null
 }

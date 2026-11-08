@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import { useBack } from '../lib/back'
 import { useEffect, useState } from 'react'
 import { addXp, recordDaily } from '../lib/progress'
@@ -77,35 +78,35 @@ export default function PuzzleRated({ onExit, firstId }: { onExit: () => void; f
   return (
     <div className="training-play">
       <header className="game-header">
-        <button className="icon-btn" onClick={onExit} aria-label="Zurück"><Icon name="back" /></button>
-        <div className="game-title">{firstId && puzzle?.id === firstId ? 'Aufgabe des Tages' : 'Taktik-Training'}</div>
+        <button className="icon-btn" onClick={onExit} aria-label={t('Zurück')}><Icon name="back" /></button>
+        <div className="game-title">{firstId && puzzle?.id === firstId ? t('Aufgabe des Tages') : t('Taktik-Training')}</div>
         <span style={{ width: 44 }} />
       </header>
       <div className="puzzle-hud">
         <div className="pz-rating">
-          <span className="pz-rating-label">Deine Wertung</span>
+          <span className="pz-rating-label">{t('Deine Wertung')}</span>
           <span className="pz-rating-val">{st.rating}{result && result.delta !== 0 && <em className={result.delta > 0 ? 'up' : 'down'}>{result.delta > 0 ? '+' : ''}{result.delta}</em>}</span>
         </div>
         <div className="pz-recent">{recent.map((r, i) => <span key={i} className={r.ok ? 'ok' : 'no'}>{r.ok ? '✓' : '✗'}</span>)}</div>
         {st.streak > 1 && <div className="pz-streak"><Icon name="flame" /> {st.streak}</div>}
       </div>
-      {error && <p className="mg-info">Die Aufgaben konnten nicht geladen werden. Bitte prüfe die Internetverbindung.</p>}
-      {!puzzle && !error && <p className="mg-info">Aufgaben werden geladen…</p>}
+      {error && <p className="mg-info">{t('Die Aufgaben konnten nicht geladen werden. Bitte prüfe die Internetverbindung.')}</p>}
+      {!puzzle && !error && <p className="mg-info">{t('Aufgaben werden geladen…')}</p>}
       {puzzle && (
         <PuzzlePlayer key={run} puzzle={puzzle} onMistake={onMistake} onDone={onDone}
           footer={
             <div className="puzzle-after">
               <div className="pz-info">
-                Aufgabe {puzzle.rating}
+                {t('Aufgabe {n}', { n: puzzle.rating })}
                 {themeLabels(puzzle).length > 0 && <> · {themeLabels(puzzle).slice(0, 3).join(', ')}</>}
               </div>
               {result && (
                 <div className="xp-gain">
                   <span className="xp-pill">+{result.xp} XP</span>
-                  {result.levelUp && <span className="xp-pill level">Level {result.levelUp}!</span>}
+                  {result.levelUp && <span className="xp-pill level">{t('Level {n}!', { n: result.levelUp })}</span>}
                 </div>
               )}
-              <button className="btn primary big" onClick={next}>Nächste Aufgabe</button>
+              <button className="btn primary big" onClick={next}>{t('Nächste Aufgabe')}</button>
             </div>
           } />
       )}

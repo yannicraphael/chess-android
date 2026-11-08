@@ -1,3 +1,4 @@
+import { L } from '../i18n'
 // Short interactive lessons ("Wissen"). Each step shows a board with text; a step with a
 // `task` waits until the player finds a correct move.
 
@@ -28,7 +29,7 @@ export interface Lesson {
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
-export const LESSONS: Lesson[] = [
+export const LESSONS: Lesson[] = L<Lesson[]>([
   {
     id: 'werte', title: 'Figurenwerte', teaser: 'Was ist welche Figur wert, und wann lohnt sich ein Tausch?', icon: 'wQ',
     steps: [
@@ -396,7 +397,7 @@ export const LESSONS: Lesson[] = [
       },
     ],
   },
-]
+])
 
 export function lessonLevelId(l: Lesson) {
   return `lesson-${l.id}`

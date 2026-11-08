@@ -2,6 +2,7 @@ import { OPENINGS } from './data/openings'
 import { Chess, type Move } from 'chess.js'
 import { engine } from './engine/stockfish'
 import botData from './data/bots.json'
+import { L, t } from './i18n'
 
 export type ChatEvent =
   | 'greet' | 'botCapture' | 'playerCapture' | 'botCheck' | 'playerCheck'
@@ -33,14 +34,14 @@ export interface Bot {
 
 export type GroupId = 'neu' | 'anfaenger' | 'fortgeschritten' | 'turnier' | 'meister' | 'top' | 'engine'
 
-export const BOT_GROUPS: { id: GroupId; name: string }[] = [
+export const BOT_GROUPS: { id: GroupId; name: string }[] = L<{ id: GroupId; name: string }[]>([
   { id: 'neu', name: 'Neu im Schach' },
   { id: 'anfaenger', name: 'Anfänger' },
   { id: 'fortgeschritten', name: 'Fortgeschrittene' },
   { id: 'turnier', name: 'Turnierspieler' },
   { id: 'meister', name: 'Meister' },
   { id: 'top', name: 'Topspieler' },
-]
+])
 
 // Engine settings by playing strength, interpolated between these anchor points.
 // Measured in Nov 2026 with scripts/calibrate-bots (bot-vs-bot games, every move graded by
@@ -83,7 +84,7 @@ interface BotData {
 }
 
 export const BOTS: Bot[] = (botData as BotData[]).map((d) => ({
-  id: d.id, name: d.name, rating: d.rating, cc: d.cc, group: d.group, title: d.title, bio: d.bio, greet: d.greet,
+  id: d.id, name: t(d.name), rating: d.rating, cc: d.cc, group: d.group, title: t(d.title), bio: t(d.bio), greet: d.greet ? t(d.greet) : null,
   tone: d.tone, style: d.style, avatar: d.look ? `${import.meta.env.BASE_URL}avatars/${d.id}.svg` : null,
   chatty: d.tone === 'frech' || d.tone === 'kind' ? 0.5 : 0.4,
   ...strength(d.rating),
@@ -94,8 +95,8 @@ export const ENGINE_MAX = 3200
 
 export function engineBot(rating: number): Bot {
   return {
-    id: `engine-${rating}`, name: 'Engine', rating, cc: '', group: 'engine', title: 'Stockfish mit einstellbarer Stärke',
-    bio: 'Die Engine spielt in genau der Stärke, die du einstellst.', greet: null, tone: null, avatar: null, ...strength(rating),
+    id: `engine-${rating}`, name: t('Engine'), rating, cc: '', group: 'engine', title: t('Stockfish mit einstellbarer Stärke'),
+    bio: t('Die Engine spielt in genau der Stärke, die du einstellst.'), greet: null, tone: null, avatar: null, ...strength(rating),
   }
 }
 
@@ -109,7 +110,7 @@ export function flag(cc: string) {
   return String.fromCodePoint(...[...cc.toUpperCase()].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65))
 }
 
-export const TONE_LINES: Record<Tone, Partial<Record<ChatEvent, string[]>>> = {
+export const TONE_LINES: Record<Tone, Partial<Record<ChatEvent, string[]>>> = L<Record<Tone, Partial<Record<ChatEvent, string[]>>>>({
   nett: {
     greet: ['Hallo! Schön, dass du mit mir spielst.', 'Auf eine schöne Partie!'],
     botCapture: ['Oh, die nehme ich mal.', 'Entschuldige, die war ungedeckt.'],
@@ -212,7 +213,7 @@ export const TONE_LINES: Record<Tone, Partial<Record<ChatEvent, string[]>>> = {
     botLoses: ['Fehler im System. Gratulation.'],
     draw: ['Remis. Akzeptabel.'],
   },
-}
+})
 
 // Picks a random line for an event, mixing personal and tone lines (personal lines are preferred).
 export function botLine(bot: Bot, event: ChatEvent): string | null {

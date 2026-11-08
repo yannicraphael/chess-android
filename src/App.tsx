@@ -1,3 +1,4 @@
+import { t, tk } from './i18n'
 import type { Color } from 'chess.js'
 import { useEffect, useRef, useState } from 'react'
 import { groupStoredMistakes, resumeAnalysis } from './lib/archive'
@@ -35,7 +36,7 @@ function bookAbandoned(g: SavedGame, bot: Bot) {
   try { c.loadPgn(g.pgn) } catch { /* keep empty */ }
   addGame({
     id: g.id ?? `g${Date.now()}`, date: new Date().toISOString(), botId: bot.id, botName: bot.name, botRating: bot.rating,
-    color: g.playerColor, outcome: 'loss', reason: 'Partie verlassen', pgn: c.pgn(), moves: Math.ceil(c.history().length / 2),
+    color: g.playerColor, outcome: 'loss', reason: tk('Partie verlassen'), pgn: c.pgn(), moves: Math.ceil(c.history().length / 2),
     rated: true, ratingAfter: res.after, ratingDelta: res.delta, tc: g.tc || undefined,
   })
 }
@@ -50,11 +51,11 @@ function loadSaved(): SavedGame | null {
 }
 
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
-  { id: 'home', label: 'Heute', icon: 'home' },
-  { id: 'play', label: 'Spielen', icon: 'play' },
-  { id: 'tactics', label: 'Taktik', icon: 'puzzle' },
-  { id: 'learn', label: 'Lernen', icon: 'learn' },
-  { id: 'profile', label: 'Profil', icon: 'user' },
+  { id: 'home', label: t('Heute'), icon: 'home' },
+  { id: 'play', label: t('Spielen'), icon: 'play' },
+  { id: 'tactics', label: t('Taktik'), icon: 'puzzle' },
+  { id: 'learn', label: t('Lernen'), icon: 'learn' },
+  { id: 'profile', label: t('Profil'), icon: 'user' },
 ]
 
 export default function App() {
@@ -136,11 +137,11 @@ export default function App() {
       {pending && resumable && (
         <div className="modal-backdrop" onClick={() => setPending(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Laufende Partie aufgeben?</h2>
-            <p>Deine gewertete Partie gegen {resumable.name} ist noch nicht beendet. Startest du eine neue, zählt sie als verloren.</p>
+            <h2>{t('Laufende Partie aufgeben?')}</h2>
+            <p>{t('Deine gewertete Partie gegen {name} ist noch nicht beendet. Startest du eine neue, zählt sie als verloren.', { name: resumable.name })}</p>
             <div className="modal-buttons">
-              <button className="btn secondary" onClick={() => { setPending(null); setInGame(true) }}>Fortsetzen</button>
-              <button className="btn primary" onClick={() => start(pending.bot, pending.color, pending.tc, pending.mode, true)}>Neue Partie</button>
+              <button className="btn secondary" onClick={() => { setPending(null); setInGame(true) }}>{t('Fortsetzen')}</button>
+              <button className="btn primary" onClick={() => start(pending.bot, pending.color, pending.tc, pending.mode, true)}>{t('Neue Partie')}</button>
             </div>
           </div>
         </div>

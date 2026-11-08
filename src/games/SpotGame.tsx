@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import { Chess, type Color, type Move, type PieceSymbol, type Square } from 'chess.js'
 import { useEffect, useRef, useState } from 'react'
 import Board, { type SquarePair } from '../components/Board'
@@ -172,16 +173,16 @@ export default function SpotGame({ mode, level, onFinish }: { mode: SpotMode; le
   }
 
   const side = (task?.fen.split(' ')[1] ?? 'w') as Color
-  const title = mode === 'mate1' ? 'Matt in einem Zug' : 'Hängende Figur'
+  const title = mode === 'mate1' ? t('Matt in einem Zug') : t('Hängende Figur')
   const rule = mode === 'mate1'
-    ? 'Setze mit einem Zug matt.'
-    : level.n >= 3 ? 'Schlage die Figur, die nicht gedeckt ist. Auch Bauern zählen.' : 'Eine gegnerische Figur ist angegriffen und nicht gedeckt. Schlage sie.'
+    ? t('Setze mit einem Zug matt.')
+    : level.n >= 3 ? t('Schlage die Figur, die nicht gedeckt ist. Auch Bauern zählen.') : t('Eine gegnerische Figur ist angegriffen und nicht gedeckt. Schlage sie.')
 
   return (
     <div className="minigame spot-game">
       <div className="mg-hud">
         <div className="mg-stat">{Array.from({ length: LIVES }, (_, k) => <span key={k} className={'life' + (k < lives ? '' : ' lost')}><Icon name="heart" fill /></span>)}</div>
-        <div className="mg-target small">{score}<small>gefunden</small></div>
+        <div className="mg-target small">{score}<small>{t('gefunden')}</small></div>
         <div className={'mg-stat' + (left <= 10 && started ? ' hurry' : '')}><Icon name="clock" />{Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}</div>
       </div>
       {task
@@ -190,15 +191,15 @@ export default function SpotGame({ mode, level, onFinish }: { mode: SpotMode; le
             <Board fen={fen} orientation={side} movableColor={busy ? null : side} lastMove={last} marks={marks} onMove={onMove} />
             <div className="puzzle-status">
               <span className={'turn-dot ' + side} />
-              <span className="puzzle-text">{side === 'w' ? 'Weiß' : 'Schwarz'} am Zug. {rule}</span>
+              <span className="puzzle-text">{side === 'w' ? t('Weiß am Zug.') : t('Schwarz am Zug.')} {rule}</span>
             </div>
           </>
         )
         : (
           <div className="mg-start static">
             <h2>{title}</h2>
-            <p>{rule} {seconds} Sekunden Zeit, {LIVES} Leben.</p>
-            <button className="btn primary big" onClick={begin} disabled={!pool}>{pool ? 'Los geht’s' : 'Lädt…'}</button>
+            <p>{rule} {t('{s} Sekunden Zeit, {lives} Leben.', { s: seconds, lives: LIVES })}</p>
+            <button className="btn primary big" onClick={begin} disabled={!pool}>{pool ? t('Los geht’s') : t('Lädt…')}</button>
           </div>
         )}
     </div>

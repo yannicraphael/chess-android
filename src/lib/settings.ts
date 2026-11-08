@@ -1,6 +1,7 @@
 import { createStore } from './store'
+import { deviceLang, L, type Lang } from '../i18n'
 
-export const PIECE_SETS = [
+export const PIECE_SETS = L([
   { id: 'staunty', name: 'Staunty' },
   { id: 'cooke', name: 'Cooke' },
   { id: 'fantasy', name: 'Fantasy' },
@@ -14,26 +15,26 @@ export const PIECE_SETS = [
   { id: 'cardinal', name: 'Cardinal' },
   { id: 'fresca', name: 'Fresca' },
   { id: 'spatial', name: 'Spatial' },
-] as const
+] as const)
 
 // Piece colours: only realistic tones (white, black and natural woods). Every filter starts with
 // grayscale so that coloured originals (blue, red, orange sets) become neutral first.
-export const WHITE_COLORS = [
+export const WHITE_COLORS = L([
   { id: 'weiss', name: 'Weiß', swatch: '#f6f4f0', filter: 'grayscale(1) brightness(1.08)' },
   { id: 'elfenbein', name: 'Elfenbein', swatch: '#f1e6cc', filter: 'grayscale(1) sepia(.35) brightness(1.03)' },
   { id: 'ahorn', name: 'Ahorn', swatch: '#ead8b0', filter: 'grayscale(1) sepia(.6) saturate(1.1) hue-rotate(-6deg) brightness(.98)' },
   { id: 'buchs', name: 'Buchsbaum', swatch: '#e2c68c', filter: 'grayscale(1) sepia(.8) saturate(1.15) hue-rotate(-8deg) brightness(.95)' },
   { id: 'esche', name: 'Esche', swatch: '#d4b88a', filter: 'grayscale(1) sepia(.85) saturate(.95) hue-rotate(-10deg) brightness(.9)' },
-]
+])
 
-export const BLACK_COLORS = [
+export const BLACK_COLORS = L([
   { id: 'schwarz', name: 'Schwarz', swatch: '#2a2a2a', filter: 'grayscale(1) brightness(.7)' },
   { id: 'ebenholz', name: 'Ebenholz', swatch: '#32261f', filter: 'grayscale(1) invert(.12) sepia(.7) brightness(.62)' },
   { id: 'wenge', name: 'Wenge', swatch: '#46352a', filter: 'grayscale(1) invert(.25) sepia(1) saturate(.8) brightness(.5)' },
   { id: 'nussbaum', name: 'Nussbaum', swatch: '#5e3f28', filter: 'grayscale(1) invert(.32) sepia(1) saturate(1.5) hue-rotate(-8deg) brightness(.6)' },
   { id: 'palisander', name: 'Palisander', swatch: '#5a2b22', filter: 'grayscale(1) invert(.3) sepia(1) saturate(2.3) hue-rotate(-28deg) brightness(.5)' },
   { id: 'mahagoni', name: 'Mahagoni', swatch: '#7a3c26', filter: 'grayscale(1) invert(.34) sepia(1) saturate(2.4) hue-rotate(-22deg) brightness(.66)' },
-]
+])
 
 // Boards: photos of real wood (see public/boards/CREDITS.txt). Colours are the average square colours (for coordinates).
 export interface BoardTheme {
@@ -43,7 +44,7 @@ export interface BoardTheme {
   dark: string
 }
 
-export const BOARD_THEMES: BoardTheme[] = [
+export const BOARD_THEMES: BoardTheme[] = L<BoardTheme[]>([
   { id: 'ahorn-nuss', name: 'Ahorn & Nussbaum', light: '#c3a36f', dark: '#7e5532' },
   { id: 'birke-kirsche', name: 'Birke & Kirsche', light: '#e0c59d', dark: '#ab765b' },
   { id: 'buche-mahagoni', name: 'Buche & Mahagoni', light: '#dfbd91', dark: '#b87642' },
@@ -53,16 +54,16 @@ export const BOARD_THEMES: BoardTheme[] = [
   { id: 'buchs-palisander', name: 'Buchsbaum & Palisander', light: '#ead3a5', dark: '#673729' },
   { id: 'turnier', name: 'Turnierbrett', light: '#edd6af', dark: '#af7f57' },
   { id: 'ahorn-kirsche', name: 'Ahorn & Kirsche', light: '#f0ddb9', dark: '#a35d3b' },
-]
+])
 
 export const boardUrl = (id: string) => `${import.meta.env.BASE_URL}boards/${id}.jpg`
 
 // App designs that can be switched in the profile
-export const DESIGNS = [
+export const DESIGNS = L([
   { id: 'klubhaus', name: 'Klubhaus', desc: 'Nussbaum und Messing', swatch: ['#1b1612', '#c99a52'] },
   { id: 'arena', name: 'Arena', desc: 'Graphit und Grün', swatch: ['#121417', '#7cc04b'] },
   { id: 'studio', name: 'Studio', desc: 'Hell mit Tannengrün', swatch: ['#efece7', '#1f5a43'] },
-] as const
+] as const)
 export type DesignId = (typeof DESIGNS)[number]['id']
 
 export interface Settings {
@@ -80,6 +81,7 @@ export interface Settings {
   coach: boolean // warn about blunders during games
   name: string
   onboarded: boolean
+  lang: Lang
 }
 
 export const settings = createStore<Settings>('settings', {
@@ -95,8 +97,9 @@ export const settings = createStore<Settings>('settings', {
   animation: true,
   animSpeed: 'normal',
   coach: true,
-  name: 'Yannic',
+  name: '',
   onboarded: false,
+  lang: deviceLang(),
 })
 
 export function boardTheme(id: string) {
@@ -122,3 +125,10 @@ function applyPieceColors() {
 }
 applyPieceColors()
 settings.subscribe(applyPieceColors)
+
+// The language is read when the app starts, so switching it restarts the app.
+export function switchLanguage(l: Lang) {
+  if (l === settings.get().lang) return
+  settings.set({ lang: l })
+  window.location.reload()
+}

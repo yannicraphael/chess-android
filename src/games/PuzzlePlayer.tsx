@@ -1,8 +1,9 @@
+import { t } from '../i18n'
 import Icon from '../components/Icon'
 import { Chess, type Color, type Move } from 'chess.js'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Board, { type SquarePair } from '../components/Board'
-import { de } from '../lib/chessText'
+import { notate } from '../lib/chessText'
 import type { Puzzle } from '../lib/puzzles'
 import { playSound } from '../lib/sound'
 
@@ -175,19 +176,19 @@ export default function PuzzlePlayer({ puzzle, stopOnMistake = false, tools = tr
   if (hintLevel >= 1 && expected && (status === 'play' || status === 'wrong')) shownMarks[expected.slice(0, 2)] = 'mark-target'
   const hintPair = hintLevel >= 2 && expected ? { from: expected.slice(0, 2), to: expected.slice(2, 4) } : null
 
-  const side = solver === 'w' ? 'Weiß' : 'Schwarz'
+  const toMove = solver === 'w' ? t('Weiß am Zug.') : t('Schwarz am Zug.')
   let text: ReactNode
   let tone = ''
   switch (status) {
-    case 'intro': text = 'Der Gegner zieht…'; break
-    case 'play': text = idx <= 1 ? <><strong>{side} am Zug.</strong> Finde den besten Zug!</> : <><strong>Richtig!</strong> Und weiter…</>; tone = idx <= 1 ? '' : 'good'; break
-    case 'reply': text = <><strong>Richtig!</strong> {lastSan && de(lastSan)}</>; tone = 'good'; break
+    case 'intro': text = t('Der Gegner zieht…'); break
+    case 'play': text = idx <= 1 ? <><strong>{toMove}</strong> {t('Finde den besten Zug!')}</> : <><strong>{t('Richtig!')}</strong> {t('Und weiter…')}</>; tone = idx <= 1 ? '' : 'good'; break
+    case 'reply': text = <><strong>{t('Richtig!')}</strong> {lastSan && notate(lastSan)}</>; tone = 'good'; break
     case 'flash':
-    case 'wrong': text = <><strong>Nicht ganz.</strong> Versuch es nochmal.</>; tone = 'bad'; break
-    case 'failed': text = <><strong>Falsch.</strong> Richtig wäre der markierte Zug gewesen.</>; tone = 'bad'; break
-    case 'solved': text = <><strong>Gelöst!</strong> {stats.current.mistakes === 0 && !stats.current.hinted ? 'Auf Anhieb, stark.' : 'Gut gemacht.'}</>; tone = 'good'; break
-    case 'revealing': text = 'Lösung wird gezeigt…'; break
-    case 'revealed': text = <><strong>So geht die Lösung.</strong> Schau sie dir in Ruhe an.</>; break
+    case 'wrong': text = <><strong>{t('Nicht ganz.')}</strong> {t('Versuch es nochmal.')}</>; tone = 'bad'; break
+    case 'failed': text = <><strong>{t('Falsch.')}</strong> {t('Richtig wäre der markierte Zug gewesen.')}</>; tone = 'bad'; break
+    case 'solved': text = <><strong>{t('Gelöst!')}</strong> {stats.current.mistakes === 0 && !stats.current.hinted ? t('Auf Anhieb, stark.') : t('Gut gemacht.')}</>; tone = 'good'; break
+    case 'revealing': text = t('Lösung wird gezeigt…'); break
+    case 'revealed': text = <><strong>{t('So geht die Lösung.')}</strong> {t('Schau sie dir in Ruhe an.')}</>; break
   }
 
   const over = status === 'solved' || status === 'failed' || status === 'revealed'
@@ -209,8 +210,8 @@ export default function PuzzlePlayer({ puzzle, stopOnMistake = false, tools = tr
       </div>
       {over ? footer : tools && (
         <div className="puzzle-tools">
-          <button className="btn secondary small" onClick={hint} disabled={!(status === 'play' || status === 'wrong') || hintLevel >= 2}><Icon name="bulb" /> Tipp</button>
-          <button className="btn secondary small" onClick={reveal} disabled={!(status === 'play' || status === 'wrong')}><Icon name="eye" /> Lösung</button>
+          <button className="btn secondary small" onClick={hint} disabled={!(status === 'play' || status === 'wrong') || hintLevel >= 2}><Icon name="bulb" /> {t('Tipp')}</button>
+          <button className="btn secondary small" onClick={reveal} disabled={!(status === 'play' || status === 'wrong')}><Icon name="eye" /> {t('Lösung')}</button>
         </div>
       )}
     </div>

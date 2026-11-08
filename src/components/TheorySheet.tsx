@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import type { ReactNode } from 'react'
 import { useBack } from '../lib/back'
 import './TheorySheet.css'
@@ -10,7 +11,7 @@ export interface TheoryBlock {
 }
 
 // A scrollable sheet with theory: title, short intro and sections of text or lists.
-export default function TheorySheet({ title, subtitle, intro, blocks, button = 'Weiter', onClose }: {
+export default function TheorySheet({ title, subtitle, intro, blocks, button = t('Weiter'), onClose }: {
   title: string
   subtitle?: string
   intro?: string

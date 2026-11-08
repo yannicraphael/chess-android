@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import Icon from '../components/Icon'
 import { useEffect, useRef, useState } from 'react'
 import { recordDaily } from '../lib/progress'
@@ -83,16 +84,16 @@ export default function PuzzleSprint({ level, onFinish }: { level: GameLevel; on
     <div className="minigame">
       <div className="mg-hud">
         <div className="mg-stat">{Array.from({ length: LIVES }, (_, k) => <span key={k} className={'life' + (k < lives ? '' : ' lost')}><Icon name="heart" fill /></span>)}</div>
-        <div className="mg-target small">{score}<small>gelöst</small></div>
+        <div className="mg-target small">{score}<small>{t('gelöst')}</small></div>
         <div className={'mg-stat' + (left <= 10 && started ? ' hurry' : '')}><Icon name="clock" />{Math.floor(left / 60)}:{String(left % 60).padStart(2, '0')}</div>
       </div>
       {puzzle
         ? <PuzzlePlayer key={run} puzzle={puzzle} stopOnMistake tools={false} onDone={onDone} />
         : (
           <div className="mg-start static">
-            <h2>Taktik-Sprint</h2>
-            <p>{Math.round(seconds / 60)} Minuten Zeit, {LIVES} Leben. Jede gelöste Aufgabe wird etwas schwerer.</p>
-            <button className="btn primary big" onClick={begin} disabled={!list}>{list ? 'Los geht’s' : 'Lädt…'}</button>
+            <h2>{t('Taktik-Sprint')}</h2>
+            <p>{t('{min} Minuten Zeit, {lives} Leben. Jede gelöste Aufgabe wird etwas schwerer.', { min: Math.round(seconds / 60), lives: LIVES })}</p>
+            <button className="btn primary big" onClick={begin} disabled={!list}>{list ? t('Los geht’s') : t('Lädt…')}</button>
           </div>
         )}
     </div>

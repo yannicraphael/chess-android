@@ -1,9 +1,10 @@
+import { L, t } from '../i18n'
 import Icon from '../components/Icon'
 import { Chess, type Color, type Move } from 'chess.js'
 import { useEffect, useMemo, useState } from 'react'
 import Board from '../components/Board'
 import { analyze, archive, performance, updateGame, type PosEval } from '../lib/archive'
-import { de, evalText, uciToSan } from '../lib/chessText'
+import { notate, evalText, uciToSan } from '../lib/chessText'
 import { explainMistake } from '../lib/explain'
 import { playSound } from '../lib/sound'
 import { useBack } from '../lib/back'
@@ -11,13 +12,22 @@ import './ReviewScreen.css'
 
 type Grade = 'best' | 'good' | 'inaccuracy' | 'mistake' | 'blunder'
 
-const GRADES: Record<Grade, { label: string; icon: string; color: string }> = {
+const GRADES: Record<Grade, { label: string; icon: string; color: string }> = L({
   best: { label: 'Bester Zug', icon: '★', color: '#5fb85a' },
   good: { label: 'Gut', icon: '✓', color: '#8fbf6a' },
   inaccuracy: { label: 'Ungenauigkeit', icon: '?!', color: '#e8c33a' },
   mistake: { label: 'Fehler', icon: '?', color: '#e88a2e' },
   blunder: { label: 'Patzer', icon: '??', color: '#e0453a' },
-}
+})
+
+// "1.e4 ist ein Fehler.": the rest of the sentence after the move
+const GRADE_TEXT: Record<Grade, string> = L({
+  best: 'ist der beste Zug.',
+  good: 'ist gut.',
+  inaccuracy: 'ist eine Ungenauigkeit.',
+  mistake: 'ist ein Fehler.',
+  blunder: 'ist ein Patzer.',
+})
 
 const winPct = (cp: number) => 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * cp)) - 1)
 const clip = (cp: number) => Math.max(-1000, Math.min(1000, cp))
@@ -131,24 +141,24 @@ export default function ReviewScreen({ history, playerColor, opponent, gameId, p
   return (
     <div className="review-screen">
       <header className="game-header">
-        <button className="icon-btn" onClick={onClose} aria-label="Zurück"><Icon name="back" /></button>
-        <div className="game-title">Partieanalyse</div>
-        {pgn ? <button className="icon-btn" onClick={copyPgn} aria-label="PGN kopieren">{copied ? <Icon name="check" /> : <span className="pgn-btn">PGN</span>}</button> : <span style={{ width: 44 }} />}
+        <button className="icon-btn" onClick={onClose} aria-label={t('Zurück')}><Icon name="back" /></button>
+        <div className="game-title">{t('Partieanalyse')}</div>
+        {pgn ? <button className="icon-btn" onClick={copyPgn} aria-label={t('PGN kopieren')}>{copied ? <Icon name="check" /> : <span className="pgn-btn">PGN</span>}</button> : <span style={{ width: 44 }} />}
       </header>
 
       {!done ? (
         <div className="review-progress">
-          <div>Die Engine analysiert deine Partie… {Math.round((progressN / fens.length) * 100)}%</div>
+          <div>{t('Die Engine analysiert deine Partie… {n}%', { n: Math.round((progressN / fens.length) * 100) })}</div>
           <div className="bar"><div style={{ width: `${(progressN / fens.length) * 100}%` }} /></div>
         </div>
       ) : (
         <div className="review-summary">
           <div className="acc">
-            <div><span className="acc-val">{summary.me}</span><span className="acc-label">Du</span></div>
-            <div className="acc-mid">Genauigkeit<br /><small>(Schätzung)</small></div>
+            <div><span className="acc-val">{summary.me}</span><span className="acc-label">{t('Du')}</span></div>
+            <div className="acc-mid">{t('Genauigkeit')}<br /><small>{t('(Schätzung)')}</small></div>
             <div><span className="acc-val bot">{summary.bot}</span><span className="acc-label">{opponent}</span></div>
           </div>
-          {summary.perf && <div className="perf-line">Deine Leistung in dieser Partie: <strong>ca. {summary.perf}</strong> Elo</div>}
+          {summary.perf && <div className="perf-line">{t('Deine Leistung in dieser Partie:')} <strong>{t('ca. {n}', { n: summary.perf })}</strong> Elo</div>}
           <div className="grade-row">
             {(Object.keys(GRADES) as Grade[]).map((g) => (
               <div key={g} className="grade-chip" style={{ color: GRADES[g].color }}>
@@ -173,7 +183,7 @@ export default function ReviewScreen({ history, playerColor, opponent, gameId, p
       </svg>
 
       <div className="review-board">
-        <div className="eval-bar" aria-label="Bewertung">
+        <div className="eval-bar" aria-label={t('Bewertung')}>
           <div className={'eval-fill ' + playerColor} style={{ height: `${barPct}%` }} />
         </div>
         <div className="review-board-inner">
@@ -182,15 +192,15 @@ export default function ReviewScreen({ history, playerColor, opponent, gameId, p
       </div>
 
       <div className="review-explain">
-        {ply === 0 && <span>Startstellung. Tippe auf ›, um Zug für Zug durchzugehen.</span>}
-        {ply > 0 && !current && <span>{Math.ceil(ply / 2)}. {de(history[ply - 1].san)}</span>}
+        {ply === 0 && <span>{t('Startstellung. Tippe auf ›, um Zug für Zug durchzugehen.')}</span>}
+        {ply > 0 && !current && <span>{Math.ceil(ply / 2)}. {notate(history[ply - 1].san)}</span>}
         {current && (
           <>
             <span className="grade-badge" style={{ background: GRADES[current.grade].color }}>{GRADES[current.grade].icon}</span>
             <span>
-              <strong>{Math.ceil(ply / 2)}{current.move.color === 'w' ? '.' : '…'} {de(current.move.san)}</strong> ist {current.grade === 'best' ? 'der beste Zug' : GRADES[current.grade].label === 'Gut' ? 'gut' : `ein${current.grade === 'inaccuracy' ? 'e' : ''} ${GRADES[current.grade].label}`}.
-              {current.grade !== 'best' && current.best && !why && <> Besser war <strong>{uciToSan(fens[ply - 1], current.best)}</strong> (blauer Pfeil).</>}
-              {why && <span className="why"><strong>Warum?</strong> {why}</span>}
+              <strong>{Math.ceil(ply / 2)}{current.move.color === 'w' ? '.' : '…'} {notate(current.move.san)}</strong> {GRADE_TEXT[current.grade]}
+              {current.grade !== 'best' && current.best && !why && <> {t('Besser war')} <strong>{uciToSan(fens[ply - 1], current.best)}</strong> {t('(blauer Pfeil).')}</>}
+              {why && <span className="why"><strong>{t('Warum?')}</strong> {why}</span>}
             </span>
           </>
         )}
@@ -199,20 +209,20 @@ export default function ReviewScreen({ history, playerColor, opponent, gameId, p
 
       {done && keyMoments.length > 0 && (
         <div className="key-moments">
-          <span className="km-label">Deine Fehler:</span>
+          <span className="km-label">{t('Deine Fehler:')}</span>
           {keyMoments.map((k) => (
             <button key={k.ply} className={'km' + (k.ply === ply ? ' active' : '')} style={{ borderColor: GRADES[k.grade].color }} onClick={() => go(k.ply)}>
-              {Math.ceil(k.ply / 2)}. {de(k.move.san)} <span style={{ color: GRADES[k.grade].color }}>{GRADES[k.grade].icon}</span>
+              {Math.ceil(k.ply / 2)}. {notate(k.move.san)} <span style={{ color: GRADES[k.grade].color }}>{GRADES[k.grade].icon}</span>
             </button>
           ))}
         </div>
       )}
 
       <nav className="game-actions">
-        <button onClick={() => go(0)}><span>⏮</span>Anfang</button>
-        <button onClick={() => go(ply - 1)} disabled={ply === 0}><span>‹</span>Zurück</button>
-        <button onClick={() => go(ply + 1)} disabled={ply === fens.length - 1}><span>›</span>Weiter</button>
-        <button onClick={() => go(fens.length - 1)}><span>⏭</span>Ende</button>
+        <button onClick={() => go(0)}><span>⏮</span>{t('Anfang')}</button>
+        <button onClick={() => go(ply - 1)} disabled={ply === 0}><span>‹</span>{t('Zurück')}</button>
+        <button onClick={() => go(ply + 1)} disabled={ply === fens.length - 1}><span>›</span>{t('Weiter')}</button>
+        <button onClick={() => go(fens.length - 1)}><span>⏭</span>{t('Ende')}</button>
       </nav>
     </div>
   )

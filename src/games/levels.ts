@@ -1,3 +1,4 @@
+import { L, t } from '../i18n'
 import { ENDGAMES, endgameLevelId } from '../data/endgames'
 import { LESSONS, lessonLevelId } from '../data/lessons'
 import { OPENINGS, OPENING_LEVELS, openingLevelId } from '../data/openings'
@@ -25,7 +26,7 @@ export interface MiniGame {
   levels: GameLevel[]
 }
 
-export const MINI_GAMES: MiniGame[] = [
+export const MINI_GAMES: MiniGame[] = L<MiniGame[]>([
   {
     id: 'coords',
     kind: 'coords',
@@ -80,9 +81,9 @@ export const MINI_GAMES: MiniGame[] = [
       { id: 'mate1-3', n: 3, name: 'Versteckte Matts', description: 'Schwerere Stellungen, 60 Sekunden', stars: [3, 6, 10], seconds: 60 },
     ],
   },
-]
+])
 
-export const SPRINT: MiniGame = {
+export const SPRINT: MiniGame = L<MiniGame>({
   id: 'sprint',
   kind: 'sprint',
   title: 'Taktik-Sprint',
@@ -95,7 +96,7 @@ export const SPRINT: MiniGame = {
     { id: 'sprint-3', n: 3, name: 'Turnier', description: 'Ab Wertung 1100, 5 Minuten', stars: [5, 10, 15], start: 1100, seconds: 300 },
     { id: 'sprint-4', n: 4, name: 'Meister', description: 'Ab Wertung 1400, 5 Minuten', stars: [4, 8, 12], start: 1400, seconds: 300 },
   ],
-}
+})
 
 // one mini-game per tactical motif, three difficulty levels each (score = puzzles solved on the first try)
 export const MOTIF_GAMES: MiniGame[] = MOTIFS.map((m) => ({
@@ -106,7 +107,7 @@ export const MOTIF_GAMES: MiniGame[] = MOTIFS.map((m) => ({
   teaser: m.tip,
   skill: m.tip,
   levels: MOTIF_LEVEL_NAMES.map((name, i) => ({
-    id: `motif-${m.theme}-${i + 1}`, n: i + 1, name, description: `${MOTIF_SET_SIZE} Aufgaben`,
+    id: `motif-${m.theme}-${i + 1}`, n: i + 1, name, description: t('{n} Aufgaben', { n: MOTIF_SET_SIZE }),
     stars: [3, 4, 5] as [number, number, number], theme: m.theme,
   })),
 }))

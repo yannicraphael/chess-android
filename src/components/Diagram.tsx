@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import { Chess, type Color } from 'chess.js'
 import { useEffect, useMemo, useRef } from 'react'
 import type { Arrow, SquarePair } from './Board'
@@ -129,7 +130,7 @@ export default function Diagram({ fen, moves, orientation, arrows, caption, smal
   }, [pos, orientation, arrowKey])
   return (
     <figure className={'diagram' + (small ? ' small' : '')}>
-      <div className="diagram-board"><canvas ref={ref} className="diagram-canvas" role="img" aria-label={caption ?? 'Stellung'} /></div>
+      <div className="diagram-board"><canvas ref={ref} className="diagram-canvas" role="img" aria-label={caption ?? t('Stellung')} /></div>
       {caption && <figcaption>{caption}</figcaption>}
     </figure>
   )

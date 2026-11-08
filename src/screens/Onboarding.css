@@ -21,3 +21,6 @@
 .ob-tour-icon { width: 42px; height: 42px; border-radius: 12px; background: var(--card-2); display: grid; place-items: center; flex-shrink: 0; color: var(--accent); }
 .ob-tour-icon .icon { width: 24px; height: 24px; }
 .onboarding .name-input { flex: none; }
+.ob-langs { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.ob-lang { border: 1px solid var(--line, #5554); background: var(--card); color: var(--text); border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 14px; cursor: pointer; }
+.ob-lang.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 700; }

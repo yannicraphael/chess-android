@@ -1,5 +1,6 @@
 import { Chess, type Color, type Move, type PieceSymbol, type Square } from 'chess.js'
-import { de } from './chessText'
+import { notate } from './chessText'
+import { joinList, L, t } from '../i18n'
 
 // Explains in words why a move was a mistake: what the opponent can do now,
 // and what the better move would have achieved. Uses only the engine moves that the
@@ -9,13 +10,13 @@ export type Motif = 'matt' | 'haengend' | 'gabel' | 'verpasst' | 'sonstige'
 // priority when several apply
 const MOTIF_ORDER: Motif[] = ['matt', 'haengend', 'gabel', 'verpasst', 'sonstige']
 
-export const MOTIF_LABELS: Record<Motif, string> = {
+export const MOTIF_LABELS: Record<Motif, string> = L<Record<Motif, string>>({
   matt: 'Matt übersehen',
   haengend: 'Figur hängen gelassen',
   gabel: 'Gabel übersehen',
   verpasst: 'Gewinn verpasst',
   sonstige: 'Stellungsfehler',
-}
+})
 
 // older mistakes were saved without a motif: derive it from the stored explanation
 export function motifFromText(why: string | undefined): Motif {
@@ -28,10 +29,10 @@ export function motifFromText(why: string | undefined): Motif {
 }
 
 const VAL: Record<PieceSymbol, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 100 }
-const NOM: Record<PieceSymbol, string> = { p: 'dein Bauer', n: 'dein Springer', b: 'dein Läufer', r: 'dein Turm', q: 'deine Dame', k: 'dein König' }
-const ACC: Record<PieceSymbol, string> = { p: 'deinen Bauern', n: 'deinen Springer', b: 'deinen Läufer', r: 'deinen Turm', q: 'deine Dame', k: 'deinen König' }
-const THEIR: Record<PieceSymbol, string> = { p: 'einen Bauern', n: 'einen Springer', b: 'einen Läufer', r: 'einen Turm', q: 'die Dame', k: 'den König' }
-const SUBJ: Record<PieceSymbol, string> = { p: 'Der Bauer', n: 'Der Springer', b: 'Der Läufer', r: 'Der Turm', q: 'Die Dame', k: 'Der König' }
+const NOM: Record<PieceSymbol, string> = L({ p: 'dein Bauer', n: 'dein Springer', b: 'dein Läufer', r: 'dein Turm', q: 'deine Dame', k: 'dein König' })
+const ACC: Record<PieceSymbol, string> = L({ p: 'deinen Bauern', n: 'deinen Springer', b: 'deinen Läufer', r: 'deinen Turm', q: 'deine Dame', k: 'deinen König' })
+const THEIR: Record<PieceSymbol, string> = L({ p: 'einen Bauern', n: 'einen Springer', b: 'einen Läufer', r: 'einen Turm', q: 'die Dame', k: 'den König' })
+const SUBJ: Record<PieceSymbol, string> = L({ p: 'Der Bauer', n: 'Der Springer', b: 'Der Läufer', r: 'Der Turm', q: 'Die Dame', k: 'Der König' })
 
 function play(fen: string, uci: string | null): { chess: Chess; move: Move } | null {
   if (!uci) return null
@@ -44,9 +45,6 @@ function play(fen: string, uci: string | null): { chess: Chess; move: Move } | n
   }
 }
 
-function joinDe(list: string[]) {
-  return list.length <= 1 ? list.join('') : `${list.slice(0, -1).join(', ')} und ${list[list.length - 1]}`
-}
 
 // pieces of `victim` attacked by the piece on `sq` that are worth taking (undefended or worth more)
 function forkTargets(chess: Chess, sq: Square, victim: Color, withPawns = false) {
@@ -67,27 +65,35 @@ function replyText(fenAfter: string, reply: string | null, me: Color, playedTo: 
   const r = play(fenAfter, reply)
   if (!r) return null
   const { chess, move } = r
-  const san = de(move.san)
-  if (chess.isCheckmate()) return [`Danach setzt der Gegner mit ${san} sofort matt.`, 'matt']
+  const san = notate(move.san)
+  if (chess.isCheckmate()) return [t('Danach setzt der Gegner mit {san} sofort matt.', { san }), 'matt']
   if (move.captured) {
     const cap = move.captured!
     const free = !chess.isAttacked(move.to, me)
     if (free || VAL[cap] > VAL[move.piece]) {
-      const what = free ? `${san} schlägt ${ACC[cap]}, ${cap === 'q' ? 'die' : 'der'} nicht gedeckt war.` : `${san} gewinnt ${ACC[cap]} für ${THEIR[move.piece]}.`
-      if (move.to === playedTo) return [`${NOM[cap].replace(/^\w/, (c) => c.toUpperCase())} steht auf ${move.to} schlecht: ${what}`, 'haengend']
-      if (attackedBefore.has(move.to)) return [`Du hast übersehen, dass ${NOM[cap]} auf ${move.to} angegriffen war: ${what}`, 'haengend']
+      const what = free
+        ? (cap === 'q' ? t('{san} schlägt {piece}, die nicht gedeckt war.', { san, piece: ACC[cap] }) : t('{san} schlägt {piece}, der nicht gedeckt war.', { san, piece: ACC[cap] }))
+        : t('{san} gewinnt {piece} für {other}.', { san, piece: ACC[cap], other: THEIR[move.piece] })
+      if (move.to === playedTo) return [t('{piece} steht auf {square} schlecht: {what}', { piece: NOM[cap].replace(/^./, (c) => c.toUpperCase()), square: move.to, what }), 'haengend']
+      if (attackedBefore.has(move.to)) return [t('Du hast übersehen, dass {piece} auf {square} angegriffen war: {what}', { piece: NOM[cap], square: move.to, what }), 'haengend']
       return [what, 'haengend']
     }
   }
   const targets = forkTargets(chess, move.to, me, true)
   if (targets.length >= 2 && targets.some((t) => VAL[t.type] >= 3)) {
-    const kind = move.piece === 'n' || move.piece === 'p' ? 'eine Gabel' : 'ein Doppelangriff'
-    return [`${san} ist ${kind}: ${SUBJ[move.piece]} greift ${joinDe(targets.sort((a, b) => VAL[b.type] - VAL[a.type]).map((t) => ACC[t.type]))} gleichzeitig an.`, 'gabel']
+    const list = joinList(targets.sort((a, b) => VAL[b.type] - VAL[a.type]).map((x) => ACC[x.type]))
+    const p = { san, piece: SUBJ[move.piece], targets: list }
+    return [move.piece === 'n' || move.piece === 'p'
+      ? t('{san} ist eine Gabel: {piece} greift {targets} gleichzeitig an.', p)
+      : t('{san} ist ein Doppelangriff: {piece} greift {targets} gleichzeitig an.', p), 'gabel']
   }
   const hit = targets.find((t) => t.type !== 'k' && VAL[t.type] >= 3)
-  if (hit) return [`${san} greift ${ACC[hit.type]} auf ${hit.square} an, ${hit.type === 'q' ? 'die' : 'der'} nicht genug gedeckt ist.`, 'haengend']
-  if (chess.inCheck()) return [`Der Gegner antwortet mit ${san} und Schach und gewinnt danach Material oder Zeit.`, 'sonstige']
-  return [`Der Gegner antwortet stark mit ${san}.`, 'sonstige']
+  if (hit) {
+    const p = { san, piece: ACC[hit.type], square: hit.square }
+    return [hit.type === 'q' ? t('{san} greift {piece} auf {square} an, die nicht genug gedeckt ist.', p) : t('{san} greift {piece} auf {square} an, der nicht genug gedeckt ist.', p), 'haengend']
+  }
+  if (chess.inCheck()) return [t('Der Gegner antwortet mit {san} und Schach und gewinnt danach Material oder Zeit.', { san }), 'sonstige']
+  return [t('Der Gegner antwortet stark mit {san}.', { san }), 'sonstige']
 }
 
 // what the better move would have achieved
@@ -95,18 +101,18 @@ function bestText(fenBefore: string, best: string | null, mateBefore: number | n
   const b = play(fenBefore, best)
   if (!b) return null
   const { chess, move } = b
-  const san = de(move.san)
-  if (chess.isCheckmate()) return [`${san} wäre sofort Matt gewesen.`, 'matt']
-  if (mateBefore !== null && mateBefore > 0) return [`Mit ${san} hattest du ein Matt in ${mateBefore} Zügen.`, 'matt']
+  const san = notate(move.san)
+  if (chess.isCheckmate()) return [t('{san} wäre sofort Matt gewesen.', { san }), 'matt']
+  if (mateBefore !== null && mateBefore > 0) return [t('Mit {san} hattest du ein Matt in {n} Zügen.', { san, n: mateBefore }), 'matt']
   if (move.captured) {
     const free = !chess.isAttacked(move.to, chess.turn())
-    if (free) return [`Mit ${san} hättest du ${THEIR[move.captured]} gratis schlagen können.`, 'verpasst']
-    if (VAL[move.captured] > VAL[move.piece]) return [`Mit ${san} hättest du Material gewonnen.`, 'verpasst']
+    if (free) return [t('Mit {san} hättest du {piece} gratis schlagen können.', { san, piece: THEIR[move.captured] }), 'verpasst']
+    if (VAL[move.captured] > VAL[move.piece]) return [t('Mit {san} hättest du Material gewonnen.', { san }), 'verpasst']
   }
   const targets = forkTargets(chess, move.to, chess.turn())
-  if (targets.length >= 2) return [`${san} wäre eine Gabel gewesen.`, 'verpasst']
-  if (move.promotion) return [`Mit ${san} hättest du eine neue Dame bekommen.`, 'verpasst']
-  return [`Besser war ${san}.`, 'sonstige']
+  if (targets.length >= 2) return [t('{san} wäre eine Gabel gewesen.', { san }), 'verpasst']
+  if (move.promotion) return [t('Mit {san} hättest du eine neue Dame bekommen.', { san }), 'verpasst']
+  return [t('Besser war {san}.', { san }), 'sonstige']
 }
 
 export interface ExplainInput {
@@ -140,7 +146,8 @@ export function analyzeMistake(x: ExplainInput): { text: string; motif: Motif } 
   const mateBefore = x.mateBefore !== null ? x.mateBefore * sign : null
   if (mateAfter !== null && mateAfter < 0 && Math.abs(mateAfter) > 1) {
     const r = play(fenAfter, x.reply)
-    parts.push([`Jetzt hat der Gegner ein Matt in ${Math.abs(mateAfter)} Zügen${r ? `, beginnend mit ${de(r.move.san)}` : ''}.`, 'matt'])
+    const n = Math.abs(mateAfter)
+    parts.push([r ? t('Jetzt hat der Gegner ein Matt in {n} Zügen, beginnend mit {san}.', { n, san: notate(r.move.san) }) : t('Jetzt hat der Gegner ein Matt in {n} Zügen.', { n }), 'matt'])
   } else {
     const t = replyText(fenAfter, x.reply, me, p.move.to, attackedBefore)
     if (t) parts.push(t)
