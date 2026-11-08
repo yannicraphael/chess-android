@@ -1,3 +1,12 @@
+/* chess figurines for the notation (♔♕♖♗♘), Noto Sans Symbols 2 (OFL), only these characters */
+@font-face {
+  font-family: 'Figurines';
+  src: url('./assets/figurines.ttf') format('truetype');
+  unicode-range: U+2654-265F;
+  size-adjust: 118%;
+  font-display: block;
+}
+
 /* Three switchable app designs (Profil > Design). Every screen uses only these tokens. */
 :root, html[data-design='klubhaus'] {
   --bg: #1b1612; --card: #271f19; --card-2: #342920; --line: #43362b;
@@ -8,7 +17,7 @@
   --bad-bg: #3a201b; --bad-fg: #f2b8a8; --bad-line: #d06a50;
   --warn-bg: #3a2e1c; --warn-line: #c99a52;
   --gold: #e9c46a; --gold-bg: #3e3218; --fire: #f0a05a; --fire-bg: #40261a;
-  --font: 'Manrope Variable', system-ui, sans-serif; --font-display: 'Fraunces Variable', Georgia, serif;
+  --font: 'Figurines', 'Manrope Variable', system-ui, sans-serif; --font-display: 'Figurines', 'Fraunces Variable', Georgia, serif;
   --radius: 14px; --radius-sm: 10px; --btn-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.22);
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45); --board-shadow: 0 6px 18px rgba(0, 0, 0, 0.45); --board-radius: 6px;
   color-scheme: dark;
@@ -22,7 +31,7 @@ html[data-design='arena'] {
   --bad-bg: #3a1e22; --bad-fg: #f5b0b6; --bad-line: #e5566a;
   --warn-bg: #352d17; --warn-line: #e0a930;
   --gold: #ffcf33; --gold-bg: #3d3412; --fire: #ff9a4a; --fire-bg: #40240f;
-  --font: 'Plus Jakarta Sans Variable', system-ui, sans-serif; --font-display: 'Plus Jakarta Sans Variable', system-ui, sans-serif;
+  --font: 'Figurines', 'Plus Jakarta Sans Variable', system-ui, sans-serif; --font-display: 'Figurines', 'Plus Jakarta Sans Variable', system-ui, sans-serif;
   --radius: 18px; --radius-sm: 12px; --btn-shadow: 0 4px 0 var(--accent-dark);
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.5); --board-shadow: none; --board-radius: 8px;
   color-scheme: dark;
@@ -36,7 +45,7 @@ html[data-design='studio'] {
   --bad-bg: #f8e3df; --bad-fg: #8a2b1c; --bad-line: #c4553d;
   --warn-bg: #fbf0d9; --warn-line: #c08a22;
   --gold: #b8860b; --gold-bg: #f6ecd0; --fire: #c4621d; --fire-bg: #f8e4d4;
-  --font: 'Sora Variable', system-ui, sans-serif; --font-display: 'Sora Variable', system-ui, sans-serif;
+  --font: 'Figurines', 'Sora Variable', system-ui, sans-serif; --font-display: 'Figurines', 'Sora Variable', system-ui, sans-serif;
   --radius: 12px; --radius-sm: 8px; --btn-shadow: none;
   --shadow: 0 10px 30px rgba(40, 30, 20, 0.18); --board-shadow: 0 4px 14px rgba(40, 30, 20, 0.25); --board-radius: 4px;
   color-scheme: light;

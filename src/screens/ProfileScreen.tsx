@@ -1,4 +1,4 @@
-import { LANGS, locale, t } from '../i18n'
+import { LANGS, lang, locale, t } from '../i18n'
 import { useRef, useState } from 'react'
 import { BOTS, findBot } from '../bots'
 import { archive, fensOf, type ArchivedGame } from '../lib/archive'
@@ -9,10 +9,13 @@ import Icon, { type IconName } from '../components/Icon'
 import { BADGES } from '../lib/badges'
 import { levelInfo, levelTitle, progress } from '../lib/progress'
 import { puzzleStats } from '../lib/puzzles'
-import { BLACK_COLORS, BOARD_THEMES, DESIGNS, PIECE_SETS, WHITE_COLORS, boardUrl, pieceUrl, settings, switchLanguage, type Settings } from '../lib/settings'
+import { BLACK_COLORS, BOARD_THEMES, DESIGNS, PIECE_SETS, WHITE_COLORS, boardUrl, pieceUrl, settings, switchLanguage, switchNotation, type Settings } from '../lib/settings'
 import { playSound, preloadSounds, SOUND_SETS } from '../lib/sound'
 import { makeBackup, restoreBackup, shareOrDownload } from '../lib/backup'
 import './Training.css'
+
+// notation example with the piece letters of the app language
+const letterSample = { de: 'Sf3 Dxd8', en: 'Nf3 Qxd8', es: 'Cf3 Dxd8' }[lang]
 
 function Toggle({ k, label, sub }: { k: keyof Settings; label: string; sub?: string }) {
   const s = settings.use()
@@ -241,7 +244,17 @@ export default function ProfileScreen({ onPlaying }: { onPlaying: (playing: bool
           </button>
         ))}
       </div>
-      <p className="setting-note">{t('Texte, Lektionen, Theorie und die Figurenbuchstaben in der Notation wechseln mit. Die App startet dafür kurz neu.')}</p>
+      <p className="setting-note">{t('Texte, Lektionen und Theorie wechseln mit. Die App startet dafür kurz neu.')}</p>
+
+      <div className="section-title">{t('Notation')}</div>
+      <div className="lang-grid notation-grid" role="radiogroup" aria-label={t('Notation')}>
+        {([['figures', t('Figuren'), '♘\uFE0Ef3 ♕\uFE0Exd8'], ['letters', t('Buchstaben'), letterSample]] as const).map(([id, name, sample]) => (
+          <button key={id} role="radio" aria-checked={s.notation === id} className={'design-card lang-card' + (s.notation === id ? ' active' : '')} onClick={() => switchNotation(id)}>
+            <strong>{name}</strong>
+            <small className="notation-sample">{sample}</small>
+          </button>
+        ))}
+      </div>
 
       <div className="section-title">{t('Dein Name')}</div>
       <div className="settings-list">

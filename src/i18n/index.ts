@@ -42,18 +42,41 @@ const LETTERS: Record<Lang, Record<string, string>> = {
 }
 const FROM_DE: Record<string, string> = { K: 'K', D: 'Q', T: 'R', L: 'B', S: 'N' }
 
-// English SAN (Nf3, exd8=Q) in the notation of the app language
+// Figurine notation (♘f3) is the same in every language. U+FE0E keeps the symbols as text
+// instead of coloured emoji on phones.
+const FIG: Record<string, string> = { K: '♔\uFE0E', Q: '♕\uFE0E', R: '♖\uFE0E', B: '♗\uFE0E', N: '♘\uFE0E' }
+export type Notation = 'figures' | 'letters'
+function readNotation(): Notation {
+  try {
+    const s = JSON.parse(localStorage.getItem('settings') ?? 'null')
+    if (s && s.notation === 'letters') return 'letters'
+  } catch { /* ignore */ }
+  return 'figures'
+}
+export let notation: Notation = readNotation()
+// for scripts and tests
+export function setNotation(n: Notation) { notation = n }
+
+// English SAN (Nf3, exd8=Q) in the notation of the app
 export function fmtSan(san: string, l: Lang = lang) {
-  return san.replace(/[KQRBN]/g, (c) => LETTERS[l][c])
+  return san.replace(/[KQRBN]/g, (c) => (notation === 'figures' ? FIG[c] : LETTERS[l][c]))
 }
 
-// Moves written in German notation inside a text (Sf3, Lxc6, Tad1, e8D, =D) -> app language.
+// Moves written in German notation inside a text (Sf3, Lxc6, Tad1, e8D, =D) -> app notation.
 // Only touches tokens that are moves: a piece letter right before a square, or a promotion.
-export function deNotation(text: string, l: Lang = lang) {
-  if (l === 'de') return text
+// Translations may also use the letters of their own language; with figurines those become
+// symbols too.
+function swapLetters(text: string, from: Record<string, string>, to: (en: string) => string) {
+  const cls = '[' + Object.keys(from).join('') + ']'
   return text
-    .replace(/(^|[^A-Za-zÀ-ÿ])([KDTLS])([a-h]?[1-8]?x?[a-h][1-8])/g, (_, pre, p, rest) => pre + LETTERS[l][FROM_DE[p]] + rest)
-    .replace(/([a-h][18])(=?)([DTLS])(?![A-Za-zÀ-ÿ])/g, (_, sq, eq, p) => sq + eq + LETTERS[l][FROM_DE[p]])
+    .replace(new RegExp('(^|[^A-Za-zÀ-ÿ])(' + cls + ')([a-h]?[1-8]?x?[a-h][1-8])', 'g'), (_, pre, p, rest) => pre + to(from[p]) + rest)
+    .replace(new RegExp('([a-h][18])(=?)(' + cls + ')(?![A-Za-zÀ-ÿ])', 'g'), (_, sq, eq, p) => sq + eq + to(from[p]))
+}
+const invert = (m: Record<string, string>) => Object.fromEntries(Object.entries(m).map(([en, x]) => [x, en]))
+export function deNotation(text: string, l: Lang = lang) {
+  let s = l === 'de' ? text : swapLetters(text, FROM_DE, (en) => LETTERS[l][en])
+  if (notation === 'figures') s = swapLetters(s, invert(LETTERS[l]), (en) => FIG[en])
+  return s
 }
 
 // ---------- dictionary ----------
@@ -78,7 +101,8 @@ export function setLanguage(l: Lang, d: Record<string, string> = {}) {
 }
 
 function lookup(s: string): string {
-  if (lang === 'de' || !s) return s
+  if (!s) return s
+  if (lang === 'de') return notation === 'figures' ? deNotation(s) : s
   const v = dict[s]
   if (v !== undefined) return deNotation(v)
   missing.add(s)
@@ -106,7 +130,7 @@ const SKIP = new Set(['id', 'fen', 'moves', 'after', 'move', 'answer', 'accept',
 const SKIP_STRING = new Set(['kind', 'goal'])
 
 export function L<T>(data: T): T {
-  if (lang === 'de') return data
+  if (lang === 'de' && notation === 'letters') return data
   const walk = (v: unknown, key?: string): unknown => {
     if (key && (SKIP.has(key) || (SKIP_STRING.has(key) && typeof v === 'string'))) return v
     if (typeof v === 'string') return lookup(v)

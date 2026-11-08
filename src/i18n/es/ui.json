@@ -149,7 +149,6 @@
  "Noch keiner. Dein erster Sieg landet hier.": "Ninguno todavía. Tu primera victoria aparecerá aquí.",
  "Noch keine Partien. Jede beendete Partie wird hier gespeichert, mit Analyse und PGN zum Kopieren.": "Aún no hay partidas. Cada partida terminada se guarda aquí, con análisis y PGN para copiar.",
  "Sprache": "Idioma",
- "Texte, Lektionen, Theorie und die Figurenbuchstaben in der Notation wechseln mit. Die App startet dafür kurz neu.": "Cambian los textos, las lecciones, la teoría y las letras de las piezas en la notación. Para ello la app se reinicia un momento.",
  "Dein Name": "Tu nombre",
  "Name": "Nombre",
  "Design": "Diseño",
@@ -268,5 +267,8 @@
  "Im Verein oder mit Wertungszahl.": "En un club o con Elo.",
  "87 Gegner von 100 bis 2850 und eine Engine bis 3200. Gewertete Partien ohne Hilfen bestimmen deine Wertung.": "87 rivales de 100 a 2850 y un motor hasta 3200. Las partidas puntuadas sin ayudas determinan tu puntuación.",
  "Aufgaben passend zu deiner Stärke, Motive mit Leveln und deine eigenen Fehler als Übungen.": "Ejercicios adaptados a tu nivel, motivos con niveles y tus propios errores como práctica.",
- "Kurze Lektionen, 15 Eröffnungen zum Üben und die wichtigsten Endspiele gegen die Engine.": "Lecciones cortas, 15 aperturas para practicar y los finales más importantes contra el motor."
+ "Kurze Lektionen, 15 Eröffnungen zum Üben und die wichtigsten Endspiele gegen die Engine.": "Lecciones cortas, 15 aperturas para practicar y los finales más importantes contra el motor.",
+ "Texte, Lektionen und Theorie wechseln mit. Die App startet dafür kurz neu.": "Cambian los textos, las lecciones y la teoría. La app se reinicia un momento.",
+ "Notation": "Notación",
+ "Buchstaben": "Letras"
 }

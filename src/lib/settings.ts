@@ -1,5 +1,5 @@
 import { createStore } from './store'
-import { deviceLang, L, type Lang } from '../i18n'
+import { deviceLang, L, type Lang, type Notation } from '../i18n'
 
 export const PIECE_SETS = L([
   { id: 'staunty', name: 'Staunty' },
@@ -82,6 +82,7 @@ export interface Settings {
   name: string
   onboarded: boolean
   lang: Lang
+  notation: Notation // figurines (♘f3) or the piece letters of the language
 }
 
 export const settings = createStore<Settings>('settings', {
@@ -100,6 +101,7 @@ export const settings = createStore<Settings>('settings', {
   name: '',
   onboarded: false,
   lang: deviceLang(),
+  notation: 'figures',
 })
 
 export function boardTheme(id: string) {
@@ -130,5 +132,12 @@ settings.subscribe(applyPieceColors)
 export function switchLanguage(l: Lang) {
   if (l === settings.get().lang) return
   settings.set({ lang: l })
+  window.location.reload()
+}
+
+// Like the language, the notation is read at start-up (texts are built when modules load).
+export function switchNotation(n: Notation) {
+  if (n === settings.get().notation) return
+  settings.set({ notation: n })
   window.location.reload()
 }

@@ -149,7 +149,6 @@
  "Noch keiner. Dein erster Sieg landet hier.": "None yet. Your first win will show up here.",
  "Noch keine Partien. Jede beendete Partie wird hier gespeichert, mit Analyse und PGN zum Kopieren.": "No games yet. Every finished game is saved here, with analysis and PGN to copy.",
  "Sprache": "Language",
- "Texte, Lektionen, Theorie und die Figurenbuchstaben in der Notation wechseln mit. Die App startet dafür kurz neu.": "Texts, lessons, theory and the piece letters in the notation all change with it. The app restarts briefly for this.",
  "Dein Name": "Your name",
  "Name": "Name",
  "Design": "Design",
@@ -268,5 +267,8 @@
  "Im Verein oder mit Wertungszahl.": "At a club or with a rating.",
  "87 Gegner von 100 bis 2850 und eine Engine bis 3200. Gewertete Partien ohne Hilfen bestimmen deine Wertung.": "87 opponents from 100 to 2850 and an engine up to 3200. Rated games without help determine your rating.",
  "Aufgaben passend zu deiner Stärke, Motive mit Leveln und deine eigenen Fehler als Übungen.": "Puzzles matched to your strength, motifs with levels and your own mistakes as exercises.",
- "Kurze Lektionen, 15 Eröffnungen zum Üben und die wichtigsten Endspiele gegen die Engine.": "Short lessons, 15 openings to practise and the most important endgames against the engine."
+ "Kurze Lektionen, 15 Eröffnungen zum Üben und die wichtigsten Endspiele gegen die Engine.": "Short lessons, 15 openings to practise and the most important endgames against the engine.",
+ "Texte, Lektionen und Theorie wechseln mit. Die App startet dafür kurz neu.": "Texts, lessons and theory switch too. The app restarts briefly.",
+ "Notation": "Notation",
+ "Buchstaben": "Letters"
 }
