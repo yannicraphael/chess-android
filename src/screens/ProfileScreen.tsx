@@ -1,4 +1,5 @@
 import { LANGS, lang, locale, t } from '../i18n'
+import Scene from '../components/Scene'
 import { useRef, useState } from 'react'
 import { BOTS, findBot } from '../bots'
 import { archive, fensOf, type ArchivedGame } from '../lib/archive'
@@ -9,7 +10,7 @@ import Icon, { type IconName } from '../components/Icon'
 import { BADGES } from '../lib/badges'
 import { levelInfo, levelTitle, progress } from '../lib/progress'
 import { puzzleStats } from '../lib/puzzles'
-import { BLACK_COLORS, BOARD_THEMES, DESIGNS, PIECE_SETS, WHITE_COLORS, boardUrl, pieceUrl, settings, switchLanguage, switchNotation, type Settings } from '../lib/settings'
+import { BLACK_COLORS, BOARD_THEMES, DESIGNS, PIECE_SETS, designOf, WHITE_COLORS, boardUrl, pieceUrl, settings, switchLanguage, switchNotation, type Settings } from '../lib/settings'
 import { playSound, preloadSounds, SOUND_SETS } from '../lib/sound'
 import { makeBackup, restoreBackup, shareOrDownload } from '../lib/backup'
 import './Training.css'
@@ -151,7 +152,8 @@ export default function ProfileScreen({ onPlaying }: { onPlaying: (playing: bool
 
   return (
     <div className="profile-screen">
-      <h1 className="screen-title">{t('Profil')}</h1>
+      <Scene className="scene-head" region={9} offset={-180} />
+      <div className="scene-sheet"><h1 className="screen-title">{t('Profil')}</h1></div>
 
       <div className="segmented three" role="tablist">
         {PROFILE_TABS.map((x) => (
@@ -263,10 +265,10 @@ export default function ProfileScreen({ onPlaying }: { onPlaying: (playing: bool
         </div>
       </div>
 
-      <div className="section-title">{t('Design')}</div>
+      <div className="section-title">{t('Stimmung')}</div>
       <div className="design-grid">
         {DESIGNS.map((d) => (
-          <button key={d.id} className={'design-card' + (s.design === d.id ? ' active' : '')} onClick={() => settings.set({ design: d.id })}>
+          <button key={d.id} className={'design-card' + (designOf(s.design) === d.id ? ' active' : '')} onClick={() => settings.set({ design: d.id })}>
             <span className="design-preview" style={{ background: d.swatch[0] }}><i style={{ background: d.swatch[1] }} /></span>
             <strong>{d.name}</strong>
             <small>{d.desc}</small>

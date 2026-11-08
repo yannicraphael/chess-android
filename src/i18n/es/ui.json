@@ -270,5 +270,22 @@
  "Kurze Lektionen, 15 Eröffnungen zum Üben und die wichtigsten Endspiele gegen die Engine.": "Lecciones cortas, 15 aperturas para practicar y los finales más importantes contra el motor.",
  "Texte, Lektionen und Theorie wechseln mit. Die App startet dafür kurz neu.": "Cambian los textos, las lecciones y la teoría. La app se reinicia un momento.",
  "Notation": "Notación",
- "Buchstaben": "Letras"
+ "Buchstaben": "Letras",
+ "Reise": "Viaje",
+ "Station {n} von {total}": "Estación {n} de {total}",
+ "{n} von {total} Aufgaben": "{n} de {total} problemas",
+ "Weiterwandern": "Seguir caminando",
+ "{station} starten": "Empezar {station}",
+ "Karte": "Mapa",
+ "Pass: {region}": "Paso: {region}",
+ "Station {n}": "Estación {n}",
+ "Noch im Nebel": "Aún en la niebla",
+ "Region {n} von {total}": "Región {n} de {total}",
+ "Karte von Schachland mit 100 Stationen": "Mapa de Ajedrelandia con 100 estaciones",
+ "Aufgabe {n} von {total}": "Problema {n} de {total}",
+ "{station} geschafft!": "¡{station} superada!",
+ "{n} von {total} auf Anhieb gelöst": "{n} de {total} resueltos a la primera",
+ "Für den Weiterweg brauchst du {n} richtige.": "Necesitas {n} aciertos para seguir.",
+ "Zur Karte": "Al mapa",
+ "Stimmung": "Ambiente"
 }

@@ -1,4 +1,4 @@
-.play-screen { max-width: 640px; margin: 0 auto; padding: 8px 16px 0; display: flex; flex-direction: column; gap: 12px; min-height: 100%; }
+.play-screen { max-width: 640px; margin: 0 auto; padding: 0 16px 0; display: flex; flex-direction: column; gap: 12px; min-height: 100%; }
 
 .resume-card { display: flex; align-items: center; gap: 12px; background: var(--card); border: 1px solid var(--accent); border-radius: var(--radius); padding: 10px 12px; color: var(--text); text-align: left; cursor: pointer; font: inherit; }
 .resume-text { display: flex; flex-direction: column; flex: 1; font-size: 14px; }
@@ -78,3 +78,5 @@
 .play-summary small { color: var(--accent); font-size: 13px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .play-footer { background: linear-gradient(to bottom, transparent, var(--bg) 18px); padding-top: 22px; }
 #play-options { scroll-margin-top: 12px; }
+
+.play-screen .scene-sheet { margin-top: -36px; }

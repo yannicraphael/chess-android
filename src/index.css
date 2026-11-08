@@ -7,48 +7,44 @@
   font-display: block;
 }
 
-/* Three switchable app designs (Profil > Design). Every screen uses only these tokens. */
-:root, html[data-design='klubhaus'] {
-  --bg: #1b1612; --card: #271f19; --card-2: #342920; --line: #43362b;
-  --text: #f1e6d6; --muted: #a79580;
-  --accent: #c99a52; --accent-dark: #8e6a32; --on-accent: #1b1612;
-  --tabbar: #15110e; --header: #1b1612;
-  --good-bg: #24301c; --good-fg: #c4e3a4; --good-line: #7fae55;
-  --bad-bg: #3a201b; --bad-fg: #f2b8a8; --bad-line: #d06a50;
-  --warn-bg: #3a2e1c; --warn-line: #c99a52;
-  --gold: #e9c46a; --gold-bg: #3e3218; --fire: #f0a05a; --fire-bg: #40261a;
-  --font: 'Figurines', 'Manrope Variable', system-ui, sans-serif; --font-display: 'Figurines', 'Fraunces Variable', Georgia, serif;
-  --radius: 14px; --radius-sm: 10px; --btn-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.22);
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.45); --board-shadow: 0 6px 18px rgba(0, 0, 0, 0.45); --board-radius: 6px;
-  color-scheme: dark;
-}
-html[data-design='arena'] {
-  --bg: #121417; --card: #1c2025; --card-2: #272c33; --line: #323942;
-  --text: #f2f4f6; --muted: #8b939c;
-  --accent: #7cc04b; --accent-dark: #4f8a28; --on-accent: #0f1a08;
-  --tabbar: #0d0f12; --header: #121417;
-  --good-bg: #1e3318; --good-fg: #b8e986; --good-line: #7cc04b;
-  --bad-bg: #3a1e22; --bad-fg: #f5b0b6; --bad-line: #e5566a;
-  --warn-bg: #352d17; --warn-line: #e0a930;
-  --gold: #ffcf33; --gold-bg: #3d3412; --fire: #ff9a4a; --fire-bg: #40240f;
-  --font: 'Figurines', 'Plus Jakarta Sans Variable', system-ui, sans-serif; --font-display: 'Figurines', 'Plus Jakarta Sans Variable', system-ui, sans-serif;
-  --radius: 18px; --radius-sm: 12px; --btn-shadow: 0 4px 0 var(--accent-dark);
-  --shadow: 0 10px 30px rgba(0, 0, 0, 0.5); --board-shadow: none; --board-radius: 8px;
-  color-scheme: dark;
-}
-html[data-design='studio'] {
-  --bg: #efece7; --card: #ffffff; --card-2: #e8e4dd; --line: #dcd6cc;
-  --text: #1d2420; --muted: #6a716c;
-  --accent: #1f5a43; --accent-dark: #143d2d; --on-accent: #f4efe6;
-  --tabbar: #ffffff; --header: #efece7;
+/* Three switchable moods of the painted world (Profil > Stimmung). Every screen uses only these tokens. */
+:root, html[data-design='sommer'] {
+  --bg: #f6f2ea; --card: #ffffff; --card-2: #eee8dc; --line: #e6dfd1;
+  --text: #20242c; --muted: #676c75;
+  --accent: #2e7a4e; --accent-dark: #1f5a38; --on-accent: #ffffff; --accent-soft: #e2efe6;
+  --tabbar: #ffffff; --header: #f6f2ea;
   --good-bg: #e2f0e4; --good-fg: #1f5a33; --good-line: #3c8a55;
   --bad-bg: #f8e3df; --bad-fg: #8a2b1c; --bad-line: #c4553d;
   --warn-bg: #fbf0d9; --warn-line: #c08a22;
-  --gold: #b8860b; --gold-bg: #f6ecd0; --fire: #c4621d; --fire-bg: #f8e4d4;
-  --font: 'Figurines', 'Sora Variable', system-ui, sans-serif; --font-display: 'Figurines', 'Sora Variable', system-ui, sans-serif;
-  --radius: 12px; --radius-sm: 8px; --btn-shadow: none;
-  --shadow: 0 10px 30px rgba(40, 30, 20, 0.18); --board-shadow: 0 4px 14px rgba(40, 30, 20, 0.25); --board-radius: 4px;
+  --gold: #d9952a; --gold-bg: #fbefd6; --fire: #d0632a; --fire-bg: #fbe6d8;
+  --font: 'Figurines', 'Nunito Sans Variable', system-ui, sans-serif; --font-display: 'Figurines', 'Fraunces Variable', Georgia, serif;
+  --radius: 16px; --radius-sm: 12px; --btn-shadow: none;
+  --shadow: 0 10px 30px rgba(40, 30, 20, 0.16); --card-shadow: 0 1px 2px rgba(40, 30, 20, 0.06);
+  --board-shadow: 0 6px 16px rgba(50, 25, 5, 0.25); --board-radius: 6px;
   color-scheme: light;
+}
+html[data-design='herbst'] {
+  --bg: #f5ede2; --card: #fffaf3; --card-2: #efe2d1; --line: #e8d9c6;
+  --text: #2c241d; --muted: #75685b;
+  --accent: #b4532a; --accent-dark: #8a3c1c; --on-accent: #ffffff; --accent-soft: #f6e2d6;
+  --tabbar: #fffaf3; --header: #f5ede2;
+  --good-bg: #ebefd9; --good-fg: #4b5a1f; --good-line: #7d8f3a;
+  --bad-bg: #f7dfd8; --bad-fg: #8a2b1c; --bad-line: #c4553d;
+  --warn-bg: #f9ecd2; --warn-line: #c08a22;
+  --gold: #c58a1b; --gold-bg: #f8ead0; --fire: #b4532a; --fire-bg: #f6e2d6;
+  color-scheme: light;
+}
+html[data-design='nacht'] {
+  --bg: #12151d; --card: #1d2230; --card-2: #272d3c; --line: #2d3445;
+  --text: #eef0f5; --muted: #98a0b2;
+  --accent: #e3ab45; --accent-dark: #b9852a; --on-accent: #1b1608; --accent-soft: #2f2a1f;
+  --tabbar: #1a1e29; --header: #12151d;
+  --good-bg: #1d2e22; --good-fg: #b8e3b8; --good-line: #5fae6f;
+  --bad-bg: #3a2024; --bad-fg: #f5b0b6; --bad-line: #e0626e;
+  --warn-bg: #352d17; --warn-line: #e0a930;
+  --gold: #e3ab45; --gold-bg: #352b16; --fire: #f0a05a; --fire-bg: #3a2616;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.5); --card-shadow: none; --board-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
 }
 :root {
   font-family: var(--font);

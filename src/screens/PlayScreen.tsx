@@ -8,6 +8,7 @@ import { progress } from '../lib/progress'
 import { rating } from '../lib/rating'
 import { settings } from '../lib/settings'
 import { TIME_CONTROLS } from '../lib/timeControl'
+import Scene from '../components/Scene'
 import './PlayScreen.css'
 
 type ColorChoice = 'w' | 'random' | 'b'
@@ -49,7 +50,8 @@ export default function PlayScreen({ onStart, resumeBot, onResume }: {
 
   return (
     <div className="play-screen">
-      <div className="play-title-row">
+      <Scene className="scene-head" region={0} offset={-262} />
+      <div className="scene-sheet play-title-row">
         <h1 className="screen-title">{t('Spielen')}</h1>
         <span className="my-rating" title={t('Deine Wertung aus Partien gegen die Bots')}><Icon name="trophy" /> {r.rating}{r.games < 10 ? '?' : ''}</span>
       </div>

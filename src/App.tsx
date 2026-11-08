@@ -11,6 +11,7 @@ import Icon, { type IconName } from './components/Icon'
 import PuzzleRated from './games/PuzzleRated'
 import GameScreen, { type SavedGame } from './screens/GameScreen'
 import HomeScreen from './screens/HomeScreen'
+import { JourneyMap, JourneyStation } from './screens/JourneyScreen'
 import PlayScreen, { type GameMode } from './screens/PlayScreen'
 import { Chess } from 'chess.js'
 import { addGame } from './lib/archive'
@@ -51,7 +52,7 @@ function loadSaved(): SavedGame | null {
 }
 
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
-  { id: 'home', label: t('Heute'), icon: 'home' },
+  { id: 'home', label: t('Reise'), icon: 'map' },
   { id: 'play', label: t('Spielen'), icon: 'play' },
   { id: 'tactics', label: t('Taktik'), icon: 'puzzle' },
   { id: 'learn', label: t('Lernen'), icon: 'learn' },
@@ -65,6 +66,7 @@ export default function App() {
   const [gameKey, setGameKey] = useState(0)
   const [fullscreen, setFullscreen] = useState(false) // a training game hides the tab bar
   const [daily, setDaily] = useState<string | null>(null)
+  const [trip, setTrip] = useState<'map' | number | null>(null) // journey map or a station
   const st = settings.use()
   useEffect(() => { groupStoredMistakes(); resumeAnalysis() }, [])
   // back button on the main tabs: go to the home tab first, then leave the app
@@ -118,6 +120,17 @@ export default function App() {
     )
   }
 
+  if (trip !== null) {
+    return (
+      <div className="app">
+        {trip === 'map'
+          ? <JourneyMap onClose={() => setTrip(null)} onOpen={setTrip} />
+          : <JourneyStation key={trip} station={trip} onClose={() => setTrip(null)} onMap={() => setTrip('map')} onNext={setTrip} />}
+        <BadgeToast />
+      </div>
+    )
+  }
+
   if (daily) {
     return <div className="app"><PuzzleRated firstId={daily} onExit={() => setDaily(null)} /><BadgeToast /></div>
   }
@@ -127,7 +140,7 @@ export default function App() {
       <BadgeToast />
       <main className="tab-content" key={tab}>
         <div className="screen-enter">
-          {tab === 'home' && <HomeScreen resumeBot={resumable} onResume={() => setInGame(true)} onDaily={setDaily} onTab={setTab} />}
+          {tab === 'home' && <HomeScreen resumeBot={resumable} onResume={() => setInGame(true)} onDaily={setDaily} onTab={setTab} onJourney={setTrip} />}
           {tab === 'play' && <PlayScreen onStart={start} resumeBot={resumable} onResume={() => setInGame(true)} />}
           {tab === 'tactics' && <TrainingScreen section="tactics" onPlaying={setFullscreen} />}
           {tab === 'learn' && <TrainingScreen section="learn" onPlaying={setFullscreen} />}

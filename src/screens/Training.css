@@ -1,4 +1,5 @@
-.training-screen, .profile-screen { max-width: 640px; margin: 0 auto; padding: 8px 16px 20px; }
+.training-screen, .profile-screen { max-width: 640px; margin: 0 auto; padding: 0 16px 20px; }
+.training-screen .screen-title, .profile-screen .screen-title { margin-top: 0; }
 .screen-sub { color: var(--muted); margin: 4px 0 14px; font-size: 14px; }
 
 .mg-card { background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 14px; }

@@ -21,6 +21,7 @@ import { useBack } from '../lib/back'
 import { addXp, progress, recordScore, recordWeekly, type XpGain } from '../lib/progress'
 import { puzzleStats } from '../lib/puzzles'
 import { playSound } from '../lib/sound'
+import Scene from '../components/Scene'
 import './Training.css'
 import { EndgameTheoryPage, MotifTheoryPage, OpeningTheoryPage } from './TheoryPage'
 
@@ -199,8 +200,11 @@ export default function TrainingScreen({ section, onPlaying }: { section: 'tacti
   return (
     <div className="training-screen">
       {theoryFor && <TheoryFor game={theoryFor.game} onClose={() => setTheoryFor(null)} onPractice={() => { const g = theoryFor.game; setTheoryFor(null); open(g, g.levels[0]) }} />}
-      <h1 className="screen-title">{section === 'tactics' ? t('Taktik') : t('Lernen')}</h1>
-      <p className="screen-sub">{section === 'tactics' ? t('Muster erkennen, rechnen, gewinnen. Jede Lösung bringt XP.') : t('Wissen, Eröffnungen und Endspiele. Jeder Stern bringt XP.')}</p>
+      <Scene className="scene-head" region={section === 'tactics' ? 4 : 3} offset={section === 'tactics' ? -250 : -262} />
+      <div className="scene-sheet">
+        <h1 className="screen-title">{section === 'tactics' ? t('Taktik') : t('Lernen')}</h1>
+        <p className="screen-sub">{section === 'tactics' ? t('Muster erkennen, rechnen, gewinnen. Jede Lösung bringt XP.') : t('Wissen, Eröffnungen und Endspiele. Jeder Stern bringt XP.')}</p>
+      </div>
 
       {section === 'tactics' && <>
       <button className="mg-card rated-card" onClick={() => { setRated(true); onPlaying(true) }}>

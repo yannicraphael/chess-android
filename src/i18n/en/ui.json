@@ -270,5 +270,22 @@
  "Kurze Lektionen, 15 Eröffnungen zum Üben und die wichtigsten Endspiele gegen die Engine.": "Short lessons, 15 openings to practise and the most important endgames against the engine.",
  "Texte, Lektionen und Theorie wechseln mit. Die App startet dafür kurz neu.": "Texts, lessons and theory switch too. The app restarts briefly.",
  "Notation": "Notation",
- "Buchstaben": "Letters"
+ "Buchstaben": "Letters",
+ "Reise": "Journey",
+ "Station {n} von {total}": "Station {n} of {total}",
+ "{n} von {total} Aufgaben": "{n} of {total} puzzles",
+ "Weiterwandern": "Keep walking",
+ "{station} starten": "Start {station}",
+ "Karte": "Map",
+ "Pass: {region}": "Pass: {region}",
+ "Station {n}": "Station {n}",
+ "Noch im Nebel": "Still in the fog",
+ "Region {n} von {total}": "Region {n} of {total}",
+ "Karte von Schachland mit 100 Stationen": "Map of Chessland with 100 stations",
+ "Aufgabe {n} von {total}": "Puzzle {n} of {total}",
+ "{station} geschafft!": "{station} done!",
+ "{n} von {total} auf Anhieb gelöst": "{n} of {total} solved on the first try",
+ "Für den Weiterweg brauchst du {n} richtige.": "You need {n} correct to move on.",
+ "Zur Karte": "To the map",
+ "Stimmung": "Mood"
 }

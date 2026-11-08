@@ -58,12 +58,17 @@ export const BOARD_THEMES: BoardTheme[] = L<BoardTheme[]>([
 
 export const boardUrl = (id: string) => `${import.meta.env.BASE_URL}boards/${id}.jpg`
 
-// App designs that can be switched in the profile
+// Moods of the painted Schachland world, switchable in the profile (colours and landscapes)
 export const DESIGNS = L([
-  { id: 'klubhaus', name: 'Klubhaus', desc: 'Nussbaum und Messing', swatch: ['#1b1612', '#c99a52'] },
-  { id: 'arena', name: 'Arena', desc: 'Graphit und Grün', swatch: ['#121417', '#7cc04b'] },
-  { id: 'studio', name: 'Studio', desc: 'Hell mit Tannengrün', swatch: ['#efece7', '#1f5a43'] },
+  { id: 'sommer', name: 'Sommer', desc: 'Hell mit Waldgrün', swatch: ['#f6f2ea', '#2e7a4e'] },
+  { id: 'herbst', name: 'Herbst', desc: 'Warmes Holz und Rost', swatch: ['#f5ede2', '#b4532a'] },
+  { id: 'nacht', name: 'Nacht', desc: 'Dunkel mit Laternengold', swatch: ['#12151d', '#e3ab45'] },
 ] as const)
+// designs of earlier versions
+const OLD_DESIGNS: Record<string, DesignId> = { klubhaus: 'nacht', arena: 'nacht', studio: 'sommer' }
+export function designOf(id: string): DesignId {
+  return DESIGNS.some((d) => d.id === id) ? (id as DesignId) : OLD_DESIGNS[id] ?? 'sommer'
+}
 export type DesignId = (typeof DESIGNS)[number]['id']
 
 export interface Settings {
@@ -90,7 +95,7 @@ export const settings = createStore<Settings>('settings', {
   whiteColor: 'elfenbein',
   blackColor: 'ebenholz',
   boardTheme: 'ahorn-nuss',
-  design: 'klubhaus',
+  design: 'sommer',
   sound: true,
   soundSet: 'turnier',
   vibration: true,
@@ -117,9 +122,9 @@ export function pieceUrl(color: 'w' | 'b', type: string, set = settings.get().pi
 function applyPieceColors() {
   const s = settings.get()
   const root = document.documentElement
-  root.dataset.design = DESIGNS.some((d) => d.id === s.design) ? s.design : 'klubhaus'
+  root.dataset.design = designOf(s.design)
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', getComputedStyle(root).getPropertyValue('--bg').trim() || '#1b1612')
+  if (meta) meta.setAttribute('content', getComputedStyle(root).getPropertyValue('--bg').trim() || '#f6f2ea')
   const w = WHITE_COLORS.find((c) => c.id === s.whiteColor) ?? WHITE_COLORS[0]
   const b = BLACK_COLORS.find((c) => c.id === s.blackColor) ?? BLACK_COLORS[0]
   document.documentElement.style.setProperty('--w-filter', w.filter)

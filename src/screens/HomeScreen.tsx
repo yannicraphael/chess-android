@@ -10,6 +10,10 @@ import Icon from '../components/Icon'
 import { dailyInfo, weeklyInfo, levelInfo, levelTitle, progress } from '../lib/progress'
 import { dailyPuzzle, loadPuzzles, puzzleStats, themeLabels, type Puzzle } from '../lib/puzzles'
 import type { Tab } from '../App'
+import Scene from '../components/Scene'
+import { REGIONS, STATIONS, STATION_SIZE, currentStation, journey, regionOf, totalStars } from '../lib/journey'
+import { stationName } from './JourneyScreen'
+import './Journey.css'
 import './HomeScreen.css'
 
 function greeting() {
@@ -57,9 +61,14 @@ function Ring({ value, total }: { value: number; total: number }) {
   )
 }
 
-export default function HomeScreen({ resumeBot, onResume, onDaily, onTab }: {
+export default function HomeScreen({ resumeBot, onResume, onDaily, onTab, onJourney }: {
   resumeBot: Bot | null; onResume: () => void; onDaily: (id: string) => void; onTab: (t: Tab) => void
+  onJourney: (target: 'map' | number) => void
 }) {
+  const j = journey.use()
+  const cur = currentStation(j)
+  const reg = REGIONS[regionOf(cur)]
+  const runRes = j.run && j.run.station === cur ? j.run.results : []
   const p = progress.use()
   const ps = puzzleStats.use()
   const d = dailyInfo(p)
@@ -84,13 +93,29 @@ export default function HomeScreen({ resumeBot, onResume, onDaily, onTab }: {
 
   return (
     <div className="home">
-      <header className="home-head">
-        <div>
-          <div className="home-date">{date}</div>
-          <h1 className="home-hello">{greeting()}{st.name ? `, ${st.name}` : ''}</h1>
+      <Scene className="home-hero" region={regionOf(cur)} offset={-170} pawn>
+        <header className="home-head">
+          <div>
+            <div className="home-date">{date}</div>
+            <h1 className="home-hello">{greeting()}{st.name ? `, ${st.name}` : ''}</h1>
+          </div>
+          <div className="home-streak" title={t('Tage in Folge')}><Icon name="flame" />{p.streak}</div>
+        </header>
+      </Scene>
+
+      <div className="scene-sheet home-sheet">
+      <section className="jcard">
+        <div className="over jcard-over">{t('Station {n} von {total}', { n: cur + 1, total: STATIONS })} · {reg.motif}</div>
+        <h2>{reg.name}</h2>
+        <div className="js-seg" aria-hidden="true">
+          {Array.from({ length: STATION_SIZE }, (_, k) => <i key={k} className={k < runRes.length ? (runRes[k] ? 'ok' : 'no') : k === runRes.length ? 'now' : ''} />)}
         </div>
-        <div className="home-streak" title={t('Tage in Folge')}><Icon name="flame" />{p.streak}</div>
-      </header>
+        <div className="jcard-meta"><span>{t('{n} von {total} Aufgaben', { n: runRes.length, total: STATION_SIZE })}</span><span>{totalStars(j)} / {STATIONS * 3} ★</span></div>
+        <div className="jcard-buttons">
+          <button className="btn primary" onClick={() => onJourney(cur)}>{runRes.length ? t('Weiterwandern') : t('{station} starten', { station: stationName(cur) })}</button>
+          <button className="btn secondary" onClick={() => onJourney('map')} aria-label={t('Karte')}><Icon name="map" /> {t('Karte')}</button>
+        </div>
+      </section>
 
       <section className="card goal">
         <Ring value={d.done} total={d.total} />
@@ -151,6 +176,7 @@ export default function HomeScreen({ resumeBot, onResume, onDaily, onTab }: {
         <button className="quick-btn" onClick={() => onTab('tactics')}><Icon name="target" /><span>{openMistakes > 0 ? t('Eigene Fehler ({n})', { n: openMistakes }) : t('Taktik-Sprint')}</span></button>
         <button className="quick-btn" onClick={() => openLearn('eroeffnungen')}><Icon name="book" /><span>{t('Eröffnungen')}</span></button>
         <button className="quick-btn" onClick={() => openLearn('endspiele')}><Icon name="crown" /><span>{t('Endspiele')}</span></button>
+      </div>
       </div>
     </div>
   )
