@@ -1,3 +1,4 @@
+import { L, t } from '../i18n'
 import { createStore } from './store'
 
 export interface BotRecord { played: number; wins: number; draws: number; losses: number }
@@ -57,9 +58,9 @@ export function weekKey(d = new Date()) {
 export function weeklyInfo(p: Progress = progress.get()) {
   const w = p.weekly?.week === weekKey() ? p.weekly : { week: weekKey(), puzzles: 0, games: 0, learn: 0 }
   const goals = [
-    { id: 'games', label: 'Partien', done: Math.min(w.games, WEEKLY_GOAL.games), total: WEEKLY_GOAL.games },
-    { id: 'puzzles', label: 'Aufgaben', done: Math.min(w.puzzles, WEEKLY_GOAL.puzzles), total: WEEKLY_GOAL.puzzles },
-    { id: 'learn', label: 'Lerneinheiten', done: Math.min(w.learn, WEEKLY_GOAL.learn), total: WEEKLY_GOAL.learn },
+    { id: 'games', label: t('Partien'), done: Math.min(w.games, WEEKLY_GOAL.games), total: WEEKLY_GOAL.games },
+    { id: 'puzzles', label: t('Aufgaben'), done: Math.min(w.puzzles, WEEKLY_GOAL.puzzles), total: WEEKLY_GOAL.puzzles },
+    { id: 'learn', label: t('Lerneinheiten'), done: Math.min(w.learn, WEEKLY_GOAL.learn), total: WEEKLY_GOAL.learn },
   ]
   return { ...w, goals, complete: goals.every((g) => g.done >= g.total) }
 }
@@ -85,11 +86,11 @@ export function levelInfo(xp: number) {
   return { level, into: xp - start, needed: end - start }
 }
 
-export const LEVEL_TITLES = [
+export const LEVEL_TITLES = L([
   'Bauer', 'Bauer', 'Springer-Lehrling', 'Springer-Lehrling', 'Läufer-Lehrling', 'Läufer',
   'Turm-Taktiker', 'Turm-Taktiker', 'Damen-Stratege', 'Damen-Stratege', 'Vereinsmeister',
   'Bezirksmeister', 'Landesmeister', 'Meisterkandidat', 'Großmeister',
-]
+])
 export const levelTitle = (level: number) => LEVEL_TITLES[Math.min(level, LEVEL_TITLES.length) - 1]
 
 function today() {

@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import Icon from '../components/Icon'
 import type { Color } from 'chess.js'
 import { useEffect, useRef, useState } from 'react'
@@ -71,8 +72,8 @@ export default function CoordsGame({ level, onFinish }: { level: GameLevel; onFi
       <Board fen={EMPTY} orientation={orientation} showCoords={level.n === 1} marks={flash} onSquareTap={tap} />
       {!running && timeLeft === DURATION && (
         <div className="mg-start">
-          <p>Ein Feld wird oben angezeigt. Tippe es so schnell wie möglich an.</p>
-          <button className="btn primary big" onClick={() => { setRunning(true); playSound('move') }}>Los geht's</button>
+          <p>{t('Ein Feld wird oben angezeigt. Tippe es so schnell wie möglich an.')}</p>
+          <button className="btn primary big" onClick={() => { setRunning(true); playSound('move') }}>{t('Los geht’s')}</button>
         </div>
       )}
     </div>

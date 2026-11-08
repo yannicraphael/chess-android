@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import { Chess, type Color, type Move, type Square } from 'chess.js'
 import { useEffect, useRef, useState } from 'react'
 import Board, { type Arrow, type SquarePair } from '../components/Board'
@@ -34,7 +35,7 @@ export default function EndgameTrainer({ endgame, onFinish }: { endgame: Endgame
   const [moves, setMoves] = useState(0)
   const [hintArrow, setHintArrow] = useState<Arrow | null>(null)
   const [hints, setHints] = useState(0)
-  const [message, setMessage] = useState<{ text: string; tone: '' | 'good' | 'bad' }>({ text: 'Du bist am Zug.', tone: '' })
+  const [message, setMessage] = useState<{ text: string; tone: '' | 'good' | 'bad' }>({ text: t('Du bist am Zug.'), tone: '' })
   const [showTip, setShowTip] = useState(false)
   const theory = ENDGAME_THEORY[endgame.id]
   const alive = useRef(true)
@@ -68,14 +69,15 @@ export default function EndgameTrainer({ endgame, onFinish }: { endgame: Endgame
   // checks after any move whether the exercise is decided by the rules of the game
   function decidedByRules(n: number): boolean {
     if (chess.isCheckmate()) {
-      if (chess.turn() === opp) win(`Matt in ${n} ${n === 1 ? 'Zug' : 'Zügen'}!`, n)
-      else lose('Du wurdest mattgesetzt.')
+      if (chess.turn() === opp) win(n === 1 ? t('Matt in 1 Zug!') : t('Matt in {n} Zügen!', { n }), n)
+      else lose(t('Du wurdest mattgesetzt.'))
       return true
     }
     if (chess.isDraw() || chess.isStalemate()) {
-      const why = chess.isStalemate() ? 'Patt' : chess.isInsufficientMaterial() ? 'zu wenig Material' : 'Remis'
-      if (endgame.goal === 'hold' || endgame.goal === 'stop') win(`Remis (${why}). Ziel erreicht!`, n)
-      else lose(`${why === 'Patt' ? 'Patt!' : 'Remis.'} Der Gewinn ist weg. Versuch es nochmal.`)
+      const stale = chess.isStalemate()
+      const why = stale ? t('Patt') : chess.isInsufficientMaterial() ? t('zu wenig Material') : t('Remis')
+      if (endgame.goal === 'hold' || endgame.goal === 'stop') win(t('Remis ({why}). Ziel erreicht!', { why }), n)
+      else lose(stale ? t('Patt! Der Gewinn ist weg. Versuch es nochmal.') : t('Remis. Der Gewinn ist weg. Versuch es nochmal.'))
       return true
     }
     return false
@@ -88,11 +90,11 @@ export default function EndgameTrainer({ endgame, onFinish }: { endgame: Endgame
     if (!alive.current || chess.fen() !== before) return
     const mine = -e.bestCp // evaluation from the player's point of view
     if ((endgame.goal === 'mate' || endgame.goal === 'promote') && mine < 150) {
-      lose('Jetzt ist die Stellung nur noch Remis. Schau dir den Tipp an und versuch es nochmal.')
+      lose(t('Jetzt ist die Stellung nur noch Remis. Schau dir den Tipp an und versuch es nochmal.'))
       return
     }
     if ((endgame.goal === 'hold' || endgame.goal === 'stop') && mine < -300) {
-      lose('Jetzt gewinnt der Gegner. Schau dir den Tipp an und versuch es nochmal.')
+      lose(t('Jetzt gewinnt der Gegner. Schau dir den Tipp an und versuch es nochmal.'))
       return
     }
     if (!e.best) return
@@ -104,14 +106,14 @@ export default function EndgameTrainer({ endgame, onFinish }: { endgame: Endgame
     setLast({ from: m.from, to: m.to })
     if (decidedByRules(n)) return
     if (m.promotion && (endgame.goal === 'hold' || endgame.goal === 'stop')) {
-      lose('Der Bauer ist durchgekommen.')
+      lose(t('Der Bauer ist durchgekommen.'))
       return
     }
-    if (endgame.goal === 'stop' && pawns(opp) === 0) { win('Bauer geschlagen. Ziel erreicht!', n); return }
-    if (endgame.goal === 'hold' && n >= (endgame.holdMoves ?? 15)) { win(`${n} Züge gehalten. Das ist Remis!`, n); return }
-    if (n >= endgame.maxMoves) { lose('Zu viele Züge. Versuch es nochmal schneller.'); return }
+    if (endgame.goal === 'stop' && pawns(opp) === 0) { win(t('Bauer geschlagen. Ziel erreicht!'), n); return }
+    if (endgame.goal === 'hold' && n >= (endgame.holdMoves ?? 15)) { win(t('{n} Züge gehalten. Das ist Remis!', { n }), n); return }
+    if (n >= endgame.maxMoves) { lose(t('Zu viele Züge. Versuch es nochmal schneller.')); return }
     setStatus('play')
-    setMessage({ text: 'Du bist am Zug.', tone: '' })
+    setMessage({ text: t('Du bist am Zug.'), tone: '' })
   }
 
   function onMove(from: string, to: string, promotion?: string) {
@@ -126,10 +128,10 @@ export default function EndgameTrainer({ endgame, onFinish }: { endgame: Endgame
     setHintArrow(null)
     if (decidedByRules(n)) return
     if (endgame.goal === 'promote' && m.promotion && !chess.isAttacked(m.to as Square, opp)) {
-      win(`Neue Dame nach ${n} Zügen!`, n)
+      win(n === 1 ? t('Neue Dame nach 1 Zug!') : t('Neue Dame nach {n} Zügen!', { n }), n)
       return
     }
-    if (endgame.goal === 'stop' && pawns(opp) === 0) { win('Bauer geschlagen. Ziel erreicht!', n); return }
+    if (endgame.goal === 'stop' && pawns(opp) === 0) { win(t('Bauer geschlagen. Ziel erreicht!'), n); return }
     void opponentMove(n)
   }
 
@@ -164,10 +166,10 @@ export default function EndgameTrainer({ endgame, onFinish }: { endgame: Endgame
     setMoves(0)
     setHintArrow(null)
     setStatus('play')
-    setMessage({ text: 'Du bist am Zug.', tone: '' })
+    setMessage({ text: t('Du bist am Zug.'), tone: '' })
   }
 
-  const counter = endgame.goal === 'hold' ? `${moves}/${endgame.holdMoves} Züge` : `${moves} ${moves === 1 ? 'Zug' : 'Züge'}`
+  const counter = endgame.goal === 'hold' ? t('{a}/{b} Züge', { a: moves, b: endgame.holdMoves }) : moves === 1 ? t('1 Zug') : t('{n} Züge', { n: moves })
 
   return (
     <div className="puzzle-player endgame-trainer">
@@ -178,25 +180,25 @@ export default function EndgameTrainer({ endgame, onFinish }: { endgame: Endgame
       <Board fen={fen} orientation={me} movableColor={status === 'play' ? me : null} lastMove={last} arrows={hintArrow ? [hintArrow] : []} onMove={onMove} />
       <div className={'puzzle-status ' + message.tone}>
         <span className={'turn-dot ' + me} />
-        <span className="puzzle-text">{status === 'thinking' ? 'Die Engine überlegt…' : message.text}</span>
+        <span className="puzzle-text">{status === 'thinking' ? t('Die Engine überlegt…') : message.text}</span>
       </div>
       <div className="puzzle-tools">
-        <button className="btn secondary small" onClick={() => setShowTip(true)}><Icon name="book" /> Theorie</button>
+        <button className="btn secondary small" onClick={() => setShowTip(true)}><Icon name="book" /> {t('Theorie')}</button>
         {status === 'lost'
-          ? <button className="btn primary small" onClick={restart}><Icon name="refresh" /> Nochmal</button>
-          : <button className="btn secondary small" onClick={hint} disabled={status !== 'play'}><Icon name="bulb" /> Tipp</button>}
+          ? <button className="btn primary small" onClick={restart}><Icon name="refresh" /> {t('Nochmal')}</button>
+          : <button className="btn secondary small" onClick={hint} disabled={status !== 'play'}><Icon name="bulb" /> {t('Tipp')}</button>}
       </div>
 
       {status === 'intro' && (
         <TheorySheet
           title={endgame.name}
           intro={endgame.task}
-          button="Los geht’s"
+          button={t('Los geht’s')}
           onClose={() => setStatus('play')}
           blocks={[
-            { title: 'Die Idee', text: theory?.idea ?? endgame.tip },
-            { title: 'Methode', text: 'Die Methode Schritt für Schritt mit Stellungsbild findest du jederzeit unter „Theorie“.' },
-            { title: 'Sterne', text: endgame.stars ? `3 Sterne: höchstens ${endgame.stars[0]} Züge · 2 Sterne: höchstens ${endgame.stars[1]} Züge. Jeder Tipp kostet einen Stern.` : '' },
+            { title: t('Die Idee'), text: theory?.idea ?? endgame.tip },
+            { title: t('Methode'), text: t('Die Methode Schritt für Schritt mit Stellungsbild findest du jederzeit unter „Theorie“.') },
+            { title: t('Sterne'), text: endgame.stars ? t('3 Sterne: höchstens {a} Züge · 2 Sterne: höchstens {b} Züge. Jeder Tipp kostet einen Stern.', { a: endgame.stars[0], b: endgame.stars[1] }) : '' },
           ]}
         />
       )}

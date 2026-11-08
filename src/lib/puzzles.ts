@@ -1,3 +1,4 @@
+import { L, t } from '../i18n'
 import { createStore } from './store'
 
 // Tactics puzzles from the Lichess puzzle database (CC0).
@@ -22,7 +23,7 @@ export function loadPuzzles(): Promise<Puzzle[]> {
   return cache
 }
 
-export const THEME_NAMES: Record<string, string> = {
+export const THEME_NAMES: Record<string, string> = L<Record<string, string>>({
   mateIn1: 'Matt in 1', mateIn2: 'Matt in 2', mateIn3: 'Matt in 3', mateIn4: 'Matt in 4', mate: 'Matt',
   hangingPiece: 'Hängende Figur', fork: 'Gabel', pin: 'Fesselung', skewer: 'Spieß',
   discoveredAttack: 'Abzugsangriff', doubleCheck: 'Doppelschach', backRankMate: 'Grundreihenmatt',
@@ -38,7 +39,7 @@ export const THEME_NAMES: Record<string, string> = {
   rookEndgame: 'Turmendspiel', pawnEndgame: 'Bauernendspiel', queenEndgame: 'Damenendspiel',
   bishopEndgame: 'Läuferendspiel', knightEndgame: 'Springerendspiel', queenRookEndgame: 'Dame-Turm-Endspiel',
   enPassant: 'En passant', castling: 'Rochade', underPromotion: 'Unterverwandlung',
-}
+})
 
 // themes worth showing to the player after a puzzle (skip length/advantage tags)
 export function themeLabels(p: Puzzle) {
@@ -103,7 +104,7 @@ export interface Motif {
   tip: string
 }
 
-export const MOTIFS: Motif[] = [
+export const MOTIFS: Motif[] = L<Motif[]>([
   { theme: 'mateIn1', name: 'Matt in 1', icon: 'wK', tip: 'Ein Zug, und der König ist matt.' },
   { theme: 'hangingPiece', name: 'Hängende Figur', icon: 'wP', tip: 'Schlage die ungedeckte Figur.' },
   { theme: 'backRankMate', name: 'Grundreihenmatt', icon: 'wR', tip: 'Der König ist hinter seinen Bauern gefangen.' },
@@ -113,9 +114,9 @@ export const MOTIFS: Motif[] = [
   { theme: 'discoveredAttack', name: 'Abzugsangriff', icon: 'wB', tip: 'Ziehe eine Figur weg und öffne die Linie dahinter.' },
   { theme: 'mateIn2', name: 'Matt in 2', icon: 'wK', tip: 'Zwei Züge bis zum Matt. Schach zuerst prüfen!' },
   { theme: 'sacrifice', name: 'Opfer', icon: 'wQ', tip: 'Gib Material her, um mehr zurückzubekommen.' },
-]
+])
 
-export const MOTIF_LEVEL_NAMES = ['Leicht', 'Mittel', 'Schwer']
+export const MOTIF_LEVEL_NAMES = [t('Leicht'), t('Mittel'), t('Schwer')]
 export const MOTIF_SET_SIZE = 5
 
 // Puzzles of a motif sorted by rating and split into three difficulty thirds (max. rating 2100)

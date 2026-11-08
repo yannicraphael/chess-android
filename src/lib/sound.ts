@@ -1,3 +1,4 @@
+import { L } from '../i18n'
 import { settings } from './settings'
 
 // Real recorded sounds (Kenney, CC0) from public/sounds, played via Web Audio
@@ -6,12 +7,12 @@ export type SoundName =
   | 'move' | 'capture' | 'check' | 'castle' | 'promote'
   | 'win' | 'lose' | 'draw' | 'correct' | 'wrong' | 'levelup' | 'tick' | 'warn' | 'start'
 
-export const SOUND_SETS = [
+export const SOUND_SETS = L([
   { id: 'turnier', name: 'Turnier', variants: 3 },
   { id: 'filz', name: 'Filz', variants: 3 },
   { id: 'hartholz', name: 'Hartholz', variants: 3 },
   { id: 'klack', name: 'Klack', variants: 1 },
-] as const
+] as const)
 
 function soundSet(id: string) {
   return SOUND_SETS.find((x) => x.id === id) ?? SOUND_SETS[0]

@@ -1,10 +1,11 @@
+import { quote, t, tk } from '../i18n'
 import Icon from '../components/Icon'
 import { Chess, type Color, type Move, type PieceSymbol } from 'chess.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Board, { type SquarePair } from '../components/Board'
 import { botLine, botMove, hintMove, type Bot, type ChatEvent } from '../bots'
 import { evaluate } from '../engine/stockfish'
-import { de, PIECE_ACC, VALUES, uciToSan } from '../lib/chessText'
+import { notate, PIECE_ACC, VALUES, uciToSan } from '../lib/chessText'
 import { pieceUrl, settings } from '../lib/settings'
 import { playSound } from '../lib/sound'
 import { addXp, progress, recordDaily, recordGame, type XpGain } from '../lib/progress'
@@ -45,12 +46,12 @@ interface CoachWarning {
 function detectResult(chess: Chess, playerColor: Color): GameResult | null {
   if (chess.isCheckmate()) {
     const playerWon = chess.turn() !== playerColor
-    return { title: playerWon ? 'Du hast gewonnen!' : 'Du hast verloren', reason: 'durch Schachmatt', outcome: playerWon ? 'win' : 'loss' }
+    return { title: playerWon ? tk('Du hast gewonnen!') : tk('Du hast verloren'), reason: tk('durch Schachmatt'), outcome: playerWon ? 'win' : 'loss' }
   }
-  if (chess.isStalemate()) return { title: 'Remis', reason: 'durch Patt', outcome: 'draw' }
-  if (chess.isInsufficientMaterial()) return { title: 'Remis', reason: 'ungenügendes Material', outcome: 'draw' }
-  if (chess.isThreefoldRepetition()) return { title: 'Remis', reason: 'dreifache Stellungswiederholung', outcome: 'draw' }
-  if (chess.isDraw()) return { title: 'Remis', reason: '50-Züge-Regel', outcome: 'draw' }
+  if (chess.isStalemate()) return { title: tk('Remis'), reason: tk('durch Patt'), outcome: 'draw' }
+  if (chess.isInsufficientMaterial()) return { title: tk('Remis'), reason: tk('ungenügendes Material'), outcome: 'draw' }
+  if (chess.isThreefoldRepetition()) return { title: tk('Remis'), reason: tk('dreifache Stellungswiederholung'), outcome: 'draw' }
+  if (chess.isDraw()) return { title: tk('Remis'), reason: tk('50-Züge-Regel'), outcome: 'draw' }
   return null
 }
 
@@ -92,7 +93,7 @@ function PlayerBar({ name, sub, avatar, color, captured, diff, thinking, bubble,
       {bubble && <div key={bubble.id} className={'speech ' + (bubbleBelow ? 'below' : 'above')}>{bubble.text}</div>}
       <div className="avatar">{avatar}</div>
       <div className="player-info">
-        <div className="player-name">{name} <span className="player-sub">{sub}</span>{thinking && <span className="thinking">denkt nach…</span>}</div>
+        <div className="player-name">{name} <span className="player-sub">{sub}</span>{thinking && <span className="thinking">{t('denkt nach…')}</span>}</div>
         <div className="captured">
           {captured.map((p, i) => <img key={i} src={pieceUrl(capturedColor, p)} alt="" />)}
           {diff > 0 && <span className="diff">+{diff}</span>}
@@ -200,7 +201,7 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
     if (!ratedRef.current) return
     setRated(false)
     onSave(snapshot(result, false))
-    setNotice(`Diese Partie ist jetzt ungewertet (${why === 'hint' ? 'Tipp' : 'Zurücknahme'}).`)
+    setNotice(why === 'hint' ? t('Diese Partie ist jetzt ungewertet (Tipp).') : t('Diese Partie ist jetzt ungewertet (Zurücknahme).'))
     window.setTimeout(() => setNotice(null), 3200)
   }
 
@@ -238,9 +239,9 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
   }
 
   function setPgnHeaders(r: GameResult) {
-    const me = 'Ich'
+    const me = t('Ich')
     const opp = `${bot.name} (${bot.rating})`
-    game.setHeader('Event', 'Schach-App')
+    game.setHeader('Event', t('Schach-App'))
     game.setHeader('Date', new Date().toISOString().slice(0, 10).replace(/-/g, '.'))
     game.setHeader('White', playerColor === 'w' ? me : opp)
     game.setHeader('Black', playerColor === 'w' ? opp : me)
@@ -291,15 +292,15 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
       if (game.fen() !== after) return
       const lossCp = e1.bestCp + e2.bestCp // e2 is from the opponent's point of view
       if (lossCp >= COACH_THRESHOLD && e1.bestCp > -400) {
-        let text = 'Vorsicht, nach diesem Zug stehst du deutlich schlechter.'
+        let text = t('Vorsicht, nach diesem Zug stehst du deutlich schlechter.')
         if (e2.bestCp >= 1000) {
-          text = 'Achtung! Dein Gegner kann dich jetzt mattsetzen.'
+          text = t('Achtung! Dein Gegner kann dich jetzt mattsetzen.')
         } else if (e2.best) {
           const target = new Chess(after).get(e2.best.slice(2, 4) as Parameters<Chess['get']>[0])
           if (target && VALUES[target.type] >= 3) {
-            text = `Achtung! Dein Gegner kann jetzt ${PIECE_ACC[target.type]} auf ${e2.best.slice(2, 4)} schlagen.`
+            text = t('Achtung! Dein Gegner kann jetzt {piece} auf {square} schlagen.', { piece: PIECE_ACC[target.type], square: e2.best.slice(2, 4) })
           } else if (target) {
-            text = 'Achtung! Damit verlierst du Material.'
+            text = t('Achtung! Damit verlierst du Material.')
           }
         }
         playSound('warn')
@@ -335,10 +336,10 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
         setThinking(false)
         const playerFlagged = turn === playerColor
         const r: GameResult = !canMate(game, turn === 'w' ? 'b' : 'w')
-          ? { title: 'Remis', reason: 'Zeit abgelaufen, aber der Gegner kann nicht mehr mattsetzen', outcome: 'draw' }
+          ? { title: tk('Remis'), reason: tk('Zeit abgelaufen, aber der Gegner kann nicht mehr mattsetzen'), outcome: 'draw' }
           : playerFlagged
-            ? { title: 'Du hast verloren', reason: 'Zeit abgelaufen', outcome: 'loss' }
-            : { title: 'Du hast gewonnen!', reason: `${bot.name} hat die Zeit überschritten`, outcome: 'win' }
+            ? { title: tk('Du hast verloren'), reason: tk('Zeit abgelaufen'), outcome: 'loss' }
+            : { title: tk('Du hast gewonnen!'), reason: t('{name} hat die Zeit überschritten', { name: bot.name }), outcome: 'win' }
         playSound('warn')
         finish(r)
         onSave(snapshot(r))
@@ -439,7 +440,7 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
   }
 
   function resign() {
-    const r: GameResult = { title: 'Du hast verloren', reason: 'durch Aufgabe', outcome: 'loss' }
+    const r: GameResult = { title: tk('Du hast verloren'), reason: tk('durch Aufgabe'), outcome: 'loss' }
     token.current++
     setThinking(false)
     setConfirmResign(false)
@@ -483,7 +484,7 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
       clock={clock ? clock[botColor] : null} running={!clockPaused && game.turn() === botColor} />
   )
   const meBar = (
-    <PlayerBar name="Du" sub={`(${rating.get().rating})${strict ? ' · gewertet' : rated ? '' : ' · Training'}${coachOn ? ' · Trainer an' : ''}`} color={playerColor}
+    <PlayerBar name={t('Du')} sub={`(${rating.get().rating})${strict ? ` · ${t('gewertet')}` : rated ? '' : ` · ${t('Training')}`}${coachOn ? ` · ${t('Trainer an')}` : ''}`} color={playerColor}
       avatar={<BotAvatar bot={null} size={40} />}
       captured={capturedBy[playerColor]} diff={diff[playerColor]}
       clock={clock ? clock[playerColor] : null} running={!clockPaused && game.turn() === playerColor} />
@@ -508,18 +509,18 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
   return (
     <div className="game-screen">
       <header className="game-header">
-        <button className="icon-btn" onClick={onExit} aria-label="Zurück"><Icon name="back" /></button>
-        <div className="game-title">Gegen {bot.name}</div>
-        <button className="icon-btn" onClick={() => setFlipped(!flipped)} aria-label="Brett drehen"><Icon name="flip" /></button>
+        <button className="icon-btn" onClick={onExit} aria-label={t('Zurück')}><Icon name="back" /></button>
+        <div className="game-title">{t('Gegen {name}', { name: bot.name })}</div>
+        <button className="icon-btn" onClick={() => setFlipped(!flipped)} aria-label={t('Brett drehen')}><Icon name="flip" /></button>
       </header>
 
       <div className="move-list" ref={moveListRef}>
-        {pairs.length === 0 && <span className="move-empty">Noch keine Züge</span>}
+        {pairs.length === 0 && <span className="move-empty">{t('Noch keine Züge')}</span>}
         {pairs.map((p) => (
           <span key={p.n} className="move-pair">
             <span className="move-no">{p.n}.</span>
-            {p.w && <button className={'move' + (shownPly === p.wi + 1 ? ' active' : '')} onClick={() => setViewIndex(p.wi + 1 === history.length ? null : p.wi + 1)}>{de(p.w.san)}</button>}
-            {p.b && <button className={'move' + (shownPly === p.bi + 1 ? ' active' : '')} onClick={() => setViewIndex(p.bi + 1 === history.length ? null : p.bi + 1)}>{de(p.b.san)}</button>}
+            {p.w && <button className={'move' + (shownPly === p.wi + 1 ? ' active' : '')} onClick={() => setViewIndex(p.wi + 1 === history.length ? null : p.wi + 1)}>{notate(p.w.san)}</button>}
+            {p.b && <button className={'move' + (shownPly === p.bi + 1 ? ' active' : '')} onClick={() => setViewIndex(p.bi + 1 === history.length ? null : p.bi + 1)}>{notate(p.b.san)}</button>}
           </span>
         ))}
       </div>
@@ -542,10 +543,10 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
           <div className="coach-icon"><Icon name="learn" /></div>
           <div className="coach-body">
             <div className="coach-text">{warning.text}</div>
-            {warning.better && <div className="coach-better">Besser wäre zum Beispiel <strong>{warning.better}</strong>.</div>}
+            {warning.better && <div className="coach-better">{t('Besser wäre zum Beispiel')} <strong>{warning.better}</strong>.</div>}
             <div className="coach-buttons">
-              <button className="btn primary small" onClick={undo}>Zurücknehmen</button>
-              <button className="btn secondary small" onClick={() => setWarning(null)}>Weiterspielen</button>
+              <button className="btn primary small" onClick={undo}>{t('Zurücknehmen')}</button>
+              <button className="btn secondary small" onClick={() => setWarning(null)}>{t('Weiterspielen')}</button>
             </div>
           </div>
         </div>
@@ -555,36 +556,36 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
 
       {result && !showResult && (
         <div className="result-strip">
-          <strong>{result.title}</strong> {result.reason}
+          <strong>{t(result.title)}</strong> {t(result.reason)}
         </div>
       )}
 
       <nav className="game-actions">
         {result ? (
           <>
-            <button onClick={onExit}><Icon name="refresh" />Neue Partie</button>
-            <button onClick={() => setReviewing(true)}><Icon name="chart" />Analyse</button>
+            <button onClick={onExit}><Icon name="refresh" />{t('Neue Partie')}</button>
+            <button onClick={() => setReviewing(true)}><Icon name="chart" />{t('Analyse')}</button>
           </>
         ) : (
           <>
             {canAbort
-              ? <button onClick={abort}><Icon name="flag" />Abbrechen</button>
-              : <button onClick={() => setConfirmResign(true)}><Icon name="flag" />Aufgeben</button>}
-            {!strict && <button onClick={showHint} disabled={!canAct || game.turn() !== playerColor}><Icon name="bulb" />Tipp{hintsUsed > 0 ? ` (${hintsUsed})` : ''}</button>}
-            {!strict && <button onClick={undo} disabled={thinking || history.length === 0}><Icon name="undo" />Zurück</button>}
+              ? <button onClick={abort}><Icon name="flag" />{t('Abbrechen')}</button>
+              : <button onClick={() => setConfirmResign(true)}><Icon name="flag" />{t('Aufgeben')}</button>}
+            {!strict && <button onClick={showHint} disabled={!canAct || game.turn() !== playerColor}><Icon name="bulb" />{t('Tipp')}{hintsUsed > 0 ? ` (${hintsUsed})` : ''}</button>}
+            {!strict && <button onClick={undo} disabled={thinking || history.length === 0}><Icon name="undo" />{t('Zurück')}</button>}
           </>
         )}
-        <button onClick={() => setViewIndex(Math.max(0, shownPly - 1))} disabled={shownPly === 0}><Icon name="back" />Voriger</button>
-        <button onClick={() => setViewIndex(shownPly + 1 >= history.length ? null : shownPly + 1)} disabled={viewIndex === null}><Icon name="next" />Nächster</button>
+        <button onClick={() => setViewIndex(Math.max(0, shownPly - 1))} disabled={shownPly === 0}><Icon name="back" />{t('Voriger')}</button>
+        <button onClick={() => setViewIndex(shownPly + 1 >= history.length ? null : shownPly + 1)} disabled={viewIndex === null}><Icon name="next" />{t('Nächster')}</button>
       </nav>
 
       {confirmResign && (
         <div className="modal-backdrop" onClick={() => setConfirmResign(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Wirklich aufgeben?</h2>
+            <h2>{t('Wirklich aufgeben?')}</h2>
             <div className="modal-buttons">
-              <button className="btn secondary" onClick={() => setConfirmResign(false)}>Weiterspielen</button>
-              <button className="btn primary" onClick={resign}>Aufgeben</button>
+              <button className="btn secondary" onClick={() => setConfirmResign(false)}>{t('Weiterspielen')}</button>
+              <button className="btn primary" onClick={resign}>{t('Aufgeben')}</button>
             </div>
           </div>
         </div>
@@ -594,26 +595,26 @@ export default function GameScreen({ bot, saved, onSave, onExit, onAbort }: {
         <div className="modal-backdrop" onClick={() => setShowResult(false)}>
           <div className={'modal result ' + result.outcome} onClick={(e) => e.stopPropagation()}>
             <div className={'result-icon ' + result.outcome}>{result.outcome === 'loss' ? <BotAvatar bot={bot} size={64} /> : <Icon name={result.outcome === 'win' ? 'trophy' : 'heart'} />}</div>
-            <h2>{result.title}</h2>
-            <p>{result.reason}</p>
-            <p className="result-moves">{Math.ceil(history.length / 2) === 1 ? '1 Zug' : `${Math.ceil(history.length / 2)} Züge`} gegen {bot.name} ({bot.rating})</p>
+            <h2>{t(result.title)}</h2>
+            <p>{t(result.reason)}</p>
+            <p className="result-moves">{Math.ceil(history.length / 2) === 1 ? t('1 Zug gegen {name} ({rating})', { name: bot.name, rating: bot.rating }) : t('{n} Züge gegen {name} ({rating})', { n: Math.ceil(history.length / 2), name: bot.name, rating: bot.rating })}</p>
             {ratingResult ? (
-              <p className="rating-change">Deine Wertung: {ratingResult.after} <span className={ratingResult.delta >= 0 ? 'up' : 'down'}>({ratingResult.delta >= 0 ? '+' : '−'}{Math.abs(ratingResult.delta)})</span></p>
-            ) : <p className="rated-tag">Ungewertete Partie</p>}
-            {endLine && <div className="end-line"><BotAvatar bot={bot} size={36} /><span>„{endLine}“</span></div>}
+              <p className="rating-change">{t('Deine Wertung:')} {ratingResult.after} <span className={ratingResult.delta >= 0 ? 'up' : 'down'}>({ratingResult.delta >= 0 ? '+' : '−'}{Math.abs(ratingResult.delta)})</span></p>
+            ) : <p className="rated-tag">{t('Ungewertete Partie')}</p>}
+            {endLine && <div className="end-line"><BotAvatar bot={bot} size={36} /><span>{quote(endLine)}</span></div>}
             {xpGain && (
               <div className="xp-gain">
                 <span className="xp-pill">+{xpGain.amount} XP</span>
-                {xpGain.levelUp && <span className="xp-pill level">Level {xpGain.newLevel}!</span>}
-                {xpGain.streakUp && xpGain.streak > 1 && <span className="xp-pill streak"><Icon name="flame" /> {xpGain.streak} Tage</span>}
+                {xpGain.levelUp && <span className="xp-pill level">{t('Level {n}!', { n: xpGain.newLevel })}</span>}
+                {xpGain.streakUp && xpGain.streak > 1 && <span className="xp-pill streak"><Icon name="flame" /> {t('{n} Tage', { n: xpGain.streak })}</span>}
               </div>
             )}
             {history.length > 1 && (
-              <button className="btn primary review-btn" onClick={() => { setShowResult(false); setReviewing(true) }}>Partie analysieren</button>
+              <button className="btn primary review-btn" onClick={() => { setShowResult(false); setReviewing(true) }}>{t('Partie analysieren')}</button>
             )}
             <div className="modal-buttons">
-              <button className="btn secondary" onClick={() => setShowResult(false)}>Brett ansehen</button>
-              <button className="btn secondary" onClick={onExit}>Neue Partie</button>
+              <button className="btn secondary" onClick={() => setShowResult(false)}>{t('Brett ansehen')}</button>
+              <button className="btn secondary" onClick={onExit}>{t('Neue Partie')}</button>
             </div>
           </div>
         </div>

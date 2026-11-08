@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import Icon from '../components/Icon'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Board from '../components/Board'
@@ -105,11 +106,11 @@ export default function KnightGame({ level, onFinish }: { level: GameLevel; onFi
     <div className="minigame">
       <div className="mg-hud">
         <div className="mg-stat"><Icon name="flag" />{round + 1}/{ROUNDS}</div>
-        <div className="mg-target small">Ziel {task.to}<small>in {task.optimal} {task.optimal === 1 ? 'Sprung' : 'Sprüngen'}</small></div>
+        <div className="mg-target small">{t('Ziel {sq}', { sq: task.to })}<small>{task.optimal === 1 ? t('in 1 Sprung') : t('in {n} Sprüngen', { n: task.optimal })}</small></div>
         <div className="mg-stat"><Icon name="clock" />{Math.floor((now - startTime) / 1000)}s</div>
       </div>
       <Board fen={fenWithKnight(knight)} orientation="w" marks={marks} lastMove={prev ? { from: prev, to: knight } : null} onSquareTap={tap} />
-      <p className="mg-info">Sprünge in dieser Runde: {jumps} · Umwege bisher: {extra}</p>
+      <p className="mg-info">{t('Sprünge in dieser Runde: {a} · Umwege bisher: {b}', { a: jumps, b: extra })}</p>
     </div>
   )
 }

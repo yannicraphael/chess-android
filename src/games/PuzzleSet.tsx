@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import { useEffect, useRef, useState } from 'react'
 import { recordDaily } from '../lib/progress'
 import { loadPuzzles, motifPool, MOTIF_SET_SIZE, sample, type Puzzle } from '../lib/puzzles'
@@ -37,18 +38,18 @@ export default function PuzzleSet({ level, onFinish }: { level: GameLevel; onFin
     setI(i + 1)
   }
 
-  if (error) return <p className="mg-info">Die Aufgaben konnten nicht geladen werden.</p>
-  if (!set) return <p className="mg-info">Aufgaben werden geladen…</p>
+  if (error) return <p className="mg-info">{t('Die Aufgaben konnten nicht geladen werden.')}</p>
+  if (!set) return <p className="mg-info">{t('Aufgaben werden geladen…')}</p>
 
   return (
     <div className="minigame">
-      {theory && <button className="theory-link pz-theory" onClick={() => setShowTheory(true)}><Icon name="book" /> Theorie zum Motiv</button>}
+      {theory && <button className="theory-link pz-theory" onClick={() => setShowTheory(true)}><Icon name="book" /> {t('Theorie zum Motiv')}</button>}
       {showTheory && level.theme && <MotifTheoryPage theme={level.theme} onClose={() => setShowTheory(false)} />}
       <div className="pz-dots">
         {set.map((_, k) => <span key={k} className={k < results.length ? (results[k] ? 'ok' : 'no') : k === i ? 'cur' : ''}>{k < results.length ? (results[k] ? '✓' : '✗') : k + 1}</span>)}
       </div>
       <PuzzlePlayer key={i} puzzle={set[i]} onDone={onDone}
-        footer={<div className="puzzle-after"><button className="btn primary big" onClick={next}>{i + 1 >= set.length ? 'Auswertung' : 'Weiter'}</button></div>} />
+        footer={<div className="puzzle-after"><button className="btn primary big" onClick={next}>{i + 1 >= set.length ? t('Auswertung') : t('Weiter')}</button></div>} />
     </div>
   )
 }

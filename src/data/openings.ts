@@ -1,3 +1,4 @@
+import { L } from '../i18n'
 // Opening repertoire for club players around 800-1500. Moves are in English SAN
 // (shown in German notation in the app). `notes` explains moves of the main line by ply index.
 
@@ -17,7 +18,7 @@ export interface Opening {
   lines: OpeningLine[]
 }
 
-export const OPENINGS: Opening[] = [
+export const OPENINGS: Opening[] = L<Opening[]>([
   {
     id: 'italienisch', name: 'Italienische Partie', side: 'w', first: '1.e4 e5 2.Sf3 Sc6 3.Lc4',
     summary: 'Der Klassiker für Einsteiger und Großmeister: schnelle Entwicklung, Druck auf f7 und ein ruhiger Aufbau mit c3 und d3.',
@@ -349,13 +350,13 @@ export const OPENINGS: Opening[] = [
       { name: 'Gegen 3.Sc3', moves: 'e4 e5 Nf3 Nf6 Nc3 Nc6 Bb5 Bb4 O-O O-O d3 d6 Bg5 Bxc3 bxc3 Qe7' },
     ],
   },
-]
+])
 
-export const OPENING_LEVELS = [
+export const OPENING_LEVELS = L([
   { n: 1, name: 'Kennenlernen', description: 'Die Hauptvariante Zug für Zug, mit Erklärungen' },
   { n: 2, name: 'Mit Hilfe', description: 'Du ziehst selbst. Tipp zeigt erst die Idee, dann den Zug' },
   { n: 3, name: 'Auswendig', description: 'Alle Varianten, ohne Erklärungen' },
-] as const
+] as const)
 
 export function openingLevelId(o: Opening, n: number) {
   return `opening-${o.id}-${n}`

@@ -2,7 +2,8 @@ import { Chess, type Color } from 'chess.js'
 import { evaluate } from '../engine/stockfish'
 import { perfFromAcpl, recordPerf } from './rating'
 import { createStore } from './store'
-import { analyzeMistake, motifFromText, type Motif } from './explain'
+import { analyzeMistake, explainMistake, motifFromText, type ExplainInput, type Motif } from './explain'
+import { lang } from '../i18n'
 
 // Saved games (newest first) with their engine analysis, and positions where the player
 // made a mistake, which come back later as puzzles.
@@ -41,7 +42,8 @@ export interface MistakePuzzle {
   opponent: string
   date: string
   solved: boolean
-  why?: string // explanation in words
+  why?: string // explanation in words (in the language of the app when it was saved)
+  ex?: ExplainInput // what the explanation is built from, so it can be shown in any language
   motif?: Motif // kind of mistake, used to group them
   count?: number // how often this position went wrong in the player's games
   box?: number // spaced repetition: how often solved (comes back after 3, 10, 30 days)
@@ -153,8 +155,9 @@ export async function analyzeStored(id: string) {
       id: `${id}-${i}`, gameId: id, fen: fens[i], best: m.best, played: moves[i].san, bestCp: before,
       opponent: g.botName, date: g.date, solved: false,
       ...(() => {
-        const a = analyzeMistake({ fenBefore: fens[i], played: m.uci, best: m.best, reply: evals[i + 1].best, mateBefore: evals[i].mate, mateAfter: evals[i + 1].mate })
-        return { why: a.text, motif: a.motif }
+        const ex: ExplainInput = { fenBefore: fens[i], played: m.uci, best: m.best, reply: evals[i + 1].best, mateBefore: evals[i].mate, mateAfter: evals[i + 1].mate }
+        const a = analyzeMistake(ex)
+        return { why: a.text, motif: a.motif, ex }
       })(),
     })
   })
@@ -218,6 +221,12 @@ export function mergeMistakes(fresh: MistakePuzzle[], old: MistakePuzzle[]) {
 }
 
 export const mistakeMotif = (m: MistakePuzzle): Motif => m.motif ?? motifFromText(m.why)
+
+// the explanation in the current language (older mistakes only have the German text)
+export function mistakeWhy(m: MistakePuzzle): string {
+  if (m.ex) { try { return explainMistake(m.ex) } catch { /* fall back */ } }
+  return lang === 'de' || !m.why ? m.why ?? '' : ''
+}
 
 // one-time clean-up of mistakes saved before grouping existed
 export function groupStoredMistakes() {

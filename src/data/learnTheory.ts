@@ -1,3 +1,4 @@
+import { L } from '../i18n'
 // Theory for the endgame trainer and the tactical motifs: the method step by step,
 // typical mistakes, and how to recognise a motif on the board.
 
@@ -7,7 +8,7 @@ export interface EndgameTheory {
   mistakes: string[]
 }
 
-export const ENDGAME_THEORY: Record<string, EndgameTheory> = {
+export const ENDGAME_THEORY: Record<string, EndgameTheory> = L<Record<string, EndgameTheory>>({
   dame: {
     idea: 'Die Dame allein kann nicht mattsetzen. Sie sperrt den König in ein immer kleineres Rechteck, dein König muss beim Matt helfen.',
     steps: [
@@ -159,14 +160,14 @@ export const ENDGAME_THEORY: Record<string, EndgameTheory> = {
       'Den Turm passiv auf der Grundreihe lassen, bevor der Bauer zieht: Dann kommt der König auf die sechste Reihe und gewinnt.',
     ],
   },
-}
+})
 
 export interface MotifTheory {
   what: string
   spot: string[]
 }
 
-export const MOTIF_THEORY: Record<string, MotifTheory> = {
+export const MOTIF_THEORY: Record<string, MotifTheory> = L<Record<string, MotifTheory>>({
   mateIn1: {
     what: 'Ein Zug, der Schach gibt, und der König hat kein Feld mehr. Nichts kann dazwischen ziehen und nichts die Figur schlagen.',
     spot: [
@@ -239,4 +240,4 @@ export const MOTIF_THEORY: Record<string, MotifTheory> = {
       'Rechne bis zum Ende: Was hast du nach der Variante mehr als vorher?',
     ],
   },
-}
+})

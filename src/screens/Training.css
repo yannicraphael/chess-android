@@ -1,4 +1,5 @@
-.training-screen, .profile-screen { max-width: 640px; margin: 0 auto; padding: 8px 16px 20px; }
+.training-screen, .profile-screen { max-width: 640px; margin: 0 auto; padding: 0 16px 20px; }
+.training-screen .screen-title, .profile-screen .screen-title { margin-top: 0; }
 .screen-sub { color: var(--muted); margin: 4px 0 14px; font-size: 14px; }
 
 .mg-card { background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
@@ -154,11 +155,16 @@
 .trophy-row .cup .icon { width: 14px; height: 14px; }
 .trophy-row small { color: var(--muted); font-size: 11px; font-weight: 700; }
 .design-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.design-card { background: var(--card); border: 2px solid var(--line); border-radius: var(--radius); padding: 10px; color: var(--text); display: flex; flex-direction: column; gap: 4px; text-align: left; cursor: pointer; font: inherit; }
+.design-card { background: var(--card); border: 2px solid var(--line); border-radius: var(--radius); padding: 9px 8px; color: var(--text); display: flex; flex-direction: column; gap: 4px; text-align: left; cursor: pointer; font: inherit; }
 .design-card.active { border-color: var(--accent); }
+.design-card strong { font-size: 14px; letter-spacing: -0.01em; }
 .design-card small { color: var(--muted); font-size: 11px; }
-.design-preview { height: 46px; border-radius: 8px; position: relative; border: 1px solid rgba(128, 128, 128, 0.3); }
-.design-preview i { position: absolute; left: 8px; right: 30%; bottom: 8px; height: 10px; border-radius: 5px; }
+.lang-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.lang-card { align-items: center; text-align: center; }
+.lang-card small { letter-spacing: 0.08em; }
+.setting-note { margin: 8px 2px 0; font-size: 13px; color: var(--muted); line-height: 1.4; }
+.design-preview { height: 56px; border-radius: 8px; border: 1px solid rgba(128, 128, 128, 0.3); }
+.design-preview i { position: absolute; left: 8px; right: 30%; bottom: 8px; height: 8px; border-radius: 4px; box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.7); }
 .board-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .board-choice, .piece-choice { background: var(--card); border: 2px solid transparent; border-radius: var(--radius-sm); padding: 6px; color: var(--text); display: flex; flex-direction: column; gap: 4px; cursor: pointer; font: inherit; }
 .board-choice.active, .piece-choice.active { border-color: var(--accent); }
@@ -294,3 +300,5 @@
 .ot-idea { color: var(--muted); font-size: 12.5px; line-height: 1.35; margin-top: 3px; }
 .pz-theory { margin: 0 12px 4px; }
 .opening-trainer .puzzle-text { white-space: pre-line; }
+.notation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.notation-sample { font-size: 15px; letter-spacing: 0.02em !important; }

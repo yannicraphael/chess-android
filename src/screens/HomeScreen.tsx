@@ -1,3 +1,4 @@
+import { locale, t } from '../i18n'
 import { useEffect, useState } from 'react'
 import { BOTS, recommendBot, type Bot } from '../bots'
 import { archive, dueMistakes } from '../lib/archive'
@@ -9,11 +10,15 @@ import Icon from '../components/Icon'
 import { dailyInfo, weeklyInfo, levelInfo, levelTitle, progress } from '../lib/progress'
 import { dailyPuzzle, loadPuzzles, puzzleStats, themeLabels, type Puzzle } from '../lib/puzzles'
 import type { Tab } from '../App'
+import Scene from '../components/Scene'
+import { REGIONS, STATIONS, STATION_SIZE, currentStation, journey, regionOf, totalStars } from '../lib/journey'
+import { stationName } from './JourneyScreen'
+import './Journey.css'
 import './HomeScreen.css'
 
 function greeting() {
   const h = new Date().getHours()
-  return h < 11 ? 'Guten Morgen' : h < 18 ? 'Hallo' : 'Guten Abend'
+  return h < 11 ? t('Guten Morgen') : h < 18 ? t('Hallo') : t('Guten Abend')
 }
 
 function todayKey() {
@@ -56,9 +61,14 @@ function Ring({ value, total }: { value: number; total: number }) {
   )
 }
 
-export default function HomeScreen({ resumeBot, onResume, onDaily, onTab }: {
+export default function HomeScreen({ resumeBot, onResume, onDaily, onTab, onJourney }: {
   resumeBot: Bot | null; onResume: () => void; onDaily: (id: string) => void; onTab: (t: Tab) => void
+  onJourney: (target: 'map' | number) => void
 }) {
+  const j = journey.use()
+  const cur = currentStation(j)
+  const reg = REGIONS[regionOf(cur)]
+  const runRes = j.run && j.run.station === cur ? j.run.results : []
   const p = progress.use()
   const ps = puzzleStats.use()
   const d = dailyInfo(p)
@@ -72,31 +82,51 @@ export default function HomeScreen({ resumeBot, onResume, onDaily, onTab }: {
   const openMistakes = (archive.use(), dueMistakes().length)
   const next = recommendBot(r.rating, p.bots) ?? BOTS[BOTS.length - 1]
   const openLearn = (t: string) => { try { localStorage.setItem('learnTab', t) } catch { /* ignore */ } onTab('learn') }
-  const date = new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })
-  const goalText = d.done >= d.total ? 'Tagesziel erreicht. Stark!'
-    : d.puzzles < 3 ? `Noch ${3 - d.puzzles} ${3 - d.puzzles === 1 ? 'Aufgabe' : 'Aufgaben'}${d.games < 1 ? ' und 1 Partie' : ''}`
-      : 'Noch 1 Partie bis zum Ziel'
+  const date = new Date().toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long' })
+  const left = 3 - d.puzzles
+  const goalText = d.done >= d.total ? t('Tagesziel erreicht. Stark!')
+    : d.puzzles < 3
+      ? (d.games < 1
+        ? (left === 1 ? t('Noch 1 Aufgabe und 1 Partie') : t('Noch {n} Aufgaben und 1 Partie', { n: left }))
+        : (left === 1 ? t('Noch 1 Aufgabe') : t('Noch {n} Aufgaben', { n: left })))
+      : t('Noch 1 Partie bis zum Ziel')
 
   return (
     <div className="home">
-      <header className="home-head">
-        <div>
-          <div className="home-date">{date}</div>
-          <h1 className="home-hello">{greeting()}{st.name ? `, ${st.name}` : ''}</h1>
+      <Scene className="home-hero" region={regionOf(cur)} offset={-170} pawn>
+        <header className="home-head">
+          <div>
+            <div className="home-date">{date}</div>
+            <h1 className="home-hello">{greeting()}{st.name ? `, ${st.name}` : ''}</h1>
+          </div>
+          <div className="home-streak" title={t('Tage in Folge')}><Icon name="flame" />{p.streak}</div>
+        </header>
+      </Scene>
+
+      <div className="scene-sheet home-sheet">
+      <section className="jcard">
+        <div className="over jcard-over">{t('Station {n} von {total}', { n: cur + 1, total: STATIONS })} · {reg.motif}</div>
+        <h2>{reg.name}</h2>
+        <div className="js-seg" aria-hidden="true">
+          {Array.from({ length: STATION_SIZE }, (_, k) => <i key={k} className={k < runRes.length ? (runRes[k] ? 'ok' : 'no') : k === runRes.length ? 'now' : ''} />)}
         </div>
-        <div className="home-streak" title="Tage in Folge"><Icon name="flame" />{p.streak}</div>
-      </header>
+        <div className="jcard-meta"><span>{t('{n} von {total} Aufgaben', { n: runRes.length, total: STATION_SIZE })}</span><span>{totalStars(j)} / {STATIONS * 3} ★</span></div>
+        <div className="jcard-buttons">
+          <button className="btn primary" onClick={() => onJourney(cur)}>{runRes.length ? t('Weiterwandern') : t('{station} starten', { station: stationName(cur) })}</button>
+          <button className="btn secondary" onClick={() => onJourney('map')} aria-label={t('Karte')}><Icon name="map" /> {t('Karte')}</button>
+        </div>
+      </section>
 
       <section className="card goal">
         <Ring value={d.done} total={d.total} />
         <div className="goal-text">
-          <strong>Tagesziel</strong>
+          <strong>{t('Tagesziel')}</strong>
           <span>{goalText}</span>
         </div>
       </section>
 
       <section className="card weekly">
-        <div className="card-label"><Icon name="calendar" /> Wochenziele{w.complete ? ' · geschafft!' : ''}</div>
+        <div className="card-label"><Icon name="calendar" /> {t('Wochenziele')}{w.complete ? ` · ${t('geschafft!')}` : ''}</div>
         {w.goals.map((g) => (
           <div key={g.id} className={'wk-row' + (g.done >= g.total ? ' done' : '')}>
             <span>{g.label}</span>
@@ -109,43 +139,44 @@ export default function HomeScreen({ resumeBot, onResume, onDaily, onTab }: {
       {resumeBot && (
         <button className="card row-card" onClick={onResume}>
           <BotAvatar bot={resumeBot} size={44} />
-          <span className="row-text"><strong>Partie fortsetzen</strong><span>gegen {resumeBot.name} ({resumeBot.rating})</span></span>
+          <span className="row-text"><strong>{t('Partie fortsetzen')}</strong><span>{t('gegen {name} ({rating})', { name: resumeBot.name, rating: resumeBot.rating })}</span></span>
           <Icon name="next" />
         </button>
       )}
 
       <section className="card daily">
-        <div className="card-label">Aufgabe des Tages</div>
+        <div className="card-label">{t('Aufgabe des Tages')}</div>
         {puzzle ? (
           <div className="daily-row">
             <div className="daily-board"><Board fen={puzzle.fen} orientation={puzzle.fen.split(' ')[1] === 'w' ? 'b' : 'w'} showCoords={false} /></div>
             <div className="daily-text">
-              <strong>{puzzle.fen.split(' ')[1] === 'w' ? 'Schwarz' : 'Weiß'} am Zug</strong>
-              <span>{solvedToday ? `${themeLabels(puzzle)[0] ?? 'Taktik'} · ` : ''}Wertung {puzzle.rating}</span>
+              <strong>{puzzle.fen.split(' ')[1] === 'w' ? t('Schwarz am Zug') : t('Weiß am Zug')}</strong>
+              <span>{solvedToday ? `${themeLabels(puzzle)[0] ?? t('Taktik')} · ` : ''}{t('Wertung {n}', { n: puzzle.rating })}</span>
               <button className="btn primary" onClick={() => onDaily(puzzle.id)}>
-                {solvedToday ? 'Gelöst ✓ Nochmal' : 'Lösen'}
+                {solvedToday ? t('Gelöst ✓ Nochmal') : t('Lösen')}
               </button>
             </div>
           </div>
-        ) : <div className="daily-text"><span>Wird geladen…</span></div>}
+        ) : <div className="daily-text"><span>{t('Wird geladen…')}</span></div>}
       </section>
 
       <div className="kpis">
-        <button className="kpi" onClick={() => onTab('profile')}><b>{r.rating}{r.games < 10 ? '?' : ''}</b><span>Wertung</span></button>
-        <button className="kpi" onClick={() => onTab('tactics')}><b>{ps.rating}</b><span>Taktik</span></button>
-        <button className="kpi" onClick={() => onTab('profile')}><b>Lv {level}</b><span>{levelTitle(level)} · {stars}<Icon name="star" fill className="kpi-star" /></span><i style={{ width: `${(into / needed) * 100}%` }} /></button>
+        <button className="kpi" onClick={() => onTab('profile')}><b>{r.rating}{r.games < 10 ? '?' : ''}</b><span>{t('Wertung')}</span></button>
+        <button className="kpi" onClick={() => onTab('tactics')}><b>{ps.rating}</b><span>{t('Taktik')}</span></button>
+        <button className="kpi" onClick={() => onTab('profile')}><b>{t('Lv {n}', { n: level })}</b><span>{levelTitle(level)} · {stars}<Icon name="star" fill className="kpi-star" /></span><i style={{ width: `${(into / needed) * 100}%` }} /></button>
       </div>
 
       <button className="card row-card" onClick={() => onTab('play')}>
         <BotAvatar bot={next} size={44} />
-        <span className="row-text"><strong>Nächster Gegner: {next.name}</strong><span>{next.rating} · {next.title}</span></span>
+        <span className="row-text"><strong>{t('Nächster Gegner: {name}', { name: next.name })}</strong><span>{next.rating} · {next.title}</span></span>
         <Icon name="next" />
       </button>
 
       <div className="quick">
-        <button className="quick-btn" onClick={() => onTab('tactics')}><Icon name="target" /><span>{openMistakes > 0 ? `Eigene Fehler (${openMistakes})` : 'Taktik-Sprint'}</span></button>
-        <button className="quick-btn" onClick={() => openLearn('eroeffnungen')}><Icon name="book" /><span>Eröffnungen</span></button>
-        <button className="quick-btn" onClick={() => openLearn('endspiele')}><Icon name="crown" /><span>Endspiele</span></button>
+        <button className="quick-btn" onClick={() => onTab('tactics')}><Icon name="target" /><span>{openMistakes > 0 ? t('Eigene Fehler ({n})', { n: openMistakes }) : t('Taktik-Sprint')}</span></button>
+        <button className="quick-btn" onClick={() => openLearn('eroeffnungen')}><Icon name="book" /><span>{t('Eröffnungen')}</span></button>
+        <button className="quick-btn" onClick={() => openLearn('endspiele')}><Icon name="crown" /><span>{t('Endspiele')}</span></button>
+      </div>
       </div>
     </div>
   )

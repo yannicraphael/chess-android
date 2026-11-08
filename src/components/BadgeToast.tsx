@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import { useEffect, useRef, useState } from 'react'
 import { archive } from '../lib/archive'
 import { checkBadges, type Badge } from '../lib/badges'
@@ -35,7 +36,7 @@ export default function BadgeToast() {
     <button className="badge-toast" onClick={() => setShown(null)} role="status">
       <span className="bt-icon"><Icon name="medal" /></span>
       <span className="bt-text">
-        <small>{shown.length > 1 ? `${shown.length} neue Abzeichen` : 'Neues Abzeichen'}</small>
+        <small>{shown.length > 1 ? t('{n} neue Abzeichen', { n: shown.length }) : t('Neues Abzeichen')}</small>
         <strong>{shown.length > 1 ? shown.map((x) => x.name).join(', ') : b.name}</strong>
         {shown.length === 1 && <span>{b.text}</span>}
       </span>

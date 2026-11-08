@@ -1,15 +1,14 @@
 import { Chess, type PieceSymbol } from 'chess.js'
+import { decimal, fmtSan, t } from '../i18n'
 
-const GERMAN: Record<string, string> = { N: 'S', B: 'L', R: 'T', Q: 'D', K: 'K' }
-
-// Converts English SAN (Nf3) into German notation (Sf3)
-export const de = (san: string) => san.replace(/[NBRQK]/g, (c) => GERMAN[c])
+// Converts English SAN (Nf3) into the notation of the app language (German Sf3, Spanish Cf3)
+export const notate = (san: string) => fmtSan(san)
 
 export const PIECE_NAMES: Record<PieceSymbol, string> = {
-  p: 'Bauer', n: 'Springer', b: 'Läufer', r: 'Turm', q: 'Dame', k: 'König',
+  p: t('Bauer'), n: t('Springer'), b: t('Läufer'), r: t('Turm'), q: t('Dame'), k: t('König'),
 }
 export const PIECE_ACC: Record<PieceSymbol, string> = {
-  p: 'deinen Bauern', n: 'deinen Springer', b: 'deinen Läufer', r: 'deinen Turm', q: 'deine Dame', k: 'deinen König',
+  p: t('deinen Bauern'), n: t('deinen Springer'), b: t('deinen Läufer'), r: t('deinen Turm'), q: t('deine Dame'), k: t('deinen König'),
 }
 
 export const VALUES: Record<PieceSymbol, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 }
@@ -18,7 +17,7 @@ export function uciToSan(fen: string, uci: string): string | null {
   try {
     const c = new Chess(fen)
     const m = c.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] })
-    return m ? de(m.san) : null
+    return m ? notate(m.san) : null
   } catch {
     return null
   }
@@ -27,8 +26,8 @@ export function uciToSan(fen: string, uci: string): string | null {
 // Evaluation in pawns as text, from white's point of view: "+1,4", "−0,3", "M3"
 export function evalText(cp: number, mate: number | null): string {
   if (mate !== null) return `${mate > 0 ? '' : '−'}M${Math.abs(mate)}`
-  const v = (cp / 100).toFixed(1).replace('.', ',')
-  return cp > 0 ? `+${v}` : cp < 0 ? `−${v.slice(1)}` : '0,0'
+  const v = decimal((cp / 100).toFixed(1))
+  return cp > 0 ? `+${v}` : cp < 0 ? `−${v.slice(1)}` : decimal('0.0')
 }
 
 // "1.e4 e5 2.Sf3" from English SAN moves, starting at ply `start`
@@ -36,9 +35,8 @@ export function moveText(moves: string[], start = 0) {
   return moves.map((m, i) => {
     const ply = start + i
     const n = Math.floor(ply / 2) + 1
-    const san = de(m)
+    const san = notate(m)
     if (ply % 2 === 0) return `${n}.${san}`
     return i === 0 ? `${n}...${san}` : san
   }).join(' ')
 }
-

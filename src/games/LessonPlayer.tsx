@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import { Chess, type Color, type Move } from 'chess.js'
 import { useEffect, useRef, useState } from 'react'
 import Board, { type Arrow, type SquarePair } from '../components/Board'
@@ -82,7 +83,7 @@ export default function LessonPlayer({ lesson, onFinish }: { lesson: Lesson; onF
       setMarks({ [m.to]: 'mark-bad' })
       setMistakes((n) => n + 1)
       setTries((t) => t + 1)
-      setFeedback({ text: tries >= 1 ? 'Nicht ganz. Der Pfeil zeigt dir einen richtigen Zug.' : 'Nicht ganz. Versuch es nochmal.', tone: 'bad' })
+      setFeedback({ text: tries >= 1 ? t('Nicht ganz. Der Pfeil zeigt dir einen richtigen Zug.') : t('Nicht ganz. Versuch es nochmal.'), tone: 'bad' })
       clearTimeout(timer.current)
       timer.current = window.setTimeout(() => { setFen(step.fen); setLast(null); setMarks({}) }, 700)
     }
@@ -102,7 +103,7 @@ export default function LessonPlayer({ lesson, onFinish }: { lesson: Lesson; onF
 
   return (
     <div className="puzzle-player lesson-player">
-      <div className="ot-progress" aria-label={`Schritt ${i + 1} von ${lesson.steps.length}`}>
+      <div className="ot-progress" aria-label={t('Schritt {a} von {b}', { a: i + 1, b: lesson.steps.length })}>
         {lesson.steps.map((_, k) => <span key={k} className={k <= i ? 'on' : ''} />)}
       </div>
       <Board fen={fen} orientation={step.task ? toMove : 'w'} movableColor={step.task && !solved ? toMove : null} lastMove={last} marks={shownMarks} arrows={solved && step.task ? [] : arrows} onMove={onMove} />
@@ -113,8 +114,8 @@ export default function LessonPlayer({ lesson, onFinish }: { lesson: Lesson; onF
         {feedback && <p className={'lesson-feedback ' + feedback.tone}>{feedback.text}</p>}
       </div>
       <div className="puzzle-tools">
-        {i > 0 && <button className="btn secondary small" onClick={() => goto(i - 1)}><Icon name="back" /> Zurück</button>}
-        <button className="btn primary small" onClick={next} disabled={!solved}>{i + 1 < lesson.steps.length ? 'Weiter' : 'Abschließen'} <Icon name="next" /></button>
+        {i > 0 && <button className="btn secondary small" onClick={() => goto(i - 1)}><Icon name="back" /> {t('Zurück')}</button>}
+        <button className="btn primary small" onClick={next} disabled={!solved}>{i + 1 < lesson.steps.length ? t('Weiter') : t('Abschließen')} <Icon name="next" /></button>
       </div>
     </div>
   )

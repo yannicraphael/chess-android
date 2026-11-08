@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 import { Chess, type Move } from 'chess.js'
 import { useEffect, useRef, useState } from 'react'
 import Board, { type Arrow, type SquarePair } from '../components/Board'
@@ -5,7 +6,7 @@ import Icon from '../components/Icon'
 import type { Opening } from '../data/openings'
 import { OPENING_THEORY } from '../data/openingTheory'
 import { OpeningTheoryPage } from '../screens/TheoryPage'
-import { de, moveText } from '../lib/chessText'
+import { notate, moveText } from '../lib/chessText'
 import { playSound } from '../lib/sound'
 
 function moveSound(m: Move, chess: Chess) {
@@ -80,7 +81,7 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
 
   function lineFinished() {
     if (lineNo + 1 < order.length) {
-      setNote({ text: `Variante „${line.name}“ geschafft. Jetzt die nächste.`, tone: 'good' })
+      setNote({ text: t('Variante „{name}“ geschafft. Jetzt die nächste.', { name: line.name }), tone: 'good' })
       later(() => {
         chess.reset()
         setFen(chess.fen())
@@ -95,8 +96,8 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
     setDone(true)
     playSound('correct')
     const stars = level === 1 ? 3 : mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1
-    const list = errors.length ? `\nGezählt: ${errors.join(', ')}` : ''
-    setNote({ text: level === 1 ? 'Geschafft! Du kennst jetzt die Hauptvariante.' : mistakes === 0 ? 'Fehlerfrei, ausgezeichnet!' : `Geschafft, mit ${mistakes} ${mistakes === 1 ? 'Fehler' : 'Fehlern'}.${list}`, tone: 'good' })
+    const list = errors.length ? `\n${t('Gezählt:')} ${errors.join(', ')}` : ''
+    setNote({ text: level === 1 ? t('Geschafft! Du kennst jetzt die Hauptvariante.') : mistakes === 0 ? t('Fehlerfrei, ausgezeichnet!') : (mistakes === 1 ? t('Geschafft, mit 1 Fehler.') : t('Geschafft, mit {n} Fehlern.', { n: mistakes })) + list, tone: 'good' })
     later(() => onFinish(stars), 900)
   }
 
@@ -107,10 +108,10 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
     if (turn === side) return
     const id = window.setTimeout(() => {
       play(moves[ply])
-      const branch = ply === branchPly && level < 3 ? 'Hier weicht der Gegner von der Hauptvariante ab. ' : ''
-      const text = explain(ply) || (branch && level === 2 ? `Variante „${line.name}“.` : '')
+      const branch = ply === branchPly && level < 3 ? t('Hier weicht der Gegner von der Hauptvariante ab.') + ' ' : ''
+      const text = explain(ply) || (branch && level === 2 ? t('Variante „{name}“.', { name: line.name }) : '')
       if (text) {
-        const line2 = `${de(chess.history().slice(-1)[0])}: ${branch}${text}`
+        const line2 = `${notate(chess.history().slice(-1)[0])}: ${branch}${text}`
         // keep the explanation of the player's own move above the reply
         setNote((n) => ({ text: n.tone === 'good' && n.text ? `${n.text}\n${line2}` : line2, tone: '' }))
       }
@@ -154,7 +155,7 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
       setIdeaShown(false)
       setTries(0)
       const text = explain(ply)
-      setNote({ text: text ? `${de(m.san)}: ${text}` : `${de(m.san)}, richtig!`, tone: 'good' })
+      setNote({ text: text ? `${notate(m.san)}: ${text}` : t('{san}, richtig!', { san: notate(m.san) }), tone: 'good' })
       later(() => setMarks({}), 500)
       const next = ply + 1
       setPly(next)
@@ -167,22 +168,22 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
       // a move of this line that only comes later (another move order) is not counted as a mistake
       const mine = (i: number) => (i % 2 === 0 ? 'w' : 'b') === side
       if (moves.some((s2, i) => i > ply && mine(i) && clean(s2) === clean(m.san))) {
-        setNote({ text: `${de(m.san)} kommt in dieser Variante etwas später. Was spielst du davor?`, tone: 'bad' })
+        setNote({ text: t('{san} kommt in dieser Variante etwas später. Was spielst du davor?', { san: notate(m.san) }), tone: 'bad' })
         return
       }
       setMistakes((n) => n + 1)
-      setErrors((e) => [...e, `${moveText([m.san], ply)} statt ${moveText([expected], ply)}`])
+      setErrors((e) => [...e, t('{a} statt {b}', { a: moveText([m.san], ply), b: moveText([expected], ply) })])
       setTries((t) => t + 1)
       // level 1: idea and arrow at once. Level 2: try again, then the idea, then the arrow.
       // Level 3: try again, then only the arrow (without explanation).
       const idea = noteFor(ply)
       const n = tries + 1
       let text: string
-      if (level === 1) text = idea ? `Nicht ganz. Die Idee: ${idea}` : 'Nicht ganz. Folge dem Pfeil.'
-      else if (level === 2 && n === 1) text = 'Das ist nicht der Zug aus der Variante. Versuch es nochmal.'
-      else if (level === 2 && n === 2 && idea) { text = `Denk an die Idee: ${idea}`; setIdeaShown(true) }
-      else if (level === 3 && n === 1) text = 'Das ist nicht der Zug aus der Variante. Versuch es nochmal.'
-      else { text = 'Der Pfeil zeigt den richtigen Zug.'; setShowHint(true) }
+      if (level === 1) text = idea ? `${t('Nicht ganz. Die Idee:')} ${idea}` : t('Nicht ganz. Folge dem Pfeil.')
+      else if (level === 2 && n === 1) text = t('Das ist nicht der Zug aus der Variante. Versuch es nochmal.')
+      else if (level === 2 && n === 2 && idea) { text = `${t('Denk an die Idee:')} ${idea}`; setIdeaShown(true) }
+      else if (level === 3 && n === 1) text = t('Das ist nicht der Zug aus der Variante. Versuch es nochmal.')
+      else { text = t('Der Pfeil zeigt den richtigen Zug.'); setShowHint(true) }
       setNote({ text, tone: 'bad' })
     }
   }
@@ -201,20 +202,20 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
   let prompt: string
   if (done) prompt = note.text
   else if (note.text) prompt = note.text
-  else if (myTurn) prompt = level === 1 ? 'Spiele den Zug, den der Pfeil zeigt.' : 'Welcher Zug kommt jetzt?'
-  else prompt = 'Der Gegner zieht…'
+  else if (myTurn) prompt = level === 1 ? t('Spiele den Zug, den der Pfeil zeigt.') : t('Welcher Zug kommt jetzt?')
+  else prompt = t('Der Gegner zieht…')
 
   return (
     <div className="puzzle-player opening-trainer">
       <div className="ot-head">
         <div className="ot-title-row">
           <strong>{line.name}</strong>
-          <button className="theory-link" onClick={() => setTheory(true)}><Icon name="book" /> Theorie</button>
+          <button className="theory-link" onClick={() => setTheory(true)}><Icon name="book" /> {t('Theorie')}</button>
         </div>
-        <span>{opening.first}{order.length > 1 ? ` · Variante ${lineNo + 1} von ${order.length}` : ''}</span>
+        <span>{opening.first}{order.length > 1 ? ` · ${t('Variante {a} von {b}', { a: lineNo + 1, b: order.length })}` : ''}</span>
         {level === 1 && lineIdea && <small className="ot-idea">{lineIdea}</small>}
       </div>
-      <div className="ot-progress" aria-label={`${myDone} von ${myMoves} Zügen`}>
+      <div className="ot-progress" aria-label={t('{a} von {b} Zügen', { a: myDone, b: myMoves })}>
         {Array.from({ length: myMoves }, (_, i) => <span key={i} className={i < myDone ? 'on' : ''} />)}
       </div>
       <Board fen={fen} orientation={side} movableColor={myTurn ? side : null} lastMove={last} marks={marks} arrows={arrows} onMove={onMove} />
@@ -228,11 +229,11 @@ export default function OpeningTrainer({ opening, level, onFinish }: {
           <button className="btn secondary small" disabled={!myTurn || showHint} onClick={() => {
             // first the idea in words, then the arrow; each costs like a mistake
             setMistakes((n) => n + 1)
-            setErrors((e) => [...e, 'Tipp'])
+            setErrors((e) => [...e, t('Tipp')])
             const idea = noteFor(ply)
-            if (!ideaShown && idea) { setIdeaShown(true); setNote({ text: `Die Idee: ${idea}`, tone: '' }) }
-            else { setShowHint(true); setNote({ text: 'Der Pfeil zeigt den Zug.', tone: '' }) }
-          }}><Icon name="bulb" /> {ideaShown ? 'Zug zeigen' : 'Tipp'}</button>
+            if (!ideaShown && idea) { setIdeaShown(true); setNote({ text: `${t('Die Idee:')} ${idea}`, tone: '' }) }
+            else { setShowHint(true); setNote({ text: t('Der Pfeil zeigt den Zug.'), tone: '' }) }
+          }}><Icon name="bulb" /> {ideaShown ? t('Zug zeigen') : t('Tipp')}</button>
         </div>
       )}
     </div>
